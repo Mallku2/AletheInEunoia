@@ -535,21 +535,27 @@
 
 ; program: $check_forall_inst
 ; args:
-; - Conclusion Bool:
-; return:
+; - conclusion Bool: Conclusion given to rule forall_inst.
+; - variables_substitutes @VarList: >
+;    @VarList of substitutes for each universally quantified bounded variable,
+;    in the conclusion.
+; return: >
+;    A boolean has the form ¬(∀𝑥1, … , 𝑥𝑛.𝑃) ∨𝑃[𝑥1 ↦𝑡1, … , 𝑥𝑛↦𝑡𝑛], for bounded
+;    variables 𝑥1, … , 𝑥𝑛,  and corresponding substitutes 𝑡1, … , 𝑡𝑛.
 (program $check_forall_inst ((forall_vars @VarList) 
                                                        (body Bool)
                                                        (instantiated_body Bool) 
-                                                       (variables_substitutions @VarList))
+                                                       (variables_substitutes @VarList))
   (Bool @VarList) Bool
   (
    (;  TODO: 𝑥𝑖 and 𝑡𝑖 have the same sort
     ($check_forall_inst (@cl (or (not (forall forall_vars body)) instantiated_body))
-                        variables_substitutions)
+                        variables_substitutes)
+
     ($eo_is_eq instantiated_body ($substitution_apply body 
                                                             ($substitution_build 
                                                              forall_vars
-                                                             variables_substitutions)))
+                                                             variables_substitutes)))
     )
    )
 )
