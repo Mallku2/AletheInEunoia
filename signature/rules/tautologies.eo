@@ -112,20 +112,34 @@
 ; Rule 28: eq_congruent_pred
 ;---------------------------
 
-;TODO
-(program $check_eq_congruent_pred ((conclusion Bool))
+; program: $check_eq_congruent_pred
+; args:
+; - conclusion Bool: Conclusion clause given to rule cong.
+; return: >
+;   A boolean indicating if `conclusion` has the form 
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), (P 𝑡1 ⋯ 𝑡𝑛) ≈ (P 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
+;   function symbol P, with co-domain sort Bool.
+(program $check_eq_congruent_pred ((hd Bool) (tail Bool :list))
   :signature (Bool) Bool
   (
-   (($check_eq_congruent_pred conclusion) true)
-  )
-)
+   (
+    ($check_eq_congruent_pred (@cl hd tail))
 
-;TRUST
+    ($check_eq_congruent (@cl hd tail))
+     )
+    )
+   )
+
+; rule: eq_congruent_pred
+; requires: >
+;   For the conclusion to be built with @cl and to have the form:
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), (P 𝑡1 ⋯ 𝑡𝑛) ≈ (P 𝑢1 ⋯ 𝑢𝑛), 
+;   where 𝑃 is a function symbol with co-domain sort Bool.
+; conclusion-explicit: A clause built with @cl.
 (declare-rule eq_congruent_pred ((hd Bool) (tail Bool :list))
   :requires ((($check_eq_congruent_pred (@cl hd tail)) true))
   :conclusion-explicit (@cl hd tail)
 )
-
 
 ;-----------------------
 ; Rule 73: or_simplify
