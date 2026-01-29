@@ -5,6 +5,105 @@
 ; Rules that introduce tautologies.
 
 ;-----------------------
+; Rule 26: eq_transitive
+;-----------------------
+
+; program: $check_eq_transitive_remaining_equalities
+; args:
+; - t2 A: Left-hand side of the next equation that we should look for.
+; - tn A: Right-hand side of the last equation.
+; - assumptions Bool: Clause with the remaining assumptions passed to eq_transitive.
+; return: >
+;   A boolean indicating if there is a chain of equivalences between terms, beginning
+;   from `t2`, following the equalities contained into `assumptions`, and reaching
+;   to term `tn`.
+(program $check_eq_transitive_remaining_equalities ((A Type) (t2 A) (t3 A)
+                                                    (tn_1 A) (tn A) 
+                                                    (tail Bool :list))
+
+         :signature (A A Bool) Bool
+
+         (
+          (; Last case
+           ($check_eq_transitive_remaining_equalities tn_1 tn (@cl (not (= tn_1 tn))))
+
+           true
+           )
+
+          (; Intermediate step.
+           ($check_eq_transitive_remaining_equalities t2 tn (@cl (not (= t2 t3)) tail))
+
+           ($check_eq_transitive_remaining_equalities t3 tn tail)
+           )
+          )
+         )
+
+; program: $check_eq_transitive_from_first_equality
+; args:
+; - last_equality Bool: >
+;   Last disjunct present in the conclusion clause passed to `eq_transitive`.
+;   It must be an equality among arbitrary terms.
+; - assumptions Bool: Clause with the remaining assumptions passed to eq_transitive.
+; return: >
+;   A boolean indicating if there is a chain of equivalences between terms, beginning
+;   from the left-hand side of `last-equality`, following the equalities contained 
+;   into `assumptions`, and reaching to right-hand side of `last-equality`.
+(program $check_eq_transitive_from_first_equality ((A Type) (t1 A) (t2 A) (tn A)
+                                                   (tail Bool :list))
+
+         :signature (Bool Bool) Bool
+
+         (
+          (; First case
+           ($check_eq_transitive_from_first_equality (= t1 tn) (@cl (not (= t1 t2)) tail))
+
+           ($check_eq_transitive_remaining_equalities t2 tn tail)
+           )
+          )
+         )
+
+; program: $check_trans
+; args:
+; - conclusion Bool: Conclusion given to rule `eq_transitive`. Must be built with @cl.
+; return: >
+;   A boolean indicating if `conclusion` is of the form
+;   ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛), 𝑡1 ≈ 𝑡𝑛
+(program $check_eq_transitive ((hd Bool) (tail Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($check_eq_transitive (@cl hd tail))
+    
+    (eo::define
+
+     (
+      (last_equality ($f_list_last_element @cl false (@cl hd tail)))
+      )
+
+     (eo::define
+      
+      (
+       (assumptions ($f_list_remove_elem @cl (@cl hd tail) last_equality false))
+       )
+
+      ($check_eq_transitive_from_first_equality last_equality assumptions)))
+    )
+   )
+  )
+
+; rule: eq_transitive
+; requires: >
+;   For "conclusion" to be of the form:
+;   ¬(𝑡1 ≈𝑡2), … , ¬(𝑡𝑛−1 ≈𝑡𝑛), 𝑡1 ≈𝑡𝑛
+; conclusion-explicit: >
+;   Conclusion should be a clause built with @cl, satisfying the described
+;   side-condition.
+(declare-rule eq_transitive ((hd Bool) (tail Bool :list))
+  :requires ((($check_eq_transitive (@cl hd tail)) true))
+  :conclusion-explicit (@cl hd tail)
+)
+
+;-----------------------
 ; Rule 27: eq_congruent
 ;-----------------------
 
