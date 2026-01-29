@@ -2070,18 +2070,172 @@
 ;   :conclusion (@cl (or (not (forall xs phi)) (forall xsP phiP)))
 ; )
 
-;TODO
-(program $check_qnt_cnf ((conclusion Bool))
-  :signature (Bool) Bool
+;-----------------
+; Rule 29: qnt_cnf
+;-----------------
+
+(program $negative_normal_form ()
+
+         :signature (Bool Bool) Bool
+
+         (
+          (
+           ($negative_normal_form (not phi_1) true)
+
+           ($negative_normal_form phi_1 false)
+           )
+
+          (
+           ($negative_normal_form (not phi_1) false)
+
+           ($negative_normal_form phi_1 true)
+           )
+
+          (
+           ($negative_normal_form (or disjunct disjuncts) true)
+
+           ($f_list_cons or 
+                         ($negative_normal_form disjunct true)
+                         ($negative_normal_form disjuncts true))
+           )
+
+          (
+           ($negative_normal_form (or disjunct disjuncts) false)
+
+           ($f_list_cons or 
+                         ($negative_normal_form disjunct false)
+                         ($negative_normal_form disjuncts false))
+           )
+
+          (
+           ($negative_normal_form (and conjunct conjuncts) true)
+
+           ($f_list_cons and
+                         ($negative_normal_form conjunct true)
+                         ($negative_normal_form conjuncts true))
+           )
+
+          (
+           ($negative_normal_form (and conjunct conjuncts) false)
+
+           ($f_list_cons and
+                         ($negative_normal_form conjunct false)
+                         ($negative_normal_form conjuncts false))
+           )
+
+          (
+           ($negative_normal_form (=> phi_1 phi_2) true)
+
+           ($f_list_cons and
+                         ($f_list_cons or
+                                       ($negative_normal_form phi_1 false)
+                                       ($negative_normal_form phi_2 true))
+
+                         ($f_list_cons or
+                                       ($negative_normal_form phi_2 false)
+                                       ($negative_normal_form phi_1 true)))
+           )
+
+          (
+           ($negative_normal_form (=> phi_1 phi_2) false)
+
+           ($f_list_cons or
+                         ($f_list_cons and
+                                       ($negative_normal_form phi_1 true)
+                                       ($negative_normal_form phi_2 false))
+
+                         ($f_list_cons and
+                                       ($negative_normal_form phi_2 true)
+                                       ($negative_normal_form phi_1 false)))
+           )
+
+          (
+           ($negative_normal_form (ite phi_1 phi_2 phi_3) true)
+
+           ($f_list_cons and
+                         ($f_list_cons or
+                                       ($negative_normal_form phi_1 false)
+                                       ($negative_normal_form phi_2 true))
+
+                         ($f_list_cons or
+                                       ($negative_normal_form phi_1 true)
+                                       ($negative_normal_form phi_3 true)))
+           )
+
+          (
+           ($negative_normal_form (ite phi_1 phi_2 phi_3) false)
+
+           ($f_list_cons or
+                         ($f_list_cons and
+                                       ($negative_normal_form phi_1 true)
+                                       ($negative_normal_form phi_2 false))
+
+                         ($f_list_cons and
+                                       ($negative_normal_form phi_1 false)
+                                       ($negative_normal_form phi_3 false)))
+           )
+
+          (
+           ($negative_normal_form (forall varlist body) true)
+
+           (forall varlist ($negative_normal_form body true))
+           )
+
+          (
+           ($negative_normal_form (forall varlist body) false)
+
+           (exists varlist ($negative_normal_form body false))
+           )
+
+          (
+           ($negative_normal_form (exists varlist body) true)
+
+           (exists varlist ($negative_normal_form body true))
+           )
+
+          (
+           ($negative_normal_form (exists varlist body) false)
+
+           (forall varlist ($negative_normal_form body false))
+           )
+
+          (; { phi_1 is an atom }
+           ($negative_normal_form phi_1 true)
+
+           phi_1
+           )
+
+          (; { phi_1 is an atom }
+           ($negative_normal_form phi_1 false)
+
+           (not phi_1)
+           )
+          )
+         )
+
+(program $check_qnt_cnf ((phi Bool) (phiP Bool) (xs @VarList) (xsP @VarList))
+
+  :signature (@VarList Bool @VarList Bool) Bool
+
   (
-   (($check_qnt_cnf conclusion) true)
+   (
+    ($check_qnt_cnf xs phi xsP phiP) 
+
+
+    (eo::and 
+     ; xs is contained in xsP
+     ($f_list_contains_f_list xs xsP)
+
+     ($eo_is_eq phiP ($negative_normal_form phi))
+     )
+    )
   )
 )
 
 ;TRUST
-(declare-rule qnt_cnf ((conclusion Bool))
-  :requires ((($check_qnt_cnf conclusion) true))
-  :conclusion-explicit conclusion
+(declare-rule qnt_cnf ((phi Bool) (phiP Bool) (xs @VarList) (xsP @VarList))
+  :requires ((($check_qnt_cnf xs phi xsP phiP) true))
+  :conclusion-explicit (@cl (or (not (forall xs phi)) (forall xsP phiP)))
 )
 
 ;-------------
