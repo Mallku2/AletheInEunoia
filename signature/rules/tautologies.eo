@@ -8,33 +8,6 @@
 ; Rule 27: eq_congruent
 ;-----------------------
 
-
-
-;; ; program: $eq_congruent_get_last_equality
-;; ; args:
-;; ; - conclusion Bool: >
-;; ;   Conclusion passed to the rule eq_congruent. Must have the form
-;; ;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛)
-;; ; return: The last disjunct, (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛).
-;; (program $eq_congruent_get_last_equality ()
-
-;;          :signature (Bool) Bool
-
-;;          (
-;;           (
-;;            ($eq_congruent_get_last_equality (@cl (= (f t1) (f t2))))
-
-;;            (= (f t1) (f t2))
-;;            )
-
-;;           (
-;;            ($eq_congruent_get_last_equality (@cl (not (= a b)) tail))
-
-;;            ($eq_congruent_get_last_equality tail)
-;;            )
-;;           )
-;;          )
-
 ; program: $check_n_ary_application_eq_congruent
 ; args:
 ; - eq Bool: Last equality in the conclusion passed to the eq_congruent rule.
