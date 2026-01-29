@@ -2835,20 +2835,6 @@
 )
 
 ;TODO
-(program $check_connective_def ((conclusion Bool))
-  :signature (Bool) Bool
-  (
-   (($check_connective_def conclusion) true)
-  )
-)
-
-;TRUST
-(declare-rule connective_def ((conclusion Bool))
-  :requires ((($check_connective_def conclusion) true))
-  :conclusion-explicit conclusion
-)
-
-;TODO
 (program $check_and_simplify ((l Bool) (r Bool))
   :signature (Bool Bool) Bool
   (

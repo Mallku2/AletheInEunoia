@@ -213,6 +213,90 @@
   :conclusion-explicit (@cl hd tail)
 )
 
+;------------------------
+; Rule 71: connective_def
+;------------------------
+
+
+; program: $connective_def
+; args:
+; - formula Bool: An arbitrary formula.
+; return: >
+;   A formula equivalent to `formula`, using the dual operators of those in
+;   `formula`, according to rule `connective_def`.
+; note: >
+;   Doing so is cheaper than writing an Eunoia program that pattern matches
+;   over the conclusion passed to `connective_def`.
+(program $connective_def ((phi1 Bool) (phi2 Bool :list) (phi3 Bool)
+                          (varlist @VarList) (body Bool))
+  :signature (Bool) Bool
+  (
+   (
+    ($connective_def (xor phi1 phi2))
+    
+    ($f_list_cons or 
+                  ($f_list_cons and (not phi1) phi2)
+                  ($f_list_cons and phi1 (not phi2)))
+    )
+
+   (
+    ($connective_def (= phi1 phi2))
+    
+    ($f_list_cons and (=> phi1 phi2) (=> phi2 phi1))
+    )
+
+   (
+    ($connective_def (ite phi1 phi2 phi3))
+    
+    ($f_list_cons and (=> phi1 phi2) (=> (not phi1) phi3))
+    )
+
+   (
+    ($connective_def (forall varlist body))
+
+    (not (exists varlist (not body)))
+    )
+
+   (
+    ($connective_def (exists varlist body))
+
+    (not (forall varlist (not body)))
+    )
+  )
+)
+
+
+; program: $check_connective_def
+; args:
+; - conclusion Bool: Conclusion passed to rule `connective_def`
+; return: >
+;   A boolean indicating if `conclusion` has one of the following forms:
+;   - (xor 𝜑1 𝜑2) ≈((¬𝜑1 ∧ 𝜑2) ∨(𝜑1 ∧¬𝜑2))
+;   - (𝜑1 ≈ 𝜑2) ≈ ((𝜑1 →𝜑2) ∧ (𝜑2 →𝜑1))
+;   - (ite 𝜑1 𝜑2 𝜑3) ≈ ((𝜑1 → 𝜑2) ∧(¬𝜑1 → 𝜑3))
+;   - (∀𝑥1, … , 𝑥𝑛. 𝜑) ≈ ¬(∃𝑥1, … , 𝑥𝑛. ¬𝜑)
+;   - (∃𝑥1, … , 𝑥𝑛. 𝜑) ≈ ¬(∀𝑥1, … , 𝑥𝑛. ¬𝜑)
+(program $check_connective_def ((lhs Bool) (rhs Bool))
+  :signature (Bool) Bool
+  (
+   (
+    ($check_connective_def (@cl (= lhs rhs)))
+    ;   Doing so is cheaper than writing an Eunoia program that pattern matches
+    ;   over the conclusion passed to `connective_def`.
+    ($eo_is_eq ($connective_def lhs) rhs)
+    )
+  )
+)
+
+; rule: connective_def
+; requires: For the conclusion to satisfy the `$check_connective_def` predicate.
+; conclusion-explicit: A conclusion of the form (@cl (= lhs rhs)).
+(declare-rule connective_def ((lhs Bool) (rhs Bool))
+  :requires ((($check_connective_def (@cl (= lhs rhs))) true))
+  :conclusion-explicit (@cl (= lhs rhs))
+)
+
+
 ;-----------------------
 ; Rule 73: or_simplify
 ;-----------------------
