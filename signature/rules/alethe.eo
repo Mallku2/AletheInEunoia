@@ -3058,18 +3058,55 @@
                                (quantifier varlist_2 rhs)))
 )
 
-;TODO
-(program $check_qnt_join ((conclusion Bool))
-  :signature (Bool) Bool
+;------------------
+; Rule 82: qnt_join
+;------------------
+
+
+; program: $check_qnt_join
+; args:
+; - varlist_1 @VarList: >
+;   List of quantified variables from the first quantification in the left-hand
+;   side of the conclusion passed to qnt_join.
+; - varlist_2 @VarList: >
+;   List of quantified variables from the nested quantification in the left-hand
+;   side of the conclusion passed to qnt_join.
+; - varlist_3 @VarList: >
+;   List of quantified variables from the right-hand side of the conclusion 
+;   passed to qnt_join.
+; return: >
+;   A boolean indicating if variables in `varlist_3` can be obtained by removing
+;   duplicates from varlist_1 ++ varlist_2.
+(program $check_qnt_join ((varlist_1 @VarList) (varlist_2 @VarList) (varlist_3 @VarList))
+  :signature (@VarList @VarList @VarList) Bool
   (
-   (($check_qnt_join conclusion) true)
+   (
+    ($check_qnt_join varlist_1 varlist_2 varlist_3)
+
+    ($f_list_equal @varlist 
+                   varlist_3
+                   ($f_list_remove_duplicates @varlist @varlist.nil 
+                                              ($varlist_concat varlist_1 varlist_2)))
+    )
   )
 )
 
-;TRUST
-(declare-rule qnt_join ((conclusion Bool))
-  :requires ((($check_qnt_join conclusion) true))
-  :conclusion-explicit conclusion
+; rule: qnt_join
+; requires: >
+;  Variables in right-hand side of the conclusion can be obtained by removing
+;  duplicates from the list of quantified variables in the left-hand side.
+; conclusion-explicit: >
+;  A conclusion of the form:
+;  (@cl (= (quanfitication varlist_1 (quantification varlist_2 body))
+;          (quantification varlist_3 body)))
+(declare-rule qnt_join ((varlist_1 @VarList) (varlist_2 @VarList) 
+                        (varlist_3 @VarList) (quantification (-> @VarList Bool Bool))
+                        (body Bool))
+
+  :requires ((($check_qnt_join varlist_1 varlist_2 varlist_3) true))
+  :conclusion-explicit (@cl (= (quantification varlist_1 
+                                               (quantification varlist_2 body))
+                               (quantification varlist_3 body)))
 )
 
 ;TODO
