@@ -3063,66 +3063,6 @@
   :conclusion-explicit conclusion
 )
 
-;TODO
-(program $check_xor_pos1 ((CL Bool))
-  :signature (Bool) Bool
-  (
-   (($check_xor_pos1 CL) true)
-  )
-)
-
-;TRUST
-(declare-rule xor_pos1 ((CL Bool))
-  :args (CL)
-  :requires ((($check_xor_pos1 CL) true))
-  :conclusion CL
-)
-
-;TODO
-(program $check_xor_pos2 ((CL Bool))
-  :signature (Bool) Bool
-  (
-   (($check_xor_pos2 CL) true)
-  )
-)
-
-;TRUST
-(declare-rule xor_pos2 ((CL Bool))
-  :args (CL)
-  :requires ((($check_xor_pos2 CL) true))
-  :conclusion CL
-)
-
-;TODO
-(program $check_xor_neg1 ((CL Bool))
-  :signature (Bool) Bool
-  (
-   (($check_xor_neg1 CL) true)
-  )
-)
-
-;TRUST
-(declare-rule xor_neg1 ((CL Bool))
-  :args (CL)
-  :requires ((($check_xor_neg1 CL) true))
-  :conclusion CL
-)
-
-;TODO
-(program $check_xor_neg2 ((CL Bool))
-  :signature (Bool) Bool
-  (
-   (($check_xor_neg2 CL) true)
-  )
-)
-
-;TRUST
-(declare-rule xor_neg2 ((CL Bool))
-  :args (CL)
-  :requires ((($check_xor_neg2 CL) true))
-  :conclusion CL
-)
-
 ;-------------
 ; Rule 56: implies_pos
 ;-------------

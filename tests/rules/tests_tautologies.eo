@@ -249,6 +249,98 @@
                                        (= (h a b c) (h d e j)))) 
              true))
 
+;---------
+; xor_pos1
+;---------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+
+(step $test_xor_pos1_1
+      (@cl (not (xor a b)) a b)
+      :rule xor_pos1)
+
+(step $test_xor_pos1_2
+      (@cl (not (xor (or a true) b)) (or a true) b)
+      :rule xor_pos1)
+
+(step $test_xor_pos1_3
+      (@cl (not (xor (or a true) (and b false))) (or a true) (and b false))
+      :rule xor_pos1)
+
+(step $test_xor_pos1_4
+      (@cl (not (xor (xor a true) (and b false))) (xor a true) (and b false))
+      :rule xor_pos1)
+
+;---------
+; xor_pos2
+;---------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+
+(step $test_xor_pos2_1
+      (@cl (not (xor a b)) (not a) (not b))
+      :rule xor_pos2)
+
+(step $test_xor_pos2_2
+      (@cl (not (xor (or a true) b)) (not (or a true)) (not b))
+      :rule xor_pos2)
+
+(step $test_xor_pos2_3
+      (@cl (not (xor (or a true) (and b false))) (not (or a true)) (not (and b false)))
+      :rule xor_pos2)
+
+(step $test_xor_pos2_4
+      (@cl (not (xor (xor a true) (and b false))) (not (xor a true)) (not (and b false)))
+      :rule xor_pos2)
+
+;---------
+; xor_neg1
+;---------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+
+(step $test_xor_neg1_1
+      (@cl (not (xor a b)) a (not b))
+      :rule xor_neg1)
+
+(step $test_xor_neg1_2
+      (@cl (not (xor (or a true) b)) (or a true) (not b))
+      :rule xor_neg1)
+
+(step $test_xor_neg1_3
+      (@cl (not (xor (or a true) (and b false))) (or a true) (not (and b false)))
+      :rule xor_neg1)
+
+(step $test_xor_neg1_4
+      (@cl (not (xor (xor a true) (and b false))) (xor a true) (not (and b false)))
+      :rule xor_neg1)
+
+;---------
+; xor_neg2
+;---------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+
+(step $test_xor_neg2_1
+      (@cl (not (xor a b)) (not a) b)
+      :rule xor_neg2)
+
+(step $test_xor_neg2_2
+      (@cl (not (xor (or a true) b)) (not (or a true)) b)
+      :rule xor_neg2)
+
+(step $test_xor_neg2_3
+      (@cl (not (xor (or a true) (and b false))) (not (or a true)) (and b false))
+      :rule xor_neg2)
+
+(step $test_xor_neg2_4
+      (@cl (not (xor (xor a true) (and b false))) (not (xor a true)) (and b false))
+      :rule xor_neg2)
+
 ;--------------------
 ; $connective_def
 ;--------------------
