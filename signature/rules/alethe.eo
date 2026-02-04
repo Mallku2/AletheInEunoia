@@ -4019,20 +4019,6 @@
 ;-------------
 
 ;-------------
-; Rule 101: symm
-;-------------
-
-; rule: symm
-; premises: >
-;   An equality of the form (@cl (= phi psy)), for arbitrary formulas phi and psy.
-; conclusion-explicit: >
-;   The conclusion should have the form (@cl (= psy phi)).
-(declare-rule symm ((phi Bool) (psy Bool))
-  :premises ((@cl (= phi psy)))
-  :conclusion-explicit (@cl (= psy phi))
-)
-
-;-------------
 ; Rule 34: reordering
 ;-------------
 
@@ -4082,6 +4068,21 @@
   :requires ((($check_reordering premise conclusion) 
               true))
   :conclusion-explicit conclusion
+)
+
+;-------------------
+; Rule 102: not_symm
+;-------------------
+
+; rule: not_symm
+; premises: >
+;   An equality of the form (@cl (not (= phi psy))), for arbitrary formulas phi 
+;   and psy.
+; conclusion-explicit: >
+;   The conclusion should have the form (@cl (not (= psy phi))).
+(declare-rule not_symm ((phi Bool) (psy Bool))
+  :premises ((@cl (not (= phi psy))))
+  :conclusion-explicit (@cl (not (= psy phi)))
 )
 
 ;-------------

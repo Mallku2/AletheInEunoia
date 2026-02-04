@@ -951,3 +951,33 @@
       (@cl (not (or a true)) (not (and b false)))
       :rule not_equiv2
       :premises (premise_3))
+
+;-----------------
+; not_symm
+;-----------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+
+; Taken from VeriT certificates
+(assume premise_not_symm_1 (@cl (not (= a b))))
+
+(step $test_not_symm_1 
+      (@cl (not (= b a)))
+      :rule not_symm
+      :premises (premise_not_symm_1))
+
+(assume premise_not_symm_2 (@cl (not (= (or a true) b))))
+
+(step $test_not_symm_2
+      (@cl (not (= b (or a true))))
+      :rule not_symm
+      :premises (premise_not_symm_2))
+
+(assume premise_not_symm_3 (@cl (not (= (or a true) (and b false)))))
+
+(step $test_not_symm_3
+      (@cl (not (= (and b false) (or a true))))
+      :rule not_symm
+      :premises (premise_not_symm_3))
+
