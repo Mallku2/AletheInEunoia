@@ -253,6 +253,26 @@
   :conclusion-explicit (@cl (xor phi_1 phi_2) (not phi_1) phi_2)
 )
 
+;--------------------
+; Rule 61: equiv_neg1
+;--------------------
+
+; rule: equiv_neg1
+; conclusion-explicit: Conclusion must be of the form 𝜑1 ≈ 𝜑2, ¬𝜑1, ¬𝜑2.
+(declare-rule equiv_neg1 ((phi_1 Bool) (phi_2 Bool))
+  :conclusion-explicit (@cl (= phi_1 phi_2) (not phi_1) (not phi_2))
+)
+
+;--------------------
+; Rule 62: equiv_neg2
+;--------------------
+
+; rule: equiv_neg2
+; conclusion-explicit: Conclusion must be of the form 𝜑1 ≈ 𝜑2, 𝜑1, 𝜑2.
+(declare-rule equiv_neg2 ((phi_1 Bool) (phi_2 Bool))
+  :conclusion-explicit (@cl (= phi_1 phi_2) phi_1 phi_2)
+)
+
 ;------------------
 ; Rule 65: ite_pos1
 ;------------------

@@ -342,6 +342,53 @@
       :rule xor_neg2)
 
 ;---------
+; equiv_neg1
+;---------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+
+(step $test_equiv_neg1_1
+      (@cl (= a b) (not a) (not b))
+      :rule equiv_neg1)
+
+(step $test_equiv_neg1_2
+      (@cl (= (or a true) b) (not (or a true)) (not b))
+      :rule equiv_neg1)
+
+(step $test_equiv_neg1_3
+      (@cl (= (or a true) (and b false)) (not (or a true)) (not (and b false)))
+      :rule equiv_neg1)
+
+(step $test_equiv_neg1_4
+      (@cl (= (xor a true) (and b false)) (not (xor a true)) (not (and b false)))
+      :rule equiv_neg1)
+
+;------------
+; equiv_neg2
+;------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+
+(step $test_equiv_neg2_1
+      (@cl (= a b) a b)
+      :rule equiv_neg2)
+
+(step $test_equiv_neg2_2
+      (@cl (= (or a true) b) (or a true) b)
+      :rule equiv_neg2)
+
+(step $test_equiv_neg2_3
+      (@cl (= (or a true) (and b false)) (or a true) (and b false))
+      :rule equiv_neg2)
+
+(step $test_equiv_neg2_4
+      (@cl (= (xor a true) (and b false)) (xor a true) (and b false))
+      :rule equiv_neg2)
+
+
+;---------
 ; ite_pos1
 ;---------
 ; Some constants to build terms, for testing purposes.
