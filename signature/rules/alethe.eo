@@ -3174,66 +3174,6 @@
   :conclusion-explicit (@cl (not phi1) phi2)
 )
 
-;TODO
-(program $check_ite_pos1 ((CL Bool))
-  :signature (Bool) Bool
-  (
-   (($check_ite_pos1 CL) true)
-  )
-)
-
-;TRUST
-(declare-rule ite_pos1 ((CL Bool))
-  :args (CL)
-  :requires ((($check_ite_pos1 CL) true))
-  :conclusion CL
-)
-
-;TODO
-(program $check_ite_pos2 ((CL Bool))
-  :signature (Bool) Bool
-  (
-   (($check_ite_pos2 CL) true)
-  )
-)
-
-;TRUST
-(declare-rule ite_pos2 ((CL Bool))
-  :args (CL)
-  :requires ((($check_ite_pos2 CL) true))
-  :conclusion CL
-)
-
-;TODO
-(program $check_ite_neg1 ((CL Bool))
-  :signature (Bool) Bool
-  (
-   (($check_ite_neg1 CL) true)
-  )
-)
-
-;TRUST
-(declare-rule ite_neg1 ((CL Bool))
-  :args (CL)
-  :requires ((($check_ite_neg1 CL) true))
-  :conclusion CL
-)
-
-;TODO
-(program $check_ite_neg2 ((CL Bool))
-  :signature (Bool) Bool
-  (
-   (($check_ite_neg2 CL) true)
-  )
-)
-
-;TRUST
-(declare-rule ite_neg2 ((CL Bool))
-  :args (CL)
-  :requires ((($check_ite_neg2 CL) true))
-  :conclusion CL
-)
-
 ;-------------
 ; Rule 69: not_ite1
 ;-------------

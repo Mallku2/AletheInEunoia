@@ -238,9 +238,9 @@
 ;------------------
 
 ; rule: xor_neg1
-; conclusion-explicit: Conclusion must be of the form ¬(xor 𝜑1 𝜑2), 𝜑1, ¬𝜑2.
+; conclusion-explicit: Conclusion must be of the form (xor 𝜑1 𝜑2), 𝜑1, ¬𝜑2.
 (declare-rule xor_neg1 ((phi_1 Bool) (phi_2 Bool))
-  :conclusion-explicit (@cl (not (xor phi_1 phi_2)) phi_1 (not phi_2))
+  :conclusion-explicit (@cl (xor phi_1 phi_2) phi_1 (not phi_2))
 )
 
 ;------------------
@@ -248,9 +248,49 @@
 ;------------------
 
 ; rule: xor_neg2
-; conclusion-explicit: Conclusion must be of the form ¬(xor 𝜑1 𝜑2), ¬𝜑1, 𝜑2.
+; conclusion-explicit: Conclusion must be of the form (xor 𝜑1 𝜑2), ¬𝜑1, 𝜑2.
 (declare-rule xor_neg2 ((phi_1 Bool) (phi_2 Bool))
-  :conclusion-explicit (@cl (not (xor phi_1 phi_2)) (not phi_1) phi_2)
+  :conclusion-explicit (@cl (xor phi_1 phi_2) (not phi_1) phi_2)
+)
+
+;------------------
+; Rule 65: ite_pos1
+;------------------
+
+; rule: ite_pos1
+; conclusion-explicit: Conclusion must be of the form ¬(ite 𝜑1 𝜑2 𝜑3), 𝜑1, 𝜑3.
+(declare-rule ite_pos1 ((phi_1 Bool) (phi_2 Bool) (phi_3 Bool))
+  :conclusion-explicit (@cl (not (ite phi_1 phi_2 phi_3)) phi_1 phi_3)
+)
+
+;------------------
+; Rule 66: ite_pos2
+;------------------
+
+; rule: ite_pos2
+; conclusion-explicit: Conclusion must be of the form ¬(ite 𝜑1 𝜑2 𝜑3), ¬𝜑1, 𝜑2.
+(declare-rule ite_pos2 ((phi_1 Bool) (phi_2 Bool) (phi_3 Bool))
+  :conclusion-explicit (@cl (not (ite phi_1 phi_2 phi_3)) (not phi_1) phi_2)
+)
+
+;------------------
+; Rule 67: ite_neg1
+;------------------
+
+; rule: ite_neg1
+; conclusion-explicit: Conclusion must be of the form (ite 𝜑1 𝜑2 𝜑3), 𝜑1, ¬𝜑3.
+(declare-rule ite_neg1 ((phi_1 Bool) (phi_2 Bool) (phi_3 Bool))
+  :conclusion-explicit (@cl (ite phi_1 phi_2 phi_3) phi_1 (not phi_3))
+)
+
+;------------------
+; Rule 68: ite_neg2
+;------------------
+
+; rule: ite_neg2
+; conclusion-explicit: Conclusion must be of the form (ite 𝜑1 𝜑2 𝜑3), 𝜑1, ¬𝜑3.
+(declare-rule ite_neg2 ((phi_1 Bool) (phi_2 Bool) (phi_3 Bool))
+  :conclusion-explicit (@cl (ite phi_1 phi_2 phi_3) (not phi_1) (not phi_2))
 )
 
 ;------------------------
