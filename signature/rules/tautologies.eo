@@ -909,6 +909,54 @@
 )
 
 ;-----------------------
+; Rule 80: qnt_simplify
+;-----------------------
+
+; program: $check_qnt_simplify
+; args:
+; - formula Bool: >
+;   The body of the quantification present in the conclusion passed to rule
+;   qnt_simplify.
+; return: >
+;   A boolean indicating if `formula` is equal to true or false.
+(program $check_qnt_simplify ((formula Bool))
+         
+         :signature (Bool) Bool
+
+         (
+          (
+           ($check_qnt_simplify true)
+
+           true
+           )
+
+          (
+           ($check_qnt_simplify false)
+
+           true
+           )
+
+          (; { formula != true, false }
+           ($check_qnt_simplify formula)
+
+           false
+           )
+          )
+         )
+
+; rule: qnt_simplify
+; requires: >
+;   For a given conclusion of the form (@cl (= (forall varlist phi) phi)), phi
+;   must be "true" or "false".
+; conclusion-explicit: >
+;   The conclusion should be of the form (@cl (= (forall varlist phi) phi)).
+(declare-rule qnt_simplify ((phi Bool) (varlist @VarList))
+  :requires ((($check_qnt_simplify phi) true))
+  :conclusion-explicit (@cl (= (forall varlist phi) phi))
+)
+
+
+;-----------------------
 ; Rule 83: qnt_rm_unused
 ;-----------------------
 

@@ -1232,3 +1232,16 @@
 (step $test_$eq_symmetric_12
       (@cl (= (= (g e) (g (g f))) (= (g (g f)) (g e))))
       :rule eq_symmetric)
+
+;-------------
+; qnt_simplify
+;-------------
+; NOTE: it would be interesting to be able to check the cases where this rule should
+;       not apply.
+(step $test_qnt_simplify_1
+      (@cl (= (forall @varlist.nil true) true))
+      :rule qnt_simplify)
+
+(step $test_qnt_simplify_2
+      (@cl (= (forall @varlist.nil false) false))
+      :rule qnt_simplify)
