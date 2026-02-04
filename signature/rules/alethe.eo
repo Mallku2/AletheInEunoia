@@ -2884,9 +2884,9 @@
 )
 
 
-;-------------
+;--------------------
 ; Rule 46: not_equiv1
-;-------------
+;--------------------
 ; rule: not_equiv1
 ; premises:
 ; - premise Bool: >
@@ -2897,6 +2897,21 @@
 (declare-rule not_equiv1 ((phi1 Bool) (phi2 Bool))
   :premises ((@cl (not (= phi1 phi2))))
   :conclusion-explicit (@cl phi1 phi2)
+)
+
+;--------------------
+; Rule 47: not_equiv2
+;--------------------
+; rule: not_equiv2
+; premises:
+; - premise Bool: >
+;   A negated equivalence between some propositions phi1 and phi2, in clause form:
+;   (@cl (not (phi1 = phi2))).
+; conclusion-explicit: >
+;   The conclusion should be of the form (@cl (not phi1) (not phi2)).
+(declare-rule not_equiv2 ((phi1 Bool) (phi2 Bool))
+  :premises ((@cl (not (= phi1 phi2))))
+  :conclusion-explicit (@cl (not phi1) (not phi2))
 )
 
 ;-------------
