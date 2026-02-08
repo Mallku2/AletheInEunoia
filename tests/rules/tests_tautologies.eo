@@ -586,6 +586,195 @@
              true))
 
 ;-------------
+; $and_simplify_rec
+;-------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+; First case of $and_simplify_rec
+(step $test_$and_simplify_rec_1 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec (and true true)) true))
+
+
+; Second case of $and_simplify_rec
+(step $test_$and_simplify_rec_2 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec (and true a b true)) 
+             ($f_list_cons and a b)))
+
+(step $test_$and_simplify_rec_3 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec (and true a b true c true)) 
+             ($f_list_cons and a ($f_list_cons and b c))))
+
+
+; Fourth case of $and_simplify_rec
+(step $test_$and_simplify_rec_4 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec (and a false true)) 
+             false))
+
+
+;-------------
+; and_simplify
+;-------------
+
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+; First case of $and_simplify_rec
+(step $test_$and_simplify_1
+      (@cl (= true true))
+      :rule and_simplify)
+
+(step $test_$and_simplify_2
+      (@cl (= (and true true) true))
+      :rule and_simplify)
+
+(step $test_$and_simplify_3
+      (@cl (= (and true true true) true))
+      :rule and_simplify)
+
+(step $test_$and_simplify_4
+      (@cl (= (and true true true true) true))
+      :rule and_simplify)
+
+; Second case of $and_simplify_rec
+(step $test_$and_simplify_5
+      (@cl (= (and a true) a))
+      :rule and_simplify)
+
+(step $test_$and_simplify_6
+      (@cl (= (and true a) a))
+      :rule and_simplify)
+
+(step $test_$and_simplify_7
+      (@cl (= (and true a true) a))
+      :rule and_simplify)
+
+(step $test_$and_simplify_8
+      (@cl (= (and true true a true) a))
+      :rule and_simplify)
+
+(step $test_$and_simplify_9
+      (@cl (= (and true true true a) a))
+      :rule and_simplify)
+
+(step $test_$and_simplify_10
+      (@cl (= (and true a true b) 
+              ($f_list_cons and a b)))
+      :rule and_simplify)
+
+(step $test_$and_simplify_11
+      (@cl (= (and true a b c true) 
+              ($f_list_cons and a ($f_list_cons and b c))))
+      :rule and_simplify)
+
+; Third case of $and_simplify_rec
+(step $test_$and_simplify_12
+      (@cl (= (and a a true) a))
+      :rule and_simplify)
+
+(step $test_$and_simplify_13
+      (@cl (= (and a true a) a))
+      :rule and_simplify)
+
+(step $test_$and_simplify_14
+      (@cl (= (and a true a true) a))
+      :rule and_simplify)
+
+(step $test_$and_simplify_15
+      (@cl (= (and true a true a true) a))
+      :rule and_simplify)
+
+(step $test_$and_simplify_16
+      (@cl (= (and true a a a) a))
+      :rule and_simplify)
+
+(step $test_$and_simplify_17
+      (@cl (= (and true a b true a b) 
+              ($f_list_cons and a b)))
+      :rule and_simplify)
+
+(step $test_$and_simplify_18
+      (@cl (= (and true a b c c true a) 
+              ($f_list_cons and b ($f_list_cons and c a))))
+      :rule and_simplify)
+
+; Fourth case of $and_simplify_rec
+(step $test_$and_simplify_19
+      (@cl (= (and a false) false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_20
+      (@cl (= (and a false a) false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_21
+      (@cl (= (and a false a true) false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_22
+      (@cl (= (and false a true a true) false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_23
+      (@cl (= (and false a a true) false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_24
+      (@cl (= (and false a b false true b) 
+              false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_25
+      (@cl (= (and false a b c c true a) 
+              false))
+      :rule and_simplify)
+
+; Fifth case of $and_simplify_rec
+(step $test_$and_simplify_26
+      (@cl (= (and (not a) a) 
+              false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_27
+      (@cl (= (and a (not a)) 
+              false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_28
+      (@cl (= (and a (not (not (not a))))
+              false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_29
+      (@cl (= (and (not (not a)) (not (not (not a))))
+              false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_30
+      (@cl (= (and (not (not a)) true (not (not (not a))))
+              false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_31
+      (@cl (= (and (not (not (not (not a)))) true (not (not (not a))))
+              false))
+      :rule and_simplify)
+
+(step $test_$and_simplify_32
+      (@cl (= (and (not (not (not (not a)))) true (not (not (not a))) b)
+              false))
+      :rule and_simplify)
+
+
+;-------------
 ; $or_simplify_rec
 ;-------------
 ; Some constants to build terms, for testing purposes.
