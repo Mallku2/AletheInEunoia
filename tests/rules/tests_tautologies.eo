@@ -1478,24 +1478,339 @@
       (@cl (= (forall @varlist.nil false) false))
       :rule qnt_simplify)
 
-;--------------
-; comp_simplify
-;--------------
+;---------------------------
+; comp_simplify_small_step
+;---------------------------
 
 (declare-const a Int)
 (declare-const b Int)
-(declare-const c Int)
-(declare-const d Int)
-(declare-const e Int)
 
+; Case 𝑠1 < 𝑠2 ⇒ ⊤, if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is strictly less than 𝑠2
 (step $test_$comp_simplify_small_step_1 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (< 1 2))
+
+             true))
+
+(step $test_$comp_simplify_small_step_2 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (< 1.0 2.0))
+
+             true))
+
+; Case 𝑠1 < 𝑠2 ⇒ ⊥, if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is greater or equal than 𝑠2
+(step $test_$comp_simplify_small_step_3 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (< 2 1))
+
+             false))
+
+(step $test_$comp_simplify_small_step_4 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (< 2.0 1.0))
+
+             false))
+
+; Case 𝑠1 ≤ 𝑠2 ⇒ ⊤ if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is less or equal than 𝑠2.
+(step $test_$comp_simplify_small_step_5 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (<= 1 2))
+
+             true))
+
+(step $test_$comp_simplify_small_step_6 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (<= 2.0 2.0))
+
+             true))
+
+; Case 𝑠1 ≤ 𝑠2 ⇒ ⊥ if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is strictly greater than 𝑠2
+(step $test_$comp_simplify_small_step_5 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (<= 2 1))
+
+             false))
+
+(step $test_$comp_simplify_small_step_6 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (<= 4.0 2.0))
+
+             false))
+
+; Case 𝑠 < 𝑠 ⇒ ⊥
+(step $test_$comp_simplify_small_step_6 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (< 2 2))
+
+             false))
+
+(step $test_$comp_simplify_small_step_7 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (< 4.0 4.0))
+
+             false))
+
+(step $test_$comp_simplify_small_step_8 true
       :rule $assert_eq 
       :args (($comp_simplify_small_step (< a a))
 
              false))
 
-(step $test_$comp_simplify_small_step_2 true
+; Case 𝑠 <= 𝑠 ⇒ ⊤
+(step $test_$comp_simplify_small_step_9 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (<= 2 2))
+
+             true))
+
+(step $test_$comp_simplify_small_step_10 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (<= 4.0 4.0))
+
+             true))
+
+(step $test_$comp_simplify_small_step_11 true
       :rule $assert_eq 
       :args (($comp_simplify_small_step (<= a a))
 
              true))
+
+; Case 𝑠1 ≥ 𝑠2 ⇒ 𝑠2 ≤ 𝑠1
+(step $test_$comp_simplify_small_step_12 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (>= a b))
+
+             (<= b a)))
+
+(step $test_$comp_simplify_small_step_13 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (>= 1 2))
+
+             (<= 2 1)))
+
+; Case 𝑠1 < 𝑠2 ⇒ not (𝑠2 ≤ 𝑠1)
+(step $test_$comp_simplify_small_step_14 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (< a b))
+
+             (not (<= b a))))
+
+; Case 𝑠1 > 𝑠2 ⇒ not (𝑠1 ≤ 𝑠2)
+(step $test_$comp_simplify_small_step_14 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (> a b))
+
+             (not (<= a b))))
+
+;---------------------------
+; $comp_simplify_rec
+;---------------------------
+
+(declare-const a Int)
+(declare-const b Int)
+
+; Case 𝑠1 < 𝑠2 ⇒ ⊤, if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is strictly less than 𝑠2
+(step $test_$comp_simplify_rec_1 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (< 1 2))
+
+             true))
+
+(step $test_$comp_simplify_rec_2 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (< 1.0 2.0))
+
+             true))
+
+; Case 𝑠1 < 𝑠2 ⇒ ⊥, if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is greater or equal than 𝑠2
+(step $test_$comp_simplify_rec_3 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (< 2 1))
+
+             false))
+
+(step $test_$comp_simplify_rec_4 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (< 2.0 1.0))
+
+             false))
+
+; Case 𝑠1 ≤ 𝑠2 ⇒ ⊤ if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is less or equal than 𝑠2.
+(step $test_$comp_simplify_rec_5 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (<= 1 2))
+
+             true))
+
+(step $test_$comp_simplify_rec_6 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (<= 2.0 2.0))
+
+             true))
+
+; Case 𝑠1 ≤ 𝑠2 ⇒ ⊥ if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is strictly greater than 𝑠2
+(step $test_$comp_simplify_rec_5 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (<= 2 1))
+
+             false))
+
+(step $test_$comp_simplify_rec_6 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (<= 4.0 2.0))
+
+             false))
+
+; Case 𝑠 < 𝑠 ⇒ ⊥
+(step $test_$comp_simplify_rec_6 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (< 2 2))
+
+             false))
+
+(step $test_$comp_simplify_rec_7 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (< 4.0 4.0))
+
+             false))
+
+(step $test_$comp_simplify_rec_8 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (< a a))
+
+             false))
+
+; Case 𝑠 <= 𝑠 ⇒ ⊤
+(step $test_$comp_simplify_rec_9 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (<= 2 2))
+
+             true))
+
+(step $test_$comp_simplify_rec_10 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (<= 4.0 4.0))
+
+             true))
+
+(step $test_$comp_simplify_rec_11 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (<= a a))
+
+             true))
+
+; Case 𝑠1 ≥ 𝑠2 ⇒ 𝑠2 ≤ 𝑠1
+(step $test_$comp_simplify_rec_12 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (>= a b))
+
+             (<= b a)))
+
+(step $test_$comp_simplify_rec_13 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (>= 1 2))
+
+             false))
+
+; Case 𝑠1 < 𝑠2 ⇒ not (𝑠2 ≤ 𝑠1)
+(step $test_$comp_simplify_rec_14 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (< a b))
+
+             (not (<= b a))))
+
+; Case 𝑠1 > 𝑠2 ⇒ not (𝑠1 ≤ 𝑠2)
+(step $test_$comp_simplify_rec_14 true
+      :rule $assert_eq 
+      :args (($comp_simplify_rec (> a b))
+
+             (not (<= a b))))
+
+
+;---------------------------
+; comp_simplify
+;---------------------------
+
+(declare-const a Int)
+(declare-const b Int)
+
+; Case 𝑠1 < 𝑠2 ⇒ ⊤, if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is strictly less than 𝑠2
+(step $test_comp_simplify_1 
+      (@cl (= (< 1 2) true))
+      :rule comp_simplify)
+
+(step $test_comp_simplify_2 
+      (@cl (= (< 1.0 2.0) true))
+      :rule comp_simplify)
+
+; Case 𝑠1 < 𝑠2 ⇒ ⊥, if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is greater or equal than 𝑠2
+(step $test_comp_simplify_3 
+      (@cl (= (< 2 1) false))
+      :rule comp_simplify)
+
+(step $test_comp_simplify_4 
+      (@cl (= (< 2.0 1.0) false))
+      :rule comp_simplify)
+
+; Case 𝑠1 ≤ 𝑠2 ⇒ ⊤ if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is less or equal than 𝑠2.
+(step $test_comp_simplify_5 
+      (@cl (= (<= 1 2) true))
+      :rule comp_simplify)
+
+(step $test_comp_simplify_6 
+      (@cl (= (<= 2.0 2.0) true))
+      :rule comp_simplify)
+
+; Case 𝑠1 ≤ 𝑠2 ⇒ ⊥ if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is strictly greater than 𝑠2
+(step $test_comp_simplify_5 
+      (@cl (= (<= 2 1) false))
+      :rule comp_simplify)
+
+(step $test_comp_simplify_6 
+      (@cl (= (<= 4.0 2.0) false))
+      :rule comp_simplify)
+
+; Case 𝑠 < 𝑠 ⇒ ⊥
+(step $test_comp_simplify_6 
+      (@cl (= (< 2 2) false))
+      :rule comp_simplify)
+
+(step $test_comp_simplify_7 
+      (@cl (= (< 4.0 4.0) false))
+      :rule comp_simplify)
+
+(step $test_comp_simplify_8 
+      (@cl (= (< a a) false))
+      :rule comp_simplify)
+
+; Case 𝑠 <= 𝑠 ⇒ ⊤
+(step $test_comp_simplify_9 
+      (@cl (= (<= 2 2) true))
+      :rule comp_simplify)
+
+(step $test_comp_simplify_10 
+      (@cl (= (<= 4.0 4.0) true))
+      :rule comp_simplify)
+
+(step $test_comp_simplify_11 
+      (@cl (= (<= a a) true))
+      :rule comp_simplify)
+
+; Case 𝑠1 ≥ 𝑠2 ⇒ 𝑠2 ≤ 𝑠1
+(step $test_comp_simplify_12 
+      (@cl (= (>= a b) (<= b a)))
+      :rule comp_simplify)
+
+(step $test_comp_simplify_13 
+      (@cl (= (>= 1 2) false))
+      :rule comp_simplify)
+
+; Case 𝑠1 < 𝑠2 ⇒ not (𝑠2 ≤ 𝑠1)
+(step $test_comp_simplify_14 
+      (@cl (= (< a b) (not (<= b a))))
+      :rule comp_simplify)
+
+; Case 𝑠1 > 𝑠2 ⇒ not (𝑠1 ≤ 𝑠2)
+(step $test_comp_simplify_14 
+      (@cl (= (> a b) (not (<= a b))))
+      :rule comp_simplify)

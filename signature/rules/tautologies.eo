@@ -1372,7 +1372,7 @@
 
                                         ; { (eo::and ($is_numeric_literal t1)
                                         ;            ($is_numeric_literal t2))}
-                    (< t1 t2)
+                    (not (<= t2 t1))
                     )
            )
           )
@@ -1411,19 +1411,36 @@
     )
   )
 
-;TODO
-(program $check_comp_simplify ((l Bool) (r Bool))
+; program: $check_comp_simplify
+; args:
+; - ineq Bool: >
+;   left-hand side inequality present in the conclusion passed to `comp_simplify`
+; - psi Bool: >
+;   right-hand side inequality present in the conclusion passed to `comp_simplify`
+; return: >
+;   A boolean indicating if `ineq` can be reduced to `psi`, using the rules
+;   in `$comp_simplify_rec`.
+(program $check_comp_simplify ((A Type) (lhs A) (rhs A) (psi Bool)
+                               (order (-> A A Bool)))
   :signature (Bool Bool) Bool
   (
-   (($check_comp_simplify l r) true)
-  )
-)
+   (
+    ($check_comp_simplify (order lhs rhs) psi) 
 
-;TRUST
-(declare-rule comp_simplify ((l Bool) (r Bool))
-  :args ((@cl (= l r)))
-  :requires ((($check_comp_simplify l r) true))
-  :conclusion (@cl (= l r))
+    ($eo_is_eq ($comp_simplify_rec (order lhs rhs)) psi)
+    )
+   )
+  )
+
+
+; rule: comp_simplify
+; requires: >
+;  For `rhs` in conclusion to be the canonical form of `lhs`, according to
+;  rules in `$comp_simplify_rec`.
+; conclusion-explicit: Conclusion of the form (@cl (= lhs rhs)),
+(declare-rule comp_simplify ((lhs Bool) (rhs Bool))
+  :requires ((($check_comp_simplify lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs))
 )
 
 
