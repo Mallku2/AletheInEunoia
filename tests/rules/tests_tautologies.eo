@@ -1477,3 +1477,25 @@
 (step $test_qnt_simplify_2
       (@cl (= (forall @varlist.nil false) false))
       :rule qnt_simplify)
+
+;--------------
+; comp_simplify
+;--------------
+
+(declare-const a Int)
+(declare-const b Int)
+(declare-const c Int)
+(declare-const d Int)
+(declare-const e Int)
+
+(step $test_$comp_simplify_small_step_1 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (< a a))
+
+             false))
+
+(step $test_$comp_simplify_small_step_2 true
+      :rule $assert_eq 
+      :args (($comp_simplify_small_step (<= a a))
+
+             true))
