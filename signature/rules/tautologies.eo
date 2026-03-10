@@ -1301,6 +1301,184 @@
   :conclusion-explicit (@cl (= lhs rhs))
 )
 
+;-----------------------
+; Rule 90: comp_simplify
+;-----------------------
+
+; program: $comp_simplify_small_step
+; args:
+; - formula Bool: A formula of the form 𝑡1 ⋈ 𝑡2, where ⋈ ∈ {<, >, ≤, ≥}
+; return: >
+;   The result from applying one of the following equivalence-preserving 
+;   transformations:
+;   - 𝑠1 < 𝑠2 ⇒⊤ if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is strictly less than 𝑠2
+;   - 𝑠1 < 𝑠2 ⇒⊥ if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is greater or equal than 𝑠2
+;   - 𝑠1 ≤ 𝑠2 ⇒⊤ if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is less or equal than 𝑠2
+;   - 𝑠1 ≤ 𝑠2 ⇒⊥ if 𝑠1, 𝑠2 are numerical constants and 𝑠1 is strictly greater than 𝑠2
+;   - 𝑠 < 𝑠 ⇒ ⊥
+;   - 𝑠 ≤ 𝑠 ⇒ ⊤
+;   - 𝑠1 ≥ 𝑠2 ⇒ 𝑠2 ≤ 𝑠1
+;   - 𝑠1 < 𝑠2 ⇒ ¬(𝑠2 ≤ 𝑠1)
+;   - 𝑠1 > 𝑠2 ⇒ ¬(𝑠1 ≤ 𝑠2)
+(program $comp_simplify_small_step ((disjunct Bool) (disjuncts Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($comp_simplify_small_step (< t1 t1))
+
+    false
+    )
+
+   (
+    ($comp_simplify_small_step (<= t1 t1))
+
+    true
+    )
+
+   (
+    ($comp_simplify_small_step (>= t1 t2))
+
+    (<= t2 t1)
+    )
+
+   (
+    ($comp_simplify_small_step (> t1 t2))
+
+    (not (<= t1 t2))
+    )
+
+   (
+    ($comp_simplify_small_step (or true disjuncts))
+
+    true
+    )
+   
+   (
+    ($comp_simplify_small_step (or (not disjunct) disjuncts))
+
+    (eo::ite ($eo_is_eq disjuncts false)
+
+             (not disjunct)
+
+              ; { not ($eo_is_eq disjuncts false) }
+             (eo::ite ($eo_is_eq disjuncts true)
+
+                      true
+
+                      ; { not ($eo_is_eq disjuncts true) }
+                      (eo::ite ($f_list_contains_elem or (not disjunct) disjuncts)
+
+                               disjuncts
+
+                               ; { not ($f_list_contains_elem or (not disjunct) disjuncts) }
+                               (eo::ite ($f_list_contains_elem or disjunct disjuncts)
+
+                                        ; We have a or (not disjunct) disjunct ... = true
+                                        true
+
+                                        ; { not ($f_list_contains_elem or disjunct disjuncts) }
+                                        (or (not disjunct) disjuncts)))))
+             )
+
+   ( ; { disjunct != true, false, not ... }
+    ($comp_simplify_small_step (or disjunct disjuncts))
+
+    (eo::ite ($eo_is_eq disjuncts false)
+
+             disjunct
+
+             ; { not ($eo_is_eq disjuncts false) }
+             (eo::ite ($eo_is_eq disjuncts true)
+
+                      true
+
+                      ; { not ($eo_is_eq disjuncts true) }
+                      (eo::ite ($f_list_contains_elem or disjunct disjuncts)
+
+                               disjuncts
+
+                               ; { not ($f_list_contains_elem or disjunct disjuncts) }
+                               (eo::ite ($f_list_contains_elem or (not disjunct) disjuncts)
+
+                                        ; We have a or (not disjunct) disjunct ... = true
+                                        true
+
+                                        ; { not ($f_list_contains_elem or (not disjunct) disjuncts) }
+                                        (or disjunct disjuncts)))))
+    )
+
+   ( ; { disjunct != or ... }
+    ($comp_simplify_small_step disjunct)
+
+    disjunct
+    )
+  )
+)
+
+; program: $comp_simplify_rec
+; args:
+; - formula Bool: A formula.
+; return: >
+;   The result from applying the equivalence-preserving transformations described
+;   in `$comp_simplify_small_step` until a fixed point is reached.
+; note: PRE : { $remove_leading_negations_in_disjuncts `formula` = `formula`}
+(program $comp_simplify_rec ((disjunct Bool) (disjuncts Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($comp_simplify_rec (or disjunct disjuncts))
+
+    (eo::define 
+
+     ((disjuncts_simplified ($comp_simplify_rec disjuncts)))
+
+     (eo::ite ($eo_is_eq disjuncts_simplified disjuncts)
+
+              ; We continue reducing, right-to-left.
+              (eo::define 
+
+               ((whole_disjunct_simplified 
+
+                 ($comp_simplify_small_step (or disjunct disjuncts))))
+
+               (eo::ite ($eo_is_eq whole_disjunct_simplified 
+                                   (or disjunct disjuncts))
+
+                        ; We reached to a fixed point.
+                        (or disjunct disjuncts)
+
+                        ; { not ($eo_is_eq whole_disjunct_simplified 
+                        ;                  (or disjunct disjuncts)) }
+                        ($comp_simplify_rec whole_disjunct_simplified)))
+
+              ; { not ($eo_is_eq disjuncts_simplified disjuncts) }
+              ($comp_simplify_rec 
+               ($f_list_cons or disjunct disjuncts_simplified))))
+    )
+
+   ( ; { disjunct != or ...}
+     ($comp_simplify_rec disjunct)
+
+     disjunct
+     )
+    )
+  )
+
+;TODO
+(program $check_comp_simplify ((l Bool) (r Bool))
+  :signature (Bool Bool) Bool
+  (
+   (($check_comp_simplify l r) true)
+  )
+)
+
+;TRUST
+(declare-rule comp_simplify ((l Bool) (r Bool))
+  :args ((@cl (= l r)))
+  :requires ((($check_comp_simplify l r) true))
+  :conclusion (@cl (= l r))
+)
+
 
 ;-----------------------
 ; Rule 103: eq_symmetric
