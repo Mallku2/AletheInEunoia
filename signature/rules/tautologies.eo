@@ -1249,6 +1249,89 @@
 )
 
 ;-----------------------
+; Rule 84: eq_simplify
+;-----------------------
+
+; program: $eq_simplify_small_step
+; args:
+; - exp A: An arith expression.
+; return: >
+;   The result from applying one of the following equivalence-preserving 
+;   transformations, to `exp`:
+;   - 𝑡 ≈ 𝑡 ⇒ ⊤
+;   - (𝑡1 ≈ 𝑡2) ⇒ ⊥ if 𝑡1 and 𝑡2 are different numeric constants.
+;   - ¬(𝑡 ≈ 𝑡) ⇒ ⊥ if 𝑡 is a numeric constant
+(program $eq_simplify_small_step ((A Type) (t1 A) (t2 A) (eq Bool))
+
+         :signature (Bool) Bool
+
+         (
+          (
+           ($eq_simplify_small_step (= t1 t1))
+
+           true
+           )
+
+          (; { t1 != t2 }
+           ($eq_simplify_small_step (= t1 t2))
+
+           (eo::ite (eo::and ($is_numeric_literal t1)
+                             ($is_numeric_literal t2))
+                    
+                    false
+
+                    (= t1 t2))
+           )
+
+          (
+           ($eq_simplify_small_step (not (= t1 t1)))
+
+           (eo::ite ($is_numeric_literal t1)
+                    
+                    false
+
+                    (not (= t1 t1)))
+           )
+
+          (
+           ($eq_simplify_small_step eq)
+           
+           eq
+           )
+          )
+         )
+
+; program: $check_eq_simplify
+; args:
+; - lhs Bool: >
+;   left-hand side term present in the conclusion passed to `eq_simplify`
+; - rhs Bool: >
+;   right-hand side term present in the conclusion passed to `eq_simplify`
+; return: >
+;   A boolean indicating if `lhs` can be reduced to `rhs`, using the rules
+;   in `$eq_simplify_small_step`.
+(program $check_eq_simplify ((lhs Bool) (rhs Bool))
+  :signature (Bool Bool) Bool
+  (
+   (
+    ($check_eq_simplify lhs rhs)
+
+    ($eo_is_eq ($eq_simplify_small_step lhs) rhs)
+    )
+   )
+  )
+
+; rule: eq_simplify
+; requires: >
+;  For `rhs` in conclusion to be the canonical form of `lhs`, according to
+;  rules in `$eq_simplify_small_step`.
+; conclusion-explicit: Conclusion of the form (@cl (= lhs rhs)),
+(declare-rule eq_simplify ((A Type) (lhs A) (rhs A))
+  :requires ((($check_eq_simplify lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs))
+)
+
+;-----------------------
 ; Rule 85: div_simplify
 ;-----------------------
 

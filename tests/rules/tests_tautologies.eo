@@ -1479,8 +1479,148 @@
       :rule qnt_simplify)
 
 ;---------------------------
-; div_simplify_small_step
+; eq_simplify_small_step
 ;---------------------------
+
+(declare-const a Int)
+(declare-const c Real)
+
+; Case 𝑡 ≈ 𝑡 ⇒ ⊤
+(step $test_$eq_simplify_small_step_1 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (= 13 13))
+
+             true))
+
+(step $test_$eq_simplify_small_step_2 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (= 13/2 13/2))
+
+             true))
+
+(step $test_$eq_simplify_small_step_3 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (= a a))
+
+             true))
+
+(step $test_$eq_simplify_small_step_4 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (= b b))
+
+             true))
+
+; Case (𝑡1 ≈ 𝑡2) ⇒ ⊥if 𝑡1 and 𝑡2 are different numeric constants
+(step $test_$eq_simplify_small_step_5 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (= 1 2))
+
+             false))
+
+(step $test_$eq_simplify_small_step_6 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (= 1/1 2/1))
+
+             false))
+
+(step $test_$eq_simplify_small_step_7 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (= 1 a))
+
+             (= 1 a)))
+
+(step $test_$eq_simplify_small_step_8 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (= b 1/1))
+
+             (= b 1/1)))
+
+; Case ¬(𝑡 ≈ 𝑡) ⇒ ⊥ if 𝑡 is a numeric constant.
+(step $test_$eq_simplify_small_step_9 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (not (= 1 1)))
+
+             false))
+
+(step $test_$eq_simplify_small_step_10 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (not (= 1/1 1/1)))
+
+             false))
+
+(step $test_$eq_simplify_small_step_11 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (not (= 1/1 b)))
+
+             (not (= 1/1 b))))
+
+(step $test_$eq_simplify_small_step_12 true
+      :rule $assert_eq 
+      :args (($eq_simplify_small_step (not (= a 1)))
+
+             (not (= a 1))))
+
+;---------------------------
+; eq_simplify
+;---------------------------
+
+(declare-const a Int)
+(declare-const b Real)
+
+; Case 𝑡 ≈ 𝑡 ⇒ ⊤
+(step $test_$eq_simplify_small_step_1 
+      (@cl (= (= 13 13) true))
+      :rule eq_simplify)
+
+(step $test_$eq_simplify_small_step_2 
+      (@cl (= (= 13/2 13/2) true))
+      :rule eq_simplify)
+
+(step $test_$eq_simplify_small_step_3 
+      (@cl (= (= a a) true))
+      :rule eq_simplify)
+
+(step $test_$eq_simplify_small_step_4 
+      (@cl (= (= b b) true))
+      :rule eq_simplify)
+
+; Case (𝑡1 ≈ 𝑡2) ⇒ ⊥if 𝑡1 and 𝑡2 are different numeric constants
+(step $test_$eq_simplify_small_step_5 
+      (@cl (= (= 1 2) false))
+      :rule eq_simplify)
+
+(step $test_$eq_simplify_small_step_6
+      (@cl (= (= 1/1 2/1) false))
+      :rule eq_simplify)
+
+(step $test_$eq_simplify_small_step_7 
+      (@cl (= (= 1 a) (= 1 a)))
+      :rule eq_simplify)
+
+(step $test_$eq_simplify_small_step_8 
+      (@cl (= (= b 1/1) (= b 1/1)))
+      :rule eq_simplify)
+
+; Case ¬(𝑡 ≈ 𝑡) ⇒ ⊥ if 𝑡 is a numeric constant.
+(step $test_$eq_simplify_small_step_9 
+      (@cl (= (not (= 1 1)) false))
+      :rule eq_simplify)
+
+(step $test_$eq_simplify_small_step_10 
+      (@cl (= (not (= 1/1 1/1)) false))
+      :rule eq_simplify)
+
+(step $test_$eq_simplify_small_step_11 
+      (@cl (= (not (= 1/1 b)) (not (= 1/1 b))))
+      :rule eq_simplify)
+
+(step $test_$eq_simplify_small_step_12 
+      (@cl (= (not (= a 1)) (not (= a 1))))
+      :rule eq_simplify)
+
+;---------------------------
+; div_simplify_small_step
+;--------------------------
 
 (declare-const a Int)
 (declare-const c Real)
