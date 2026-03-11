@@ -1248,6 +1248,162 @@
   :conclusion-explicit (@cl (= lhs rhs))
 )
 
+;-----------------------
+; Rule 85: div_simplify
+;-----------------------
+
+; program: $div_simplify_small_step
+; args:
+; - exp A: An arith expression.
+; return: >
+;   The result from applying one of the following value-preserving 
+;   transformations, to `exp`:
+;   - 𝑡/𝑡 ⇒ 1
+;   - 𝑡/1 ⇒ 𝑡
+;   - 𝑡1/𝑡2 ⇒ 𝑡3, if 𝑡1 and 𝑡2 are constants and 𝑡3 is 𝑡1 divided by 𝑡2 according 
+;     to the semantics of the current theory.
+(program $div_simplify_small_step ((A Type) (t1 A) (t2 A))
+         :signature (Bool) Bool
+         (
+          (
+           ($div_simplify_small_step (/ t1 t1))
+
+           (eo::ite ($eo_is_eq (eo::typeof t1) Int)
+
+                    1
+                    
+                    ; { not ($eo_is_eq (eo::typeof t1) Int) }
+                    1/1)
+           )
+
+          (
+           ($div_simplify_small_step (/ t1 1))
+
+           t1
+           )
+
+          (
+           ($div_simplify_small_step (/ t1 1/1))
+
+           t1
+           )
+
+          (
+           ($div_simplify_small_step (/ t1 t2))
+
+           (eo::ite (eo::and ($is_numeric_literal t1)
+                             ($is_numeric_literal t2))
+
+                    (eo::ite ($eo_is_eq (eo::typeof t1) Int)
+
+                             (eo::zdiv t1 t2)
+                             
+                             ; { not ($eo_is_eq (eo::typeof t1) Int) }
+                             (eo::qdiv t1 t2))
+
+                    ; { not (eo::and ($is_numeric_literal t1)
+                    ;                ($is_numeric_literal t2)) }
+                    (/ t1 t2)
+                    )
+           )
+
+          (; { t1 is not a division }
+           ($div_simplify_small_step t1)
+           
+           t1
+          )
+         )
+         )
+
+; program: $div_simplify_rec
+; args:
+; - term A: An arithmetic term.
+; return: >
+;   The result from applying the value-preserving transformations described
+;   in `$div_simplify_small_step`, until a fixed point is reached.
+(program $div_simplify_rec ((A Type) (num A) (den A) (term A))
+
+  :signature (Bool) Bool
+
+  (
+   (
+    ($div_simplify_rec (/ num den))
+
+    (eo::define 
+
+     (
+      (num_reduced ($div_simplify_small_step num))
+      )
+
+     (eo::ite ($eo_is_eq num_reduced num)
+
+              (eo::define 
+
+               (
+                (den_reduced ($div_simplify_small_step den))
+                )
+
+               (eo::ite ($eo_is_eq den_reduced den)
+
+                        (eo::define 
+
+                         (
+                          (div_reduced ($div_simplify_small_step 
+                                        (/ num_reduced den_reduced)))
+                          )
+
+                         (eo::ite ($eo_is_eq div_reduced (/ num_reduced den_reduced))
+
+                                  div_reduced
+                                  
+                                  ; {not ($eo_is_eq div_reduced (/ num_reduced den_reduced))}
+                                  ($div_simplify_rec div_reduced)))
+
+                        ; { not ($eo_is_eq den_reduced den) }
+                        ($div_simplify_rec (/ num_reduced den_reduced))))
+              
+              ; { not ($eo_is_eq num_reduced num) }
+              ($div_simplify_rec (/ num_reduced den))))
+    )
+
+   ( 
+    ($div_simplify_rec term)
+
+    term
+    )
+   )
+  )
+
+; program: $check_div_simplify
+; args:
+; - div Bool: >
+;   left-hand side term present in the conclusion passed to `div_simplify`
+; - term Bool: >
+;   right-hand side term present in the conclusion passed to `div_simplify`
+; return: >
+;   A boolean indicating if `div` can be reduced to `term`, using the rules
+;   in `$div_simplify_rec`.
+(program $check_div_simplify ((A Type) (num A) (den A) (term A))
+  :signature (Bool Bool) Bool
+  (
+   (
+    ($check_div_simplify (/ num den) term)
+
+    ($eo_is_eq ($div_simplify_rec (/ num den)) term)
+    )
+   )
+  )
+
+; rule: div_simplify
+; requires: >
+;  For `rhs` in conclusion to be the canonical form of `lhs`, according to
+;  rules in `$div_simplify_rec`.
+; conclusion-explicit: Conclusion of the form (@cl (= lhs rhs)),
+(declare-rule div_simplify ((A Type) (lhs A) (rhs A))
+  :requires ((($check_div_simplify lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs))
+)
+
 
 ;-----------------------
 ; Rule 86: prod_simplify
@@ -1320,8 +1476,7 @@
 ;   - 𝑠1 ≥ 𝑠2 ⇒ 𝑠2 ≤ 𝑠1
 ;   - 𝑠1 < 𝑠2 ⇒ ¬(𝑠2 ≤ 𝑠1)
 ;   - 𝑠1 > 𝑠2 ⇒ ¬(𝑠1 ≤ 𝑠2)
-(program $comp_simplify_small_step ((disjunct Bool) (disjuncts Bool :list)
-                                    (A Type) (t1 A) (t2 A))
+(program $comp_simplify_small_step ((A Type) (t1 A) (t2 A))
          :signature (Bool) Bool
          (
           (
@@ -1356,8 +1511,8 @@
 
                     (eo::not (eo::gt t1 t2))
 
-                                        ; { (eo::and ($is_numeric_literal t1)
-                                        ;            ($is_numeric_literal t2))}
+                    ; { not (eo::and ($is_numeric_literal t1)
+                    ;                ($is_numeric_literal t2))}
                     (<= t1 t2)
                     )
            )
@@ -1370,8 +1525,8 @@
 
                     (eo::gt t2 t1)
 
-                                        ; { (eo::and ($is_numeric_literal t1)
-                                        ;            ($is_numeric_literal t2))}
+                    ; { not (eo::and ($is_numeric_literal t1)
+                    ;                ($is_numeric_literal t2))}
                     (not (<= t2 t1))
                     )
            )
@@ -1403,7 +1558,7 @@
               ($comp_simplify_rec order_reduced)))
     )
 
-   ( ; { disjunct != order ...}
+   ( ; { ineq != order ...}
      ($comp_simplify_rec ineq)
 
      ineq
@@ -1431,7 +1586,6 @@
     )
    )
   )
-
 
 ; rule: comp_simplify
 ; requires: >

@@ -1479,6 +1479,267 @@
       :rule qnt_simplify)
 
 ;---------------------------
+; div_simplify_small_step
+;---------------------------
+
+(declare-const a Int)
+(declare-const c Real)
+
+; Case 𝑡 / 𝑡 ⇒ 1
+(step $test_$div_simplify_small_step_1 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ 13 13))
+
+             1))
+
+(step $test_$div_simplify_small_step_2 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ 13/1 13/1))
+
+             1/1))
+
+(step $test_$div_simplify_small_step_3 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ a a))
+
+             1))
+
+(step $test_$div_simplify_small_step_4 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ c c))
+
+             1/1))
+
+; Case 𝑡 / 1 ⇒ t
+(step $test_$div_simplify_small_step_5 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ 13 1))
+
+             13))
+
+(step $test_$div_simplify_small_step_6 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ 13/1 1/1))
+
+             13/1))
+
+(step $test_$div_simplify_small_step_7 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ a 1))
+
+             a))
+
+(step $test_$div_simplify_small_step_8 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ c 1/1))
+
+             c))
+
+; Case 𝑡1 / 𝑡2 ⇒𝑡3 if 𝑡1 and 𝑡2 are constants and 𝑡3 is 𝑡1 divided by 𝑡2 according 
+; to the semantics of the current theory.
+(step $test_$div_simplify_small_step_9 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ 13 2))
+
+             6))
+
+(step $test_$div_simplify_small_step_10 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ 13/1 2/1))
+
+             13/2))
+
+; Misc. 
+
+(step $test_$div_simplify_small_step_11 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ a 19))
+
+             (/ a 19)))
+
+(step $test_$div_simplify_small_step_12 true
+      :rule $assert_eq 
+      :args (($div_simplify_small_step (/ c 3/4))
+
+             (/ c 3/4)))
+
+;---------------------------
+; div_simplify_rec
+;---------------------------
+
+(declare-const a Int)
+(declare-const c Real)
+
+; Case 𝑡 / 𝑡 ⇒ 1
+(step $test_$div_simplify_rec_1 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ 13 13))
+
+             1))
+
+(step $test_$div_simplify_rec_2 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ 13/1 13/1))
+
+             1/1))
+
+(step $test_$div_simplify_rec_3 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ a a))
+
+             1))
+
+(step $test_$div_simplify_rec_4 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ c c))
+
+             1/1))
+
+; Case 𝑡 / 1 ⇒ t
+(step $test_$div_simplify_rec_5 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ 13 1))
+
+             13))
+
+(step $test_$div_simplify_rec_6 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ 13/1 1/1))
+
+             13/1))
+
+(step $test_$div_simplify_rec_7 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ a 1))
+
+             a))
+
+(step $test_$div_simplify_rec_8 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ c 1/1))
+
+             c))
+
+; Case 𝑡1 / 𝑡2 ⇒𝑡3 if 𝑡1 and 𝑡2 are constants and 𝑡3 is 𝑡1 divided by 𝑡2 according 
+; to the semantics of the current theory.
+(step $test_$div_simplify_rec_9 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ 13 2))
+
+             6))
+
+(step $test_$div_simplify_rec_10 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ 13/1 2/1))
+
+             13/2))
+
+; Misc. 
+(step $test_$div_simplify_rec_11 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ a 19))
+
+             (/ a 19)))
+
+(step $test_$div_simplify_rec_12 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ c 3/4))
+
+             (/ c 3/4)))
+
+; Testing evaluation order.
+(step $test_$div_simplify_rec_13 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ (/ a a) a))
+
+             (/ 1 a)))
+
+(step $test_$div_simplify_rec_14 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ c (/ c c)))
+
+             c))
+
+(step $test_$div_simplify_rec_15 true
+      :rule $assert_eq 
+      :args (($div_simplify_rec (/ (/ 2/2 2/2) (/ c c)))
+
+             1/1))
+
+;---------------------------
+; div_simplify
+;---------------------------
+
+(declare-const a Int)
+(declare-const c Real)
+
+; Case 𝑡 / 𝑡 ⇒ 1
+(step $test_div_simplify_1 
+      (@cl (= (/ 13 13) 1))
+      :rule div_simplify)
+
+(step $test_div_simplify_2 
+      (@cl (= (/ 13/1 13/1) 1/1))
+      :rule div_simplify)
+
+(step $test_div_simplify_3 
+      (@cl (= (/ a a) 1))
+      :rule div_simplify)
+
+(step $test_div_simplify_4 
+      (@cl (= (/ c c) 1/1))
+      :rule div_simplify)
+
+; Case 𝑡 / 1 ⇒ t
+(step $test_div_simplify_5 
+      (@cl (= (/ 13 1) 13))
+      :rule div_simplify)
+
+(step $test_div_simplify_6 
+      (@cl (= (/ 13/1 1/1) 13/1))
+      :rule div_simplify)
+
+(step $test_div_simplify_7 
+      (@cl (= (/ a 1) a))
+      :rule div_simplify)
+
+(step $test_div_simplify_8 
+      (@cl (= (/ c 1/1) c))
+      :rule div_simplify)
+
+; Case 𝑡1 / 𝑡2 ⇒𝑡3 if 𝑡1 and 𝑡2 are constants and 𝑡3 is 𝑡1 divided by 𝑡2 according 
+; to the semantics of the current theory.
+(step $test_div_simplify_9 
+      (@cl (= (/ 13 2) 6))
+      :rule div_simplify)
+
+(step $test_div_simplify_10 
+      (@cl (= (/ 13/1 2/1) 13/2))
+      :rule div_simplify)
+
+; Misc. 
+(step $test_div_simplify_11 
+      (@cl (= (/ a 19) (/ a 19)))
+      :rule div_simplify)
+
+(step $test_div_simplify_12 
+      (@cl (= (/ c 3/4) (/ c 3/4)))
+      :rule div_simplify)
+
+; Testing evaluation order.
+(step $test_div_simplify_13 
+      (@cl (= (/ (/ a a) a) (/ 1 a)))
+      :rule div_simplify)
+
+(step $test_div_simplify_14 
+      (@cl (= (/ c (/ c c)) c))
+      :rule div_simplify)
+
+(step $test_div_simplify_15 
+      (@cl (= (/ (/ 2/2 2/2) (/ c c)) 1/1))
+      :rule div_simplify)
+
+;---------------------------
 ; comp_simplify_small_step
 ;---------------------------
 
