@@ -2215,3 +2215,36 @@
 (step $test_comp_simplify_14 
       (@cl (= (> a b) (not (<= a b))))
       :rule comp_simplify)
+
+;---------------------------
+; $ite_simplify_small_step
+;---------------------------
+
+(declare-const a Bool)
+(declare-const b Bool)
+
+; Case (ite ⊤ 𝑡1 𝑡2) ⇒ 𝑡1
+(step $test_$ite_simplify_small_step_1 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite true a b))
+
+             a))
+
+(step $test_$ite_simplify_small_step_2 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite true (or a b) b))
+
+             (or a b)))
+
+; Case (ite ⊥ 𝑡1 𝑡2) ⇒ 𝑡2
+(step $test_$ite_simplify_small_step_3 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite false a b))
+
+             b))
+
+(step $test_$ite_simplify_small_step_4 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite false a (or a b)))
+
+             (or a b)))
