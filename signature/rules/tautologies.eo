@@ -1715,6 +1715,58 @@
   :conclusion-explicit (@cl (= lhs rhs))
 )
 
+;------------------------------
+; Rule 87: unary_minus_simplify
+;------------------------------
+
+; program: $check_unary_minus_simplify
+; args:
+; - lhs A: >
+;   left-hand side term present in the conclusion passed to `unary_minus_simplify`
+; - rhs A: >
+;   right-hand side term present in the conclusion passed to `unary_minus_simplify`
+; return: >
+;   A boolean indicating if `lhs` can be reduced to `rhs`, applying, either,
+;   double negation or evaluating the negation, over `lhs`.
+(program $check_unary_minus_simplify ((A Type) (t A) (u A))
+  :signature (A A) Bool
+  (
+   (
+    ($check_unary_minus_simplify (- (- t)) t)
+
+    true
+    )
+
+   (
+    ($check_unary_minus_simplify (- t) u)
+
+    (eo::ite (eo::and ($is_numeric_literal t)
+                      ($is_numeric_literal u))
+
+             (eo::ite ($eo_is_eq u (eo::neg t))
+
+                      true
+                      ; { not ($eo_is_eq u (eo::neg t)) }
+                      false)
+
+             ; { not (eo::and ($is_numeric_literal t)
+             ;                ($is_numeric_literal u)) }
+             false)
+                      
+    )
+   )
+  )
+
+; rule: unary_minus_simplify
+; requires: >
+;  For `rhs` in conclusion to be the canonical form of `lhs`, according to
+;  rules in `$unary_minus_simplify_rec`.
+; conclusion-explicit: Conclusion of the form (@cl (= lhs rhs)),
+(declare-rule unary_minus_simplify ((A Type) (lhs A) (rhs A))
+  :requires ((($check_unary_minus_simplify lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs))
+)
+
 ;-----------------------
 ; Rule 88: minus_simplify
 ;-----------------------
@@ -1823,12 +1875,12 @@
 
 ; program: $check_minus_simplify
 ; args:
-; - lhs Bool: >
+; - lhs A: >
 ;   left-hand side term present in the conclusion passed to `minus_simplify`
-; - rhs Bool: >
+; - rhs A: >
 ;   right-hand side term present in the conclusion passed to `minus_simplify`
 ; return: >
-;   A boolean indicating if `div` can be reduced to `term`, using the rules
+;   A boolean indicating if `lhs` can be reduced to `rhs`, using the rules
 ;   in `$minus_simplify_rec`.
 (program $check_minus_simplify ((A Type) (lhs A) (rhs A))
   :signature (A A) Bool
@@ -1848,6 +1900,44 @@
 ; conclusion-explicit: Conclusion of the form (@cl (= lhs rhs)),
 (declare-rule minus_simplify ((A Type) (lhs A) (rhs A))
   :requires ((($check_minus_simplify lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs))
+)
+
+;-----------------------
+; Rule 88: sum_simplify
+;-----------------------
+
+; program: $check_sum_simplify
+; args:
+; - lhs A: >
+;   left-hand side term present in the conclusion passed to `sum_simplify`
+; - rhs A: >
+;   right-hand side term present in the conclusion passed to `sum_simplify`
+; return: >
+;   A boolean indicating if `lhs` can be reduced to `rhs`, using only
+;   reordering of terms and evaluation.
+(program $check_sum_simplify ((A Type) (lhs A) (rhs A))
+  :signature (A A) Bool
+  (
+   (
+    ($check_sum_simplify lhs rhs)
+
+    ($eo_is_eq ($small_step_evaluator_arith_term
+                ($assoc_evaluatable_terms 
+                 ($reorder_arith_term lhs)))
+
+               rhs)
+    )
+   )
+  )
+
+; rule: sum_simplify
+; requires: >
+;  For `rhs` in conclusion to be the canonical form of `lhs`, according to
+;  rules in `$sum_simplify_rec`.
+; conclusion-explicit: Conclusion of the form (@cl (= lhs rhs)),
+(declare-rule sum_simplify ((A Type) (lhs A) (rhs A))
+  :requires ((($check_sum_simplify lhs rhs) true))
   :conclusion-explicit (@cl (= lhs rhs))
 )
 
