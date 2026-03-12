@@ -901,7 +901,7 @@
 )
 
 ;-----------------------
-; Rule 74: bool_simplify
+; Rule 77: bool_simplify
 ;-----------------------
 
 ; program: $bool_simplify_small_step
@@ -1110,6 +1110,68 @@
   :requires ((($check_bool_simplify lhs rhs) true))
   :conclusion-explicit (@cl (= lhs rhs))
 )
+
+;-----------------------
+; Rule 78: ac_simp
+;-----------------------
+
+; program: $check_ac_simp
+; args:
+; - lhs Bool: >
+;   left-hand side term present in the conclusion passed to `ac_simp`
+; - rhs Bool: >
+;   right-hand side term present in the conclusion passed to `ac_simp`
+; return: >
+;   A boolean indicating if `lhs` can be reduced to `rhs`, using the rules
+;   in `$ac_simp_rec`.
+(program $check_ac_simp ((formula Bool) (formulas Bool :list) (rhs Bool))
+
+  :signature (Bool Bool) Bool
+
+  (
+   (
+    ($check_ac_simp (and formula formulas) rhs)
+
+    (eo::define
+     
+     (
+      (flat_no_dups ($f_list_remove_duplicates 
+                     and 
+                     true
+                     ($flat_and_or and (and formula formulas))))
+      )
+
+     ($f_list_equal and flat_no_dups rhs))
+    )
+
+   (
+    ($check_ac_simp (or formula formulas) rhs)
+
+    (eo::define
+     
+     (
+      (flat_no_dups ($f_list_remove_duplicates 
+                     or 
+                     true
+                     ($flat_and_or or (or formula formulas))))
+      )
+
+     ($f_list_equal or flat_no_dups rhs))
+    )
+   )
+  )
+
+; rule: ac_simp
+; requires: >
+;  For `rhs` in conclusion to be the canonical form of `lhs`, according to
+;  associativity to the left, exploiting idempotency to remove duplicated
+;  elements and modulo commutativity.
+; conclusion-explicit: Conclusion of the form (@cl (= lhs rhs)),
+(declare-rule ac_simp ((lhs Bool) (rhs Bool))
+  :requires ((($check_ac_simp lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs))
+)
+
 
 ;-----------------------
 ; Rule 79: ite_simplify
