@@ -2222,6 +2222,8 @@
 
 (declare-const a Bool)
 (declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
 
 ; Case (ite ⊤ 𝑡1 𝑡2) ⇒ 𝑡1
 (step $test_$ite_simplify_small_step_1 true
@@ -2248,3 +2250,416 @@
       :args (($ite_simplify_small_step (ite false a (or a b)))
 
              (or a b)))
+
+; Case (ite 𝜓 𝑡 𝑡) ⇒ 𝑡
+(step $test_$ite_simplify_small_step_5 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite a b b))
+
+             b))
+
+(step $test_$ite_simplify_small_step_6 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite a (or a b) (or a b)))
+
+             (or a b)))
+
+; Case (ite ¬𝜑 𝑡1 𝑡2) ⇒ (ite 𝜑 𝑡2 𝑡1)
+(step $test_$ite_simplify_small_step_7 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite (not a) b c))
+
+             (ite a c b)))
+
+(step $test_$ite_simplify_small_step_8 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite (not (or a a)) b c))
+
+             (ite (or a a) c b)))
+
+; Case (ite 𝜓 (ite 𝜓 𝑡1 𝑡2) 𝑡3) ⇒ (ite 𝜓 𝑡1 𝑡3)
+(step $test_$ite_simplify_small_step_9 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite a (ite a b c) d))
+
+             (ite a b d)))
+
+(step $test_$ite_simplify_small_step_10 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite (or a a) (ite (or a a) b c) d))
+
+             (ite (or a a) b d)))
+
+; Case (ite 𝜓 𝑡1 (ite 𝜓 𝑡2 𝑡3) ⇒ (ite 𝜓 𝑡1 𝑡3)
+(step $test_$ite_simplify_small_step_11 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite a b (ite a c d)))
+
+             (ite a b d)))
+
+(step $test_$ite_simplify_small_step_12 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite (or a a) b (ite (or a a) c d)))
+
+             (ite (or a a) b d)))
+
+; Case (ite 𝜓 ⊤ ⊥) ⇒ 𝜓
+(step $test_$ite_simplify_small_step_13 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite a true false))
+
+             a))
+
+(step $test_$ite_simplify_small_step_14 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite (and a b c) true false))
+
+             (and a b c)))
+
+; Case (ite 𝜓 ⊥ ⊤) ⇒ ¬ 𝜓
+(step $test_$ite_simplify_small_step_15 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite a false true))
+
+             (not a)))
+
+(step $test_$ite_simplify_small_step_16 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite (and a b c) false true))
+
+             (not (and a b c))))
+
+; Case (ite 𝜓 ⊤ 𝜑) ⇒ 𝜓 ∨ 𝜑
+(step $test_$ite_simplify_small_step_17 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite a true b))
+
+             (or a b)))
+
+(step $test_$ite_simplify_small_step_18 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite (or a b) true (and b c)))
+
+             (or (or a b) (and b c))))
+
+; Case (ite  𝜓 𝜑 ⊥) ⇒ 𝜓 ∧ 𝜑
+(step $test_$ite_simplify_small_step_19 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite a b false))
+
+             (and a b)))
+
+(step $test_$ite_simplify_small_step_20 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite (or a b) (and b c) false))
+
+             (and (or a b) (and b c))))
+
+; Case (ite 𝜓 ⊥ 𝜑) ⇒ not 𝜓 ∧ 𝜑
+(step $test_$ite_simplify_small_step_21 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite a false b))
+
+             (and (not a) b)))
+
+(step $test_$ite_simplify_small_step_22 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite (or a b) false (and c d)))
+
+             (and (not (or a b)) (and c d))))
+
+; Case (ite 𝜓 𝜑 ⊤) ⇒ ¬𝜓 ∨ 𝜑
+(step $test_$ite_simplify_small_step_22 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite a b true))
+
+             (or (not a) b)))
+
+(step $test_$ite_simplify_small_step_23 true
+      :rule $assert_eq 
+      :args (($ite_simplify_small_step (ite (or a b) (and c d) true))
+
+             (or (not (or a b)) (and c d))))
+
+
+;---------------------------
+; $ite_simplify_rec
+;---------------------------
+
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+
+; Case (ite ⊤ 𝑡1 𝑡2) ⇒ 𝑡1
+(step $test_$ite_simplify_rec_1 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite true a b))
+
+             a))
+
+(step $test_$ite_simplify_rec_2 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite true (or a b) b))
+
+             (or a b)))
+
+; Case (ite ⊥ 𝑡1 𝑡2) ⇒ 𝑡2
+(step $test_$ite_simplify_rec_3 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite false a b))
+
+             b))
+
+(step $test_$ite_simplify_rec_4 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite false a (or a b)))
+
+             (or a b)))
+
+; Case (ite 𝜓 𝑡 𝑡) ⇒ 𝑡
+(step $test_$ite_simplify_rec_5 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite a b b))
+
+             b))
+
+(step $test_$ite_simplify_rec_6 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite a (or a b) (or a b)))
+
+             (or a b)))
+
+; Case (ite ¬𝜑 𝑡1 𝑡2) ⇒ (ite 𝜑 𝑡2 𝑡1)
+(step $test_$ite_simplify_rec_7 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite (not a) b c))
+
+             (ite a c b)))
+
+(step $test_$ite_simplify_rec_8 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite (not (or a a)) b c))
+
+             (ite (or a a) c b)))
+
+; Case (ite 𝜓 (ite 𝜓 𝑡1 𝑡2) 𝑡3) ⇒ (ite 𝜓 𝑡1 𝑡3)
+(step $test_$ite_simplify_rec_9 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite a (ite a b c) d))
+
+             (ite a b d)))
+
+(step $test_$ite_simplify_rec_10 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite (or a a) (ite (or a a) b c) d))
+
+             (ite (or a a) b d)))
+
+; Case (ite 𝜓 𝑡1 (ite 𝜓 𝑡2 𝑡3) ⇒ (ite 𝜓 𝑡1 𝑡3)
+(step $test_$ite_simplify_rec_11 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite a b (ite a c d)))
+
+             (ite a b d)))
+
+(step $test_$ite_simplify_rec_12 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite (or a a) b (ite (or a a) c d)))
+
+             (ite (or a a) b d)))
+
+; Case (ite 𝜓 ⊤ ⊥) ⇒ 𝜓
+(step $test_$ite_simplify_rec_13 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite a true false))
+
+             a))
+
+(step $test_$ite_simplify_rec_14 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite (and a b c) true false))
+
+             (and a b c)))
+
+; Case (ite 𝜓 ⊥ ⊤) ⇒ ¬ 𝜓
+(step $test_$ite_simplify_rec_15 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite a false true))
+
+             (not a)))
+
+(step $test_$ite_simplify_rec_16 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite (and a b c) false true))
+
+             (not (and a b c))))
+
+; Case (ite 𝜓 ⊤ 𝜑) ⇒ 𝜓 ∨ 𝜑
+(step $test_$ite_simplify_rec_17 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite a true b))
+
+             (or a b)))
+
+(step $test_$ite_simplify_rec_18 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite (or a b) true (and b c)))
+
+             (or (or a b) (and b c))))
+
+; Case (ite  𝜓 𝜑 ⊥) ⇒ 𝜓 ∧ 𝜑
+(step $test_$ite_simplify_rec_19 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite a b false))
+
+             (and a b)))
+
+(step $test_$ite_simplify_rec_20 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite (or a b) (and b c) false))
+
+             (and (or a b) (and b c))))
+
+; Case (ite 𝜓 ⊥ 𝜑) ⇒ not 𝜓 ∧ 𝜑
+(step $test_$ite_simplify_rec_21 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite a false b))
+
+             (and (not a) b)))
+
+(step $test_$ite_simplify_rec_22 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite (or a b) false (and c d)))
+
+             (and (not (or a b)) (and c d))))
+
+; Case (ite 𝜓 𝜑 ⊤) ⇒ ¬𝜓 ∨ 𝜑
+(step $test_$ite_simplify_rec_22 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite a b true))
+
+             (or (not a) b)))
+
+(step $test_$ite_simplify_rec_23 true
+      :rule $assert_eq 
+      :args (($ite_simplify_rec (ite (or a b) (and c d) true))
+
+             (or (not (or a b)) (and c d))))
+
+;---------------------------
+; ite_simplify
+;---------------------------
+
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+
+; Case (ite ⊤ 𝑡1 𝑡2) ⇒ 𝑡1
+(step $test_ite_simplify_1 
+      (@cl (= (ite true a b) a))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_2 
+      (@cl (= (ite true (or a b) b) (or a b)))
+      :rule ite_simplify)
+
+; Case (ite ⊥ 𝑡1 𝑡2) ⇒ 𝑡2
+(step $test_ite_simplify_3 
+      (@cl (= (ite false a b) b))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_4 
+      (@cl (= (ite false a (or a b)) (or a b)))
+      :rule ite_simplify)
+
+; Case (ite 𝜓 𝑡 𝑡) ⇒ 𝑡
+(step $test_ite_simplify_5 
+      (@cl (= (ite a b b) b))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_6 
+      (@cl (= (ite a (or a b) (or a b)) (or a b)))
+      :rule ite_simplify)
+
+; Case (ite ¬𝜑 𝑡1 𝑡2) ⇒ (ite 𝜑 𝑡2 𝑡1)
+(step $test_ite_simplify_7 
+      (@cl (= (ite (not a) b c) (ite a c b)))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_8 
+      (@cl (= (ite (not (or a a)) b c) (ite (or a a) c b)))
+      :rule ite_simplify)
+
+; Case (ite 𝜓 (ite 𝜓 𝑡1 𝑡2) 𝑡3) ⇒ (ite 𝜓 𝑡1 𝑡3)
+(step $test_ite_simplify_9 
+      (@cl (= (ite a (ite a b c) d) (ite a b d)))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_10 
+      (@cl (= (ite (or a a) (ite (or a a) b c) d) (ite (or a a) b d)))
+      :rule ite_simplify)
+
+; Case (ite 𝜓 𝑡1 (ite 𝜓 𝑡2 𝑡3) ⇒ (ite 𝜓 𝑡1 𝑡3)
+(step $test_ite_simplify_11 
+      (@cl (= (ite a b (ite a c d)) (ite a b d)))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_12 
+      (@cl (= (ite (or a a) b (ite (or a a) c d)) (ite (or a a) b d)))
+      :rule ite_simplify)
+
+; Case (ite 𝜓 ⊤ ⊥) ⇒ 𝜓
+(step $test_ite_simplify_13 
+      (@cl (= (ite a true false) a))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_14 
+      (@cl (= (ite (and a b c) true false) (and a b c)))
+      :rule ite_simplify)
+
+; Case (ite 𝜓 ⊥ ⊤) ⇒ ¬ 𝜓
+(step $test_ite_simplify_15 
+      (@cl (= (ite a false true) (not a)))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_16 
+      (@cl (= (ite (and a b c) false true) (not (and a b c))))
+      :rule ite_simplify)
+
+; Case (ite 𝜓 ⊤ 𝜑) ⇒ 𝜓 ∨ 𝜑
+(step $test_ite_simplify_17 
+      (@cl (= (ite a true b) (or a b)))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_18 
+      (@cl (= (ite (or a b) true (and b c)) (or (or a b) (and b c))))
+      :rule ite_simplify)
+
+; Case (ite  𝜓 𝜑 ⊥) ⇒ 𝜓 ∧ 𝜑
+(step $test_ite_simplify_19 
+      (@cl (= (ite a b false) (and a b)))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_20 
+      (@cl (= (ite (or a b) (and b c) false) (and (or a b) (and b c))))
+      :rule ite_simplify)
+
+; Case (ite 𝜓 ⊥ 𝜑) ⇒ not 𝜓 ∧ 𝜑
+(step $test_ite_simplify_21 
+      (@cl (= (ite a false b) (and (not a) b)))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_22 
+      (@cl (= (ite (or a b) false (and c d)) (and (not (or a b)) (and c d))))
+      :rule ite_simplify)
+
+; Case (ite 𝜓 𝜑 ⊤) ⇒ ¬𝜓 ∨ 𝜑
+(step $test_ite_simplify_22 
+      (@cl (= (ite a b true) (or (not a) b)))
+      :rule ite_simplify)
+
+(step $test_ite_simplify_23 
+      (@cl (= (ite (or a b) (and c d) true) (or (not (or a b)) (and c d))))
+      :rule ite_simplify)
