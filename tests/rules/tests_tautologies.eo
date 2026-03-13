@@ -2944,3 +2944,44 @@
 (step $test_minus_simplify_15 
       (@cl (= (- 0/1 10/1) (- 10/1)))
       :rule minus_simplify)
+
+;---------------------------
+; unary_minus_simplify
+;---------------------------
+
+(declare-const a Int)
+(declare-const c Real)
+
+; Case (- (- t)) => t
+(step $test_unary_minus_simplify_1 
+      (@cl (= (- (- a)) a))
+      :rule unary_minus_simplify)
+
+(step $test_unary_minus_simplify_2
+      (@cl (= (- (- 1)) 1))
+      :rule unary_minus_simplify)
+
+(step $test_unary_minus_simplify_3
+      (@cl (= (- (- 3/2)) 3/2))
+      :rule unary_minus_simplify)
+
+(step $test_unary_minus_simplify_4
+      (@cl (= (- (- (+ a b))) (+ a b)))
+      :rule unary_minus_simplify)
+
+; Case (- t) => u, for numerical constant t, u, such that u is negative t.
+(step $test_unary_minus_simplify_5
+      (@cl (= (- 1) -1))
+      :rule unary_minus_simplify)
+
+(step $test_unary_minus_simplify_6
+      (@cl (= (- 2/3) -2/3))
+      :rule unary_minus_simplify)
+
+(step $test_unary_minus_simplify_7
+      (@cl (= (- 0/1) -0/1))
+      :rule unary_minus_simplify)
+
+(step $test_unary_minus_simplify_8
+      (@cl (= (- 0) -0))
+      :rule unary_minus_simplify)
