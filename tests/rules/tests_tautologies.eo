@@ -3040,3 +3040,104 @@
 (step $test_sum_simplify_10
       (@cl (= (+ 1/1 -1/1 d 2/1 -2/1 c) ($f_list_cons + c d)))
       :rule sum_simplify)
+
+
+;--------
+; ac_simp
+;--------
+
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+
+; Repeated sub-terms
+(step $test_ac_simp_1
+      (@cl (= (or a a b) (or a b)))
+      :rule ac_simp)
+
+(step $test_ac_simp_2
+      (@cl (= (or a a b b) (or a b)))
+      :rule ac_simp)
+
+(step $test_ac_simp_3
+      (@cl (= (or a b a b) (or a b)))
+      :rule ac_simp)
+
+(step $test_ac_simp_4
+      (@cl (= (or a b a b) (or a b)))
+      :rule ac_simp)
+
+(step $test_ac_simp_5
+      (@cl (= (or a b a c b) (or a b c)))
+      :rule ac_simp)
+
+(step $test_ac_simp_6
+      (@cl (= (or a b a c b c) (or a b c)))
+      :rule ac_simp)
+
+(step $test_ac_simp_7
+      (@cl (= (and a a b) (and a b)))
+      :rule ac_simp)
+
+(step $test_ac_simp_8
+      (@cl (= (and a a b b) (and a b)))
+      :rule ac_simp)
+
+(step $test_ac_simp_9
+      (@cl (= (and a b a b) (and a b)))
+      :rule ac_simp)
+
+(step $test_ac_simp_10
+      (@cl (= (and a b a b) (and a b)))
+      :rule ac_simp)
+
+(step $test_ac_simp_11
+      (@cl (= (and a b a c b) (and a b c)))
+      :rule ac_simp)
+
+(step $test_ac_simp_12
+      (@cl (= (and a b a c b c) (and a b c)))
+      :rule ac_simp)
+
+; Flattening
+(step $test_ac_simp_13
+      (@cl (= (and (and a b) c) (and a b c)))
+      :rule ac_simp)
+
+(step $test_ac_simp_14
+      (@cl (= (and (and a b) (and c d)) (and a b c d)))
+      :rule ac_simp)
+
+(step $test_ac_simp_14
+      (@cl (= (and (and a b) (and (and c d) true)) (and a b c d)))
+      :rule ac_simp)
+
+(step $test_ac_simp_15
+      (@cl (= (or (or a b) c) (or a b c)))
+      :rule ac_simp)
+
+(step $test_ac_simp_16
+      (@cl (= (or (or a b) (or c d)) (or a b c d)))
+      :rule ac_simp)
+
+(step $test_ac_simp_17
+      (@cl (= (or (or a b) (or (or c d) false)) (or a b c d)))
+      :rule ac_simp)
+
+; Mixed cases
+(step $test_ac_simp_18
+      (@cl (= (or (or a b a) (or (or c d d) false)) (or a b c d)))
+      :rule ac_simp)
+
+(step $test_ac_simp_19
+      (@cl (= (or (or a b a) (or a b a) (or (or c d d) false)) (or a b c d)))
+      :rule ac_simp)
+
+(step $test_ac_simp_20
+      (@cl (= (and (and a b a) (and (and c d d) true)) (and a b c d)))
+      :rule ac_simp)
+
+(step $test_ac_simp_21
+      (@cl (= (and (and a b a) (and a b a) (and (and c d d) true)) (and a b c d)))
+      :rule ac_simp)
