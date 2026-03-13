@@ -2663,3 +2663,284 @@
 (step $test_ite_simplify_23 
       (@cl (= (ite (or a b) (and c d) true) (or (not (or a b)) (and c d))))
       :rule ite_simplify)
+
+
+;---------------------------
+; $minus_simplify_small_step
+;---------------------------
+
+(declare-const a Int)
+(declare-const b Int)
+(declare-const c Real)
+(declare-const d Real)
+
+; Case t - t => 0
+(step $test_$minus_simplify_small_step_1 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- a a))
+
+             0))
+
+(step $test_$minus_simplify_small_step_2 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- c c))
+
+             0/1))
+
+(step $test_$minus_simplify_small_step_3 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 3 3))
+
+             0))
+
+(step $test_$minus_simplify_small_step_4 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 3/1 3/1))
+
+             0/1))
+
+; Case 𝑡1 − 𝑡2 ⇒ 𝑡3, where 𝑡1 and 𝑡2 are numerical constants and 𝑡3 is 𝑡2 subtracted 
+(step $test_$minus_simplify_small_step_5 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 3 2))
+
+             1))
+
+(step $test_$minus_simplify_small_step_6 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 3/1 2/1))
+
+             1/1))
+
+(step $test_$minus_simplify_small_step_7 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 3/2 3/4))
+
+             3/4))
+
+; Case t - 0 => t
+(step $test_$minus_simplify_small_step_8 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- a 0))
+
+             a))
+
+(step $test_$minus_simplify_small_step_9 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- c 0))
+
+             c))
+
+(step $test_$minus_simplify_small_step_10 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 10 0))
+
+             10))
+
+(step $test_$minus_simplify_small_step_11 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 10/1 0/1))
+
+             10/1))
+
+; Case 0 - t => - t
+(step $test_$minus_simplify_small_step_12 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 0 a))
+
+             (- a)))
+
+(step $test_$minus_simplify_small_step_13 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 0 c))
+
+             (- c)))
+
+(step $test_$minus_simplify_small_step_14 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 0 10))
+
+             (- 10)))
+
+(step $test_$minus_simplify_small_step_15 true
+      :rule $assert_eq 
+      :args (($minus_simplify_small_step (- 0/1 10/1))
+
+             (- 10/1)))
+
+
+;---------------------------
+; $minus_simplify_rec
+;---------------------------
+
+(declare-const a Int)
+(declare-const b Int)
+(declare-const c Real)
+(declare-const d Real)
+
+; Case t - t => 0
+(step $test_$minus_simplify_rec_1 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- a a))
+
+             0))
+
+(step $test_$minus_simplify_rec_2 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- c c))
+
+             0/1))
+
+(step $test_$minus_simplify_rec_3 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 3 3))
+
+             0))
+
+(step $test_$minus_simplify_rec_4 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 3/1 3/1))
+
+             0/1))
+
+; Case 𝑡1 − 𝑡2 ⇒ 𝑡3, where 𝑡1 and 𝑡2 are numerical constants and 𝑡3 is 𝑡2 subtracted 
+(step $test_$minus_simplify_rec_5 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 3 2))
+
+             1))
+
+(step $test_$minus_simplify_rec_6 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 3/1 2/1))
+
+             1/1))
+
+(step $test_$minus_simplify_rec_7 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 3/2 3/4))
+
+             3/4))
+
+; Case t - 0 => t
+(step $test_$minus_simplify_rec_8 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- a 0))
+
+             a))
+
+(step $test_$minus_simplify_rec_9 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- c 0))
+
+             c))
+
+(step $test_$minus_simplify_rec_10 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 10 0))
+
+             10))
+
+(step $test_$minus_simplify_rec_11 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 10/1 0/1))
+
+             10/1))
+
+; Case 0 - t => - t
+(step $test_$minus_simplify_rec_12 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 0 a))
+
+             (- a)))
+
+(step $test_$minus_simplify_rec_13 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 0 c))
+
+             (- c)))
+
+(step $test_$minus_simplify_rec_14 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 0 10))
+
+             (- 10)))
+
+(step $test_$minus_simplify_rec_15 true
+      :rule $assert_eq 
+      :args (($minus_simplify_rec (- 0/1 10/1))
+
+             (- 10/1)))
+
+;---------------------------
+; minus_simplify
+;---------------------------
+
+(declare-const a Int)
+(declare-const b Int)
+(declare-const c Real)
+(declare-const d Real)
+
+; Case t - t => 0
+(step $test_minus_simplify_1 
+      (@cl (= (- a a) 0))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_2 
+      (@cl (= (- c c) 0/1))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_3 
+      (@cl (= (- 3 3) 0))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_4 
+      (@cl (= (- 3/1 3/1) 0/1))
+      :rule minus_simplify)
+
+; Case 𝑡1 − 𝑡2 ⇒ 𝑡3, where 𝑡1 and 𝑡2 are numerical constants and 𝑡3 is 𝑡2 subtracted 
+(step $test_minus_simplify_5 
+      (@cl (= (- 3 2) 1))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_6 
+      (@cl (= (- 3/1 2/1) 1/1))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_7 
+      (@cl (= (- 3/2 3/4) 3/4))
+      :rule minus_simplify)
+
+; Case t - 0 => t
+(step $test_minus_simplify_8 
+      (@cl (= (- a 0) a))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_9 
+      (@cl (= (- c 0) c))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_10 
+      (@cl (= (- 10 0) 10))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_11 
+      (@cl (= (- 10/1 0/1) 10/1))
+      :rule minus_simplify)
+
+; Case 0 - t => - t
+(step $test_minus_simplify_12 
+      (@cl (= (- 0 a) (- a)))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_13 
+      (@cl (= (- 0 c) (- c)))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_14 
+      (@cl (= (- 0 10) (- 10)))
+      :rule minus_simplify)
+
+(step $test_minus_simplify_15 
+      (@cl (= (- 0/1 10/1) (- 10/1)))
+      :rule minus_simplify)
