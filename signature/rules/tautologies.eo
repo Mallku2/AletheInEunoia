@@ -1326,7 +1326,9 @@
 ;   A boolean indicating if `div` can be reduced to `term`, using the rules
 ;   in `$ite_simplify_rec`.
 (program $check_ite_simplify ((lhs Bool) (rhs Bool))
+
   :signature (Bool Bool) Bool
+
   (
    (
     ($check_ite_simplify lhs rhs)
@@ -1895,6 +1897,12 @@
                     ; { not (eo::and ($is_numeric_literal t1)
                     ;                ($is_numeric_literal t2)) }
                     (- t1 t2))
+           )
+
+          (
+           ($minus_simplify_small_step t1)
+
+           t1
            )
           )
          )
