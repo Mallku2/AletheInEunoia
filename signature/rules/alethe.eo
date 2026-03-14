@@ -1166,28 +1166,42 @@
     ($check_la_mult_pos (@cl (=> (and (> t1 0/1) (rel t2 t3))
                                 (rel (* t1 t2) (* t1 t3)))))
 
-    true
+    ($is_rel_op rel)
     )
 
    (
     ($check_la_mult_pos (@cl (=> (and (> t1 0) (rel t2 t3))
                                 (rel (* t1 t2) (* t1 t3)))))
 
-    true
+    ($is_rel_op rel)
     )
 
    (
-    ($check_la_mult_pos (@cl (=> (and (> t1 0) (not (rel t2 t3)))
+    ($check_la_mult_pos (@cl (=> (and (> t1 0.0) (rel t2 t3))
+                                (rel (* t1 t2) (* t1 t3)))))
+
+    ($is_rel_op rel)
+    )
+
+   (
+    ($check_la_mult_pos (@cl (=> (and (> t1 0) (not (= t2 t3)))
                                 (not (= (* t1 t2) (* t1 t3))))))
 
     true
     )
 
    (
+    ($check_la_mult_pos (@cl (=> (and (> t1 0/1) (not (= t2 t3)))
+                                (not (= (* t1 t2) (* t1 t3))))))
 
-    ($check_la_mult_pos conclusion)
-    
-    false
+    true
+    )
+
+   (
+    ($check_la_mult_pos (@cl (=> (and (> t1 0.0) (not (= t2 t3)))
+                                (not (= (* t1 t2) (* t1 t3))))))
+
+    true
     )
    )
 )
