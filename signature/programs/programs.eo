@@ -447,7 +447,7 @@
    (
     ($cl_equal cl_1 cl_2)
 
-    ($f_list_equal_mod_commut_and_length @cl cl_1 cl_2)
+    ($f_list_equal_mod_commut @cl cl_1 cl_2)
     )
   )
 )
@@ -525,19 +525,19 @@
 ; return: >
 ;   Applies De Morgan's law over the conjuncts of "ls", returning a new clause
 ;   built with @cl.
-(program $de_morgan_not_and ((l Bool) (ls Bool))
+(program $de_morgan_not_and ((l Bool) (ls Bool :list))
   :signature (Bool) Bool
   (
    (
     ($de_morgan_not_and (and l ls))
-
-    (@cl (not l) ($from_cl ($de_morgan_not_and ls)))
+    
+    ($f_list_cons @cl (not l) ($de_morgan_not_and ls))
     )
 
-   (
+   (; { l is an atom }
     ($de_morgan_not_and l) 
 
-    (@cl (not l))
+    (not l)
     )
   )
 )

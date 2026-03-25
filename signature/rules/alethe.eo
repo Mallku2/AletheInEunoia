@@ -3084,7 +3084,10 @@
    (
     ($check_and_neg (@cl left_disjunct right_disjunct))
 
-    ($cl_equal ($de_morgan_not_and left_disjunct) right_disjunct)
+    ; We add a false to the lhs, and (not true) to rhs, to deal with the
+    ; expansion of applications of right-assoc-nil operators.
+    ($cl_equal ($f_list_cons @cl false ($de_morgan_not_and left_disjunct))
+               ($f_list_cons @cl (not true) right_disjunct))
     )
   )
 )
@@ -3095,9 +3098,9 @@
 ;   for a proposition of the form phi_1 /\ ... /\ phi_n.
 ; conclusion-explicit: >
 ;   A conclusion of the form described by the previous side-condition.
-(declare-rule and_neg ((conclusion Bool))
-  :requires ((($check_and_neg conclusion) true))
-  :conclusion-explicit conclusion
+(declare-rule and_neg ((left_disjunct Bool) (right_disjunct Bool :list))
+  :requires ((($check_and_neg (@cl left_disjunct right_disjunct)) true))
+  :conclusion-explicit (@cl left_disjunct right_disjunct)
 )
 
 ;-------------
