@@ -803,15 +803,30 @@
 ; return: >
 ;   A boolean indicating if `lhs` can be reduced to `rhs` using 
 ;   `$or_simplify_rec`.
-(program $check_or_simplify ((lhs Bool) (rhs Bool))
+(program $check_or_simplify ((lhs Bool) (rhs Bool) (hd Bool) (tl Bool :list))
   :signature (Bool Bool) Bool
   (
    (
+    ($check_or_simplify lhs (or hd tl))
+
+    ($f_list_equal_mod_commut_and_length
+     or
+     ; rhs will have an extra false, we add it to the lhs.
+     ($f_list_cons or false
+                   ($or_simplify_rec 
+                    ($remove_leading_negations_in_disjuncts lhs)))
+     (or hd tl)
+     )
+    )
+
+   (; { rhs is an atom }
     ($check_or_simplify lhs rhs)
 
-    ($eo_is_eq ($or_simplify_rec ($remove_leading_negations_in_disjuncts lhs))
-
-               rhs)
+    ($f_list_equal_mod_commut_and_length
+     or
+     ($or_simplify_rec ($remove_leading_negations_in_disjuncts lhs))
+     rhs
+     )
     )
   )
 )

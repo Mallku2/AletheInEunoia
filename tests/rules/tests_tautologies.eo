@@ -774,9 +774,9 @@
       :rule and_simplify)
 
 
-;-------------
+;-----------------
 ; $or_simplify_rec
-;-------------
+;-----------------
 ; Some constants to build terms, for testing purposes.
 (declare-const a Bool)
 (declare-const b Bool)
@@ -842,6 +842,13 @@
       :args (($or_simplify_rec (or a b false b (not b)))
              true))
 
+; Misc.
+(step $test_$or_simplify_rec_8 true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or false a b c c false a))
+             ($f_list_cons or b ($f_list_cons  or c a))
+             ))
+
 
 ;-------------
 ; or_simplify
@@ -851,6 +858,7 @@
 (declare-const a Bool)
 (declare-const b Bool)
 (declare-const c Bool)
+(declare-const d Bool)
 
 ; First case of or_simplify:
 ; ⊥∨⋯∨⊥⇒⊥
@@ -876,6 +884,14 @@
       (@cl (= (or a false) a))
       :rule or_simplify)
 
+(step $test_$or_simplify_5b
+      (@cl (= (or a a false) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_5c
+      (@cl (= (or a a a false) a))
+      :rule or_simplify)
+
 (step $test_$or_simplify_6
       (@cl (= (or false a) a))
       :rule or_simplify)
@@ -894,14 +910,88 @@
 
 (step $test_$or_simplify_10
       (@cl (= (or false a false b) 
-              ($f_list_cons or a b)))
+              (or a b)))
       :rule or_simplify)
 
 (step $test_$or_simplify_11
       (@cl (= (or false a b c false) 
-              ($f_list_cons or a ($f_list_cons or b c))))
+              (or a b c)))
       :rule or_simplify)
 
+(step $test_$or_simplify_11b
+      (@cl (= (or a b false c false) 
+              (or a b c)))
+      :rule or_simplify)
+
+(step $test_$or_simplify_11c
+      (@cl (= (or a b c false false) 
+              (or a b c)))
+      :rule or_simplify)
+
+(step $test_$or_simplify_11d
+      (@cl (= (or a b c (and a b) false (and a b) false) 
+              (or a b c (and a b))))
+      :rule or_simplify)
+
+(step $test_$or_simplify_11e
+      (@cl (= (or false a b false c d false) 
+              (or a b c d)))
+      :rule or_simplify)
+
+(declare-const A1 Bool)
+(declare-const A2 Bool)
+(declare-const A3 Bool)
+(declare-const A4 Bool)
+(declare-const A5 Bool)
+
+(declare-const B1 Bool)
+(declare-const B2 Bool)
+(declare-const B3 Bool)
+(declare-const B4 Bool)
+(declare-const B5 Bool)
+
+(declare-const C1 Bool)
+(declare-const C2 Bool)
+(declare-const C3 Bool)
+(declare-const C4 Bool)
+(declare-const C5 Bool)
+
+(declare-const D1 Bool)
+(declare-const D2 Bool)
+(declare-const D3 Bool)
+(declare-const D4 Bool)
+(declare-const D5 Bool)
+
+(declare-const E1 Bool)
+(declare-const E2 Bool)
+(declare-const E3 Bool)
+(declare-const E4 Bool)
+(declare-const E5 Bool)
+
+(declare-const F1 Bool)
+(declare-const F2 Bool)
+(declare-const F3 Bool)
+(declare-const F4 Bool)
+(declare-const F5 Bool)
+
+(step $test_$or_simplify_11f
+      (@cl (= 
+            (or false
+          A1 A2 A3 A4 A5
+          B1 false B2 B3 B4 B5
+          C1 C2 false C3 C4 C5
+          D1 D2 D3 false D4 D5
+          E1 E2 E3 E4 false E5
+          F1 F2 F3 F4 F5 false)
+      
+      (or A1 A2 A3 A4 A5
+          B1 B2 B3 B4 B5
+          C1 C2 C3 C4 C5
+          D1 D2 D3 D4 D5
+          E1 E2 E3 E4 E5
+          F1 F2 F3 F4 F5)
+    ))
+      :rule or_simplify)
 ; Third case of or_simplify
 ; 𝜑1 ∨⋯∨𝜑𝑛⇒𝜑1 ∨⋯∨𝜑𝑛′ where the right-hand side has all repeated literals
 ; removed
@@ -927,12 +1017,12 @@
 
 (step $test_$or_simplify_17
       (@cl (= (or false a b false a b) 
-              ($f_list_cons or a b)))
+              (or a b)))
       :rule or_simplify)
 
 (step $test_$or_simplify_18
       (@cl (= (or false a b c c false a) 
-              ($f_list_cons or b ($f_list_cons or c a))))
+              (or a b c)))
       :rule or_simplify)
 
 ; Fourth case of or_simplify
