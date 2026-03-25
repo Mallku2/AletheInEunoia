@@ -2836,7 +2836,8 @@
    (
     ($check_not_and (@cl (not conjunction)) conclusion)
 
-     ($cl_equal ($de_morgan_not_and conjunction) conclusion)
+     ($cl_equal ($f_list_cons @cl false ($de_morgan_not_and conjunction)) 
+                ($f_list_cons @cl (not true) conclusion))
      )
   )
 )
