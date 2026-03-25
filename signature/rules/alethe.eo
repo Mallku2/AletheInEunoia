@@ -3913,7 +3913,11 @@
           (
            ($get_ite_terms (ite guard if else))
 
-           (@varlist (ite guard if else))
+           ($varlist_concat
+            (@varlist (ite guard if else))
+            ($varlist_concat ($get_ite_terms guard)
+                             ($varlist_concat ($get_ite_terms if) 
+                                              ($get_ite_terms else))))
            )
 
           (
@@ -3955,6 +3959,12 @@
   (
    (; Case t1 = t2 in the ite_intro rule.
     ($check_ite_intro t1 t1 conjuncts)
+    
+    ($ite_intro_check_conjuncts ($get_ite_terms t1) conjuncts)
+    )
+
+   (; Case t1 = t2 in the ite_intro rule.
+    ($check_ite_intro t1 t2 conjuncts)
     
     ($ite_intro_check_conjuncts ($get_ite_terms t1) conjuncts)
     )

@@ -805,6 +805,17 @@
 
              (@varlist (ite (p f1) f4 f2))))
 
+(step $test_$get_ite_terms_3 true 
+      :rule $assert_eq 
+      :args (($get_ite_terms (= a
+                                (ite b
+                                     (ite c a b)
+                                     (ite c b a))))
+
+             (@varlist (ite b (ite c a b) (ite c b a))
+                       (ite c a b)
+                       (ite c b a))))
+
 ;-----------------
 ; $check_ite_intro
 ;-----------------
@@ -842,6 +853,49 @@
                         (= f2 (ite (p f1) f4 f2)))))
 
              true))
+
+(declare-const C_tt Bool) 
+(declare-const C_tf Bool) 
+(declare-const C_ft Bool) 
+(declare-const C_ff Bool)
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)  
+
+(step $test_$check_ite_intro_3 true 
+      :rule $assert_eq 
+      :args (($check_ite_intro 
+              (= a
+                 (ite b
+                      (ite c C_tt C_tf)
+                      (ite c C_ft C_ff)))
+
+              (= a
+                 (ite b
+                      (ite c C_tt C_tf)
+                      (ite c C_ft C_ff)))
+
+              (and (ite b
+                        (= (ite c C_tt C_tf)
+                           (ite b
+                                (ite c C_tt C_tf)
+                                (ite c C_ft C_ff)))
+                        (= (ite c C_ft C_ff)
+                           (ite b
+                                (ite c C_tt C_tf)
+                                (ite c C_ft C_ff))))
+
+                   (ite c
+                        (= C_tt (ite c C_tt C_tf))
+                        (= C_tf (ite c C_tt C_tf)))
+
+                   (ite c
+                        (= C_ft (ite c C_ft C_ff))
+                        (= C_ff (ite c C_ft C_ff))))
+              )
+
+             true)
+)
 
 ;-----------------
 ; ite_intro
