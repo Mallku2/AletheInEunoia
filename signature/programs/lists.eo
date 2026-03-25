@@ -110,7 +110,55 @@
   )
 )
 
-; program: $f_list_equal
+; program: $f_list_length
+; args:
+; - f (-> A B B): Operator used to build the f-list.
+; - list B: An f-list.
+; return: Quantity of elements of `list`, including the nil terminator.
+(program $f_list_length ((B Type) (f (-> B B B)) (hd B) (tl B :list))
+
+  :signature ((-> B B B) B) Int
+
+  (
+   (
+    ($f_list_length f (f hd tl))
+
+    (eo::add 1 ($f_list_length f tl))
+    )
+
+   (; { hd != f ...}
+    ($f_list_length f hd)
+
+    1
+    )
+  )
+)
+
+; program: $f_list_equal_mod_commut
+; args:
+; - f (-> A B B): Operator used to build the f-list.
+; - list_1 B: An f-list.
+; - list_2 B: An f-list.
+; return: >
+; A boolean indicating if the operands from list_1 and list_2 are the 
+; same, regardless of the order.
+(program $f_list_equal_mod_commut ((A Type) (B Type) (f (-> A B B))
+                       (f_list_1 B) (f_list_2 B))
+  :signature ((-> A B B) B B) Bool
+  (
+   (
+    ($f_list_equal_mod_commut f f_list_1 f_list_2)
+
+    (eo::and 
+     (eo::is_eq ($f_list_length f f_list_1)
+                ($f_list_length f f_list_2))
+     ($f_list_contains_f_list f f_list_1 f_list_2)
+     ($f_list_contains_f_list f f_list_2 f_list_1))
+    )
+  )
+)
+
+; program: $f_list_equal_mod_commut_and_length
 ; args:
 ; - f (-> A B B): Operator used to build the f-list.
 ; - list_1 B: An f-list.
@@ -118,12 +166,12 @@
 ; return: >
 ; A boolean indicating if the operands from list_1 and list_2 are the 
 ; same, regardless of the order and possible repetitions.
-(program $f_list_equal ((A Type) (B Type) (f (-> A B B))
+(program $f_list_equal_mod_commut_and_length ((A Type) (B Type) (f (-> A B B))
                        (f_list_1 B) (f_list_2 B))
   :signature ((-> A B B) B B) Bool
   (
    (
-    ($f_list_equal f f_list_1 f_list_2)
+    ($f_list_equal_mod_commut_and_length f f_list_1 f_list_2)
 
     (eo::and ($f_list_contains_f_list f f_list_1 f_list_2)
              ($f_list_contains_f_list f f_list_2 f_list_1))

@@ -447,7 +447,7 @@
    (
     ($cl_equal cl_1 cl_2)
 
-    ($f_list_equal @cl cl_1 cl_2)
+    ($f_list_equal_mod_commut_and_length @cl cl_1 cl_2)
     )
   )
 )

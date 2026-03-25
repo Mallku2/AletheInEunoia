@@ -432,7 +432,9 @@
     ; and possible repetitions.
     ($check_contraction premise conclusion)
 
-    ($f_list_equal @cl ($cl_remove_duplicates premise) conclusion)
+    ($f_list_equal_mod_commut_and_length @cl 
+                                         ($cl_remove_duplicates premise) 
+                                         conclusion)
     )
    )
   )
@@ -1413,20 +1415,22 @@
      ; Vars in lhs_vars are substituted by rhs_vars.
      ; Note: we need to embed each var in rhs_vars within a @var construction,
      ; since that is how they will appear within a context.
-     ($f_list_equal @varlist 
-                    ($embed_within_vars rhs_vars)
-                    ($context_get_vars_substs new_context lhs_vars))
+     ($f_list_equal_mod_commut_and_length 
+      @varlist 
+      ($embed_within_vars rhs_vars)
+      ($context_get_vars_substs new_context lhs_vars))
 
      ; rhs_vars should not appear free in (forall lhs_vars lhs_body)
      (eo::define ((lhs_free_vars ($fv (forall lhs_vars lhs_body))))
-                 ($f_list_equal @varlist
-                                lhs_free_vars
-                                ($f_list_filter @varlist
-                                                @varlist.nil
-                                                lhs_free_vars
-                                                ($varlist_flag_members 
-                                                 lhs_free_vars
-                                                 rhs_vars))))
+                 ($f_list_equal_mod_commut_and_length 
+                  @varlist
+                  lhs_free_vars
+                  ($f_list_filter @varlist
+                                  @varlist.nil
+                                  lhs_free_vars
+                                  ($varlist_flag_members 
+                                   lhs_free_vars
+                                   rhs_vars))))
 
      ; rhs_vars should not appear in the first part of the new_context (old_context)
      (eo::not ($context_vars_are_defined old_context rhs_vars))
@@ -1452,19 +1456,21 @@
      ; Vars in lhs_vars are substituted by rhs_vars
      ; Note: we need to embed each var in rhs_vars within a @var construction,
      ; since that is how they will appear within a context.
-     ($f_list_equal @varlist 
-                    ($embed_within_vars rhs_vars)
-                    ($context_get_vars_substs new_context lhs_vars))
+     ($f_list_equal_mod_commut_and_length 
+      @varlist 
+      ($embed_within_vars rhs_vars)
+      ($context_get_vars_substs new_context lhs_vars))
 
      ; rhs_vars should not appear free in (forall lhs_vars lhs_body)
      (eo::define ((lhs_free_vars ($fv (forall lhs_vars lhs_body))))
-                 ($f_list_equal @varlist
-                                lhs_free_vars
-                                ($f_list_filter @varlist
-                                                @varlist.nil
-                                                lhs_free_vars
-                                                ($varlist_flag_members lhs_free_vars
-                                                                       rhs_vars))))
+                 ($f_list_equal_mod_commut_and_length 
+                  @varlist
+                  lhs_free_vars
+                  ($f_list_filter @varlist
+                                  @varlist.nil
+                                  lhs_free_vars
+                                  ($varlist_flag_members lhs_free_vars
+                                                         rhs_vars))))
     
      ; rhs_vars should not appear in the first part of the new_context (old_context)
      (eo::not ($context_vars_are_defined old_context rhs_vars))
@@ -1564,9 +1570,10 @@
           (
            ($check_sko_ex_new_context ex_body new_context ex_vars)
 
-           ($f_list_equal @varlist 
-                          ($check_sko_ex_build_skolem_vars ex_body ex_vars)
-                          ($context_get_var_subst_pairs new_context ex_vars))
+           ($f_list_equal_mod_commut_and_length 
+            @varlist 
+            ($check_sko_ex_build_skolem_vars ex_body ex_vars)
+            ($context_get_var_subst_pairs new_context ex_vars))
            )
           )
 )
@@ -1890,13 +1897,17 @@
    (
     ($check_trans (and (@cl (= lhs rhs_2)) eqs) (@cl (= lhs rhs_1)))
 
-    ($f_list_equal = ($make_trans (and (@cl (= lhs rhs_2)) eqs) lhs) (= lhs rhs_1))
+    ($f_list_equal_mod_commut_and_length 
+     = 
+     ($make_trans (and (@cl (= lhs rhs_2)) eqs) lhs) (= lhs rhs_1))
     )
 
    (
     ($check_trans (and (@cl (= lhs_1 rhs)) eqs) (@cl (= lhs_2 rhs)))
 
-    ($f_list_equal = ($make_trans (and (@cl (= lhs_1 rhs)) eqs) rhs) (= lhs_2 rhs))
+    ($f_list_equal_mod_commut_and_length 
+     = 
+     ($make_trans (and (@cl (= lhs_1 rhs)) eqs) rhs) (= lhs_2 rhs))
     )
   )
 )
@@ -2750,6 +2761,62 @@
   :conclusion-explicit conclusion
 )
 
+;-----------------
+; Rule 35: shuffle
+;-----------------
+
+; rule: shuffle
+; requires: >
+;   For conclusion to be an implication of the form, either:
+;   - (𝑡1 > 0 ∧ 𝑡2 ⋈ 𝑡3) → 𝑡1 ∗ 𝑡2 ⋈ 𝑡1 ∗ 𝑡3, with ⋈ ∈ {<, >, ≤, ≥, ≈}.
+;   - (𝑡1 > 0 ∧ ¬(𝑡; - lhs A: >
+;   Conclusion provided to the rule. 
+; return: >
+;   A boolean indicating if `conclusion` is equivalent to `premise`, but built 
+;   with @cl.
+(program $check_shuffle ((A Type) (term_l A) (terms_l A :list)
+                         (term_r A) (terms_r A :list))
+
+  :signature (A A) Bool
+  (
+   (
+    ($check_shuffle (+ term_l terms_l) (+ term_r terms_r))
+
+    ($f_list_equal_mod_commut + (+ term_l terms_l) (+ term_r terms_r))
+    )
+
+   (
+    ($check_shuffle (* term_l terms_l) (* term_r terms_r))
+
+    ($f_list_equal_mod_commut * (* term_l terms_l) (* term_r terms_r))
+    )
+
+   (
+    ($check_shuffle (and term_l terms_l) (and term_r terms_r))
+
+    ($f_list_equal_mod_commut and (and term_l terms_l) (and term_r terms_r))
+    )
+
+   (
+    ($check_shuffle (or term_l terms_l) (or term_r terms_r))
+
+    ($f_list_equal_mod_commut or (or term_l terms_l) (or term_r terms_r))
+    )
+  )
+)
+
+; rule: shuffle
+; requires: >
+;   For `lhs` to be equivalent to `rhs` modulo commutativity, for the
+;   operations +, ∗, ∧ and ∨.
+; conclusion-explicit: >
+;   A conclusion of the form (@cl (= lhs rhs)), where `lhs` is equivalent to 
+;   `rhs` according to the previous side-condition.
+(declare-rule shuffle ((A Type) (lhs A) (rhs A))
+:requires ((($check_shuffle lhs rhs) true))
+:conclusion-explicit (@cl (= lhs rhs))
+)
+
 ;-------------
 ; Rule 37: not_and
 ;-------------
@@ -3413,10 +3480,11 @@
    (
     ($check_qnt_join varlist_1 varlist_2 varlist_3)
 
-    ($f_list_equal @varlist 
-                   varlist_3
-                   ($f_list_remove_duplicates @varlist @varlist.nil 
-                                              ($varlist_concat varlist_1 varlist_2)))
+    ($f_list_equal_mod_commut_and_length 
+     @varlist 
+     varlist_3
+     ($f_list_remove_duplicates @varlist @varlist.nil 
+                                ($varlist_concat varlist_1 varlist_2)))
     )
   )
 )

@@ -1141,7 +1141,7 @@
                      ($flat_and_or and (and formula formulas))))
       )
 
-     ($f_list_equal and flat_no_dups rhs))
+     ($f_list_equal_mod_commut_and_length and flat_no_dups rhs))
     )
 
    (
@@ -1156,7 +1156,7 @@
                      ($flat_and_or or (or formula formulas))))
       )
 
-     ($f_list_equal or flat_no_dups rhs))
+     ($f_list_equal_mod_commut_and_length or flat_no_dups rhs))
     )
    )
   )
