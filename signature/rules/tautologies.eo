@@ -599,15 +599,29 @@
 ; return: >
 ;   A boolean indicating if `lhs` can be reduced to `rhs` using 
 ;   `$and_simplify_rec`.
-(program $check_and_simplify ((lhs Bool) (rhs Bool))
+(program $check_and_simplify ((lhs Bool) (rhs Bool) (hd Bool) (tl Bool :list))
   :signature (Bool Bool) Bool
   (
    (
+    ($check_and_simplify lhs (and hd tl))
+
+    ($f_list_equal_mod_commut
+     
+     and
+     ; rhs will have an extra true, we add it to the lhs.
+     ($f_list_cons and true 
+                   ($and_simplify_rec ($remove_leading_negations_in_conjuncts lhs)))
+
+               (and hd tl))
+    )
+
+   (
     ($check_and_simplify lhs rhs)
 
-    ($eo_is_eq ($and_simplify_rec ($remove_leading_negations_in_conjuncts lhs))
-
-               rhs)
+    ($f_list_equal_mod_commut
+     and
+     ($and_simplify_rec ($remove_leading_negations_in_conjuncts lhs))
+     rhs)
     )
   )
 )

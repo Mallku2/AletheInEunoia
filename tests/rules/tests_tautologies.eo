@@ -667,12 +667,12 @@
 
 (step $test_$and_simplify_10
       (@cl (= (and true a true b) 
-              ($f_list_cons and a b)))
+              (and a b)))
       :rule and_simplify)
 
 (step $test_$and_simplify_11
       (@cl (= (and true a b c true) 
-              ($f_list_cons and a ($f_list_cons and b c))))
+              (and a b c)))
       :rule and_simplify)
 
 ; Third case of $and_simplify_rec
@@ -698,12 +698,12 @@
 
 (step $test_$and_simplify_17
       (@cl (= (and true a b true a b) 
-              ($f_list_cons and a b)))
+              (and a b)))
       :rule and_simplify)
 
 (step $test_$and_simplify_18
       (@cl (= (and true a b c c true a) 
-              ($f_list_cons and b ($f_list_cons and c a))))
+              (and b c a)))
       :rule and_simplify)
 
 ; Fourth case of $and_simplify_rec
