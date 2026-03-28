@@ -150,31 +150,22 @@
 ; @VarList
 ;-------------
 
-; TODO: this should be implemented using f-list functions
-; program: varlist_concat
+; program: $varlist_concat
 ; args:
-; - varlist_concat nil:
-; return:
-(program $varlist_concat ((A Type) (hd A) (tl @VarList :list)
-                         (varlist_2 @VarList))
+; - list1 @VarList: A @VarList.
+; - list2 @VarList:: A @VarList.
+; return: The @VarList: resulting from concatenating `list1` and `list2`.
+(program $varlist_concat ((varlist_1 @VarList) (varlist_2 @VarList))
   :signature (@VarList @VarList) @VarList
 
   (
    (
-    ($varlist_concat (@varlist hd tl) varlist_2)
+    ($varlist_concat varlist_1 varlist_2)
     
-    ($f_list_cons @varlist 
-                 hd
-                 ($varlist_concat tl varlist_2))
-    )
-
-   (
-    ($varlist_concat @varlist.nil varlist_2)
-    
-    varlist_2
+    ($f_list_concat @varlist @varlist.nil varlist_1 varlist_2)
     )
    )
-)
+  )
 
 ; program: varlist_reverse
 ; args:
@@ -189,7 +180,7 @@
     ($varlist_reverse (@varlist hd tl))
 
     ($varlist_concat ($varlist_reverse tl) 
-                    ($f_list_cons @varlist hd @varlist.nil))
+                     ($f_list_cons @varlist hd @varlist.nil))
     )
    (
     ($varlist_reverse @varlist.nil)
