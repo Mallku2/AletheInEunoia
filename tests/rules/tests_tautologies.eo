@@ -87,18 +87,22 @@
 (step $test_$check_eq_congruent_pred_1 true 
       :rule $assert_eq 
       :args (($check_eq_congruent_pred 
-              (@cl (not (= a b))  (= (g a) (g b)))) true))
+              (@cl (not (= a b)) (not (g a)) (g b))) 
+
+             true))
 
 (step $test_$check_eq_congruent_pred_2 true 
       :rule $assert_eq 
       :args (($check_eq_congruent_pred (@cl (not (= b d)) (not (= c e)) 
-                                            (= (f b c) (f d e)))) 
+                                            (not (f b c)) (f d e)))
+             
              true))
 
 (step $test_$check_eq_congruent_pred_3 true 
       :rule $assert_eq 
-      :args (($check_eq_congruent_pred (@cl (not (= a d)) (not (= b e)) (not (= c j)) 
-                                       (= (h a b c) (h d e j)))) 
+      :args (($check_eq_congruent_pred (@cl (not (= a d)) (not (= b e)) (not (= c j))
+                                       (not (h a b c)) (h d e j)))
+
              true))
 
 ;-------------
