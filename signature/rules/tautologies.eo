@@ -184,30 +184,88 @@
 ; Rule 28: eq_congruent_pred
 ;---------------------------
 
+; program: $check_n_ary_application_eq_congruent_pred
+; args:
+; - not_p Bool: >
+;   Second-to-last disjunct in the conclusion passed to the eq_congruent_pred rule.
+; - p Bool: Last disjunct in the conclusion passed to the eq_congruent rule.
+; - assumptions Bool: >
+;    Clause with the assumptions of the form ¬(𝑡i ≈ 𝑢i) present in the conclusion
+;    passed to the rule, but in the reverse order.
+; return: >
+;    A boolean indicating if `not_p`, `p` and `assumptions` correspond to the proper
+;    application of the eq_congruent_pred rule, for a n-ary predicate.
+(program $check_n_ary_application_eq_congruent_pred ((T Type) (U Type) 
+                                                     (p (-> T U Bool)) (p2 (-> T U Bool)) 
+                                                     (t1 T) (t2 T)
+                                                     (tail Bool :list))
+    :signature (Bool Bool Bool) Bool
+    (
+     (
+      ($check_n_ary_application_eq_congruent_pred (not (p t1)) (p t2) 
+                                                  (@cl (not (= t1 t2))))
+
+      true
+      )
+
+     ( ; TODO: ill-typed?
+      ($check_n_ary_application_eq_congruent_pred (not (p t1)) (p2 t2)
+                                                  (@cl (not (= t1 t2)) tail))
+
+      ($check_n_ary_application_eq_congruent_pred (not p) p2 tail)
+      )
+     )
+    )
+
 ; program: $check_eq_congruent_pred
 ; args:
-; - conclusion Bool: Conclusion clause given to rule cong.
+; - conclusion Bool: Conclusion clause given to rule eq_congruent_pred.
 ; return: >
 ;   A boolean indicating if `conclusion` has the form 
-;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), (P 𝑡1 ⋯ 𝑡𝑛) ≈ (P 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
-;   function symbol P, with co-domain sort Bool.
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ⋯ 𝑡𝑛), (p 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
+;   predicate `p`.
 (program $check_eq_congruent_pred ((hd Bool) (tail Bool :list))
   :signature (Bool) Bool
   (
    (
     ($check_eq_congruent_pred (@cl hd tail))
 
-    ($check_eq_congruent (@cl hd tail))
-     )
-    )
+    (eo::define
+
+     (
+      (predicate_p ($f_list_last_element @cl false (@cl hd tail)))
+      )
+     
+     (eo::define
+      
+      (
+       (remaining_elements ($f_list_remove_elem @cl (@cl hd tail) predicate_p false))
+       )
+
+      (eo::define
+
+       (
+        (predicate_not_p ($f_list_last_element @cl false remaining_elements))
+        )
+       
+       (eo::define
+        
+        (
+         (assumptions ($f_list_remove_elem @cl remaining_elements predicate_not_p false))
+         )
+
+        ($check_n_ary_application_eq_congruent_pred predicate_not_p predicate_p
+                                                    (eo::list_rev @cl assumptions))))
+      )))
    )
+  )
 
 ; rule: eq_congruent_pred
 ; requires: >
 ;   For the conclusion to be built with @cl and to have the form:
-;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), (P 𝑡1 ⋯ 𝑡𝑛) ≈ (P 𝑢1 ⋯ 𝑢𝑛), 
-;   where 𝑃 is a function symbol with co-domain sort Bool.
-; conclusion-explicit: A clause built with @cl.
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), ¬(P 𝑡1 ⋯ 𝑡𝑛), (P 𝑢1 ⋯ 𝑢𝑛), 
+;   where 𝑃 is a predicate symbol.
+; conclusion-explicit: A clause built with @cl satisfying the previous side-condition.
 (declare-rule eq_congruent_pred ((hd Bool) (tail Bool :list))
   :requires ((($check_eq_congruent_pred (@cl hd tail)) true))
   :conclusion-explicit (@cl hd tail)
