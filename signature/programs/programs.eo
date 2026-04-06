@@ -1498,7 +1498,7 @@
 ;    should be substituted by "value".
 ; return: The corresponding @Substitution.
 (program $substitution_build_from_pairs ((Vars Type) (Values Type) (var Vars) 
-                                         (value Values) (pairs_tail @VarList :list))
+                                         (value Values :list) (pairs_tail @VarList :list))
          :signature (@VarList) @Substitution
          (
           (
@@ -1513,7 +1513,7 @@
            ($substitution_extend ($substitution_build_from_pairs pairs_tail) var value)
            )
           )
-)
+         )
 
 ; program: $substitution_build_from_context
 ; args:
