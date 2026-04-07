@@ -415,30 +415,6 @@
   )
 )
 
-; program: $f_list_shift
-; args:
-; - f (-> A A A): Constructor of f-lists.
-; - nil A: nil element of f-lists.
-; - list A: List to be reversed.
-; return: A list with the same elements of `list`, but in reversed order.
-(program $f_list_shift ((A Type) (hd A) (tl A :list) (f (-> A A A)) (nil A))
-  :signature ((-> A A A) A A) A
-  (
-   (
-    ($f_list_shift f nil (f hd tl))
-
-    ($f_list_concat f nil tl ($f_list_cons f hd nil))
-    )
-
-   (
-    ($f_list_shift f nil nil)
-
-    nil
-    )
-  )
-)
-
-
 ;-------------
 ; Reflection
 ;-------------
