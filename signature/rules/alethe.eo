@@ -302,14 +302,25 @@
 
 ; program: $check_resolution_with_normalized_clauses 
 ; args:
-; - clauses Bool: And-list of normalized clauses (double negation is simplified).
+; - clauses Bool: >
+;   And-list of normalized clauses (double negation is simplified) not yet 
+;   considered for resolution.
+; - already_tried_pivot_clauses Bool: >
+;   And-list of clauses already considered for resolution with the current
+;   pivot (firs element in `pivots`)
+; - already_tried_not_pivot_clauses Bool: >
+;   And-list of clauses already considered for resolution with the negation
+;   of the current pivot (firs element in `pivots`)
 ; - pivots @VarList: A list of pivots used during resolution.
 ; - conclusion Bool: Conclusion provided to the rule.
 ; return: >
 ;   A boolean indicating if `conclusion` is a resolvent that can be
 ;   obtained from applying resolution over `clauses`, using the pivots
 ;   contained in `pivots`, in the same order of their appearance in the list.
-; note: PRE : { `clauses` are normalized: double negation is simplified }
+; note: >
+;   PRE : { `clauses` are normalized (double negation is simplified) &
+;           `already_tried_pivot_clauses`, `already_tried_pivot_clauses` and
+;           `clauses` are mutually disjoint }
 (program $check_resolution_with_normalized_clauses  ((current_clauses Bool)
                                                      (already_tried_pivot_clauses Bool)
                                                      (already_tried_not_pivot_clauses Bool)
@@ -366,11 +377,6 @@
                            (single_clause_without_pivot ($remove_pivot_from_clause 
                                                          normalized_pivot
                                                          single_clause_with_pivot))
-                           ;; (clauses_without_pivot ($return_untouched_clauses
-                           ;;                         (eo::ite polarity 
-                           ;;                                  normalized_pivot
-                           ;;                                  normalized_negated_pivot) 
-                           ;;                         current_clauses))
                            )
 
                           (eo::define
@@ -378,12 +384,6 @@
                             (single_clause_without_not_pivot ($remove_pivot_from_clause 
                                                               normalized_negated_pivot
                                                               single_clause_with_not_pivot))
-
-                            ;; (clauses_without_not_pivot ($return_untouched_clauses 
-                            ;;                             (eo::ite polarity 
-                            ;;                                      normalized_negated_pivot
-                            ;;                                      normalized_pivot)
-                            ;;                             current_clauses))
                             )
 
                            (eo::define
