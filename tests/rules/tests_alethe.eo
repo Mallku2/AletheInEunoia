@@ -2153,6 +2153,14 @@
       :premises ( premise_1 premise_2 ) 
       :args ( (@varlist (not (not a)) false) ))
 
-
-
-
+; Example from VeriT certificate.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(assume premise_1 (@cl (not (not (and (not (= a b)) (= a c))))))
+(assume premise_2 (@cl (not (not (not (and (not (= a b)) (= a c))))) (not (not (and (not (= b a)) (= a c))))))
+(step $test_resolution_5 
+      (@cl (not (not (and (not (= b a)) (= a c)))))
+      :rule resolution
+      :premises ( premise_1 premise_2 ) 
+      :args ( (@varlist (not (not (and (not (= a b)) (= a c)))) true) ))
