@@ -3100,6 +3100,217 @@
       (@cl (= (+ 1/1 -1/1 d 2/1 -2/1 c) ($f_list_cons + c d)))
       :rule sum_simplify)
 
+;-------------
+; $idempotency_simp
+;-------------
+
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+
+(step $test_$idempotency_simp_1 true
+      :rule $assert_eq 
+      :args (($idempotency_simp a)
+
+             a))
+
+(step $test_$idempotency_simp_2 true
+      :rule $assert_eq 
+      :args (($idempotency_simp (or a a))
+
+             a))
+
+(step $test_$idempotency_simp_3 true
+      :rule $assert_eq 
+      :args (($idempotency_simp ($f_list_cons or a a))
+
+             a))
+
+;-------------
+; $ac_simp_step
+;-------------
+
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+
+(step $test_$ac_simp_step_1 true
+      :rule $assert_eq 
+      :args (($ac_simp_step or a)
+
+             a))
+
+;; (step $test_$ac_simp_step_1b true
+;;       :rule $assert_eq 
+;;       :args (($ac_simp_step or false (or a a))
+
+;;              a))
+
+;-------------
+; $ac_simp_rec
+;-------------
+
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+
+(step $test_$ac_simp_rec_1 true
+      :rule $assert_eq 
+      :args (($ac_simp_rec a)
+
+             a))
+
+(step $test_$ac_simp_rec_1b true
+      :rule $assert_eq 
+      :args (($ac_simp_rec (or a a))
+
+             a))
+
+(step $test_$ac_simp_rec_1c true
+      :rule $assert_eq 
+      :args (($ac_simp_rec (or a a b))
+
+             (or a b)))
+
+(step $test$ac_simp_rec_2 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or a a b b))
+             
+             ($f_list_cons or a b)))
+
+(step $test_$ac_simp_rec_3 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or a b a b)) 
+             
+             (or a b)))
+
+(step $test_$ac_simp_rec_4 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or a b a b)) 
+             
+             (or a b)))
+
+(step $test_$ac_simp_rec_5 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or a b a c b)) 
+             
+             (or a c b)))
+
+(step $test_$ac_simp_rec_6 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or a b a c b c)) 
+             
+             (or a b c)))
+
+(step $test_$ac_simp_rec_7 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and a a b)) 
+             
+             (and a b)))
+
+(step $test_$ac_simp_rec_8 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and a a b b)) 
+             
+             ($f_list_cons and a b)))
+
+(step $test_$ac_simp_rec_9 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and a b a b)) 
+             
+             (and a b)))
+
+(step $test_$ac_simp_rec_10 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and a b a b)) 
+             
+             (and a b)))
+
+(step $test_$ac_simp_rec_11 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and a b a c b)) 
+             
+             (and a c b)))
+
+(step $test_$ac_simp_rec_12 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and a b a c b c)) 
+             
+             (and a b c)))
+
+; Flattening
+(step $test_$ac_simp_rec_13 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and (and a b) c))
+             
+             (and a b c)))
+
+(step $test_$ac_simp_rec_14 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and (and a b) (and c d))) 
+             
+             (and a b c d)))
+
+(step $test_$ac_simp_rec_14 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and (and a b) (and (and c d) true))) 
+             
+             (and a b c d)))
+
+(step $test_$ac_simp_rec_15 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or (or a b) c)) 
+             
+             (or a b c)))
+
+(step $test_$ac_simp_rec_16 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or (or a b) (or c d))) 
+             
+             (or a b c d)))
+
+(step $test_$ac_simp_rec_17 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or (or a b) (or (or c d) false))) 
+             
+             (or a b c d)))
+
+; Mixed cases:rule $assert_eq
+(step $test_$ac_simp_rec_18 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or (or a b a) (or (or c d d) false))) 
+             
+             (or b a c d)))
+
+(step $test_$ac_simp_rec_19 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or (or a b a) (or a b a) (or (or c d d) false))) 
+             
+             (or b a c d)))
+
+(step $test_$ac_simp_rec_20 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and (and a b a) (and (and c d d) true))) 
+             
+             (and b a c d)))
+
+(step $test_$ac_simp_rec_21 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (and (and a b a) (and a b a) (and (and c d d) true))) 
+             
+             (and b a c d)))
+
+; Nesting
+(step $test_$ac_simp_rec_22 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or a a (and b b))) 
+             
+             (or a b)))
+
+
 
 ;--------
 ; ac_simp
@@ -3116,7 +3327,7 @@
       :rule ac_simp)
 
 (step $test_ac_simp_2
-      (@cl (= (or a a b b) (or a b)))
+      (@cl (= (or a a b b) ($f_list_cons or a b)))
       :rule ac_simp)
 
 (step $test_ac_simp_3
@@ -3140,7 +3351,7 @@
       :rule ac_simp)
 
 (step $test_ac_simp_8
-      (@cl (= (and a a b b) (and a b)))
+      (@cl (= (and a a b b) ($f_list_cons and a b)))
       :rule ac_simp)
 
 (step $test_ac_simp_9
@@ -3199,6 +3410,19 @@
 
 (step $test_ac_simp_21
       (@cl (= (and (and a b a) (and a b a) (and (and c d d) true)) (and a b c d)))
+      :rule ac_simp)
+
+; Nesting
+(step $test_ac_simp_22
+      (@cl (= (or a a (and b b)) (or a b)))
+      :rule ac_simp)
+
+(step $test_ac_simp_23
+      (@cl (= (or a a (and b (and b c))) (or a (and b c))))
+      :rule ac_simp)
+
+(step $test_ac_simp_24
+      (@cl (= (or (or a (or a a)) (and b (and b c))) (or a (and b c))))
       :rule ac_simp)
 
 ;----------

@@ -4363,7 +4363,7 @@
     ($f_list_equal_mod_commut_and_length 
      @varlist 
      varlist_3
-     ($f_list_remove_duplicates @varlist @varlist.nil 
+     ($f_list_remove_duplicates @varlist
                                 ($varlist_concat varlist_1 varlist_2)))
     )
   )
