@@ -260,46 +260,6 @@
           )
          )
 
-; program: $return_untouched_clauses
-; args:
-; - pivot Bool: >
-;   Pivot that is being considered in the current binary resolution step.
-; - clauses Bool: And-list of clauses.
-; return: The And-list of clauses without the clause containing `pivot`.
-; note: >
-;   PRE : { `pivot` is contained in some clause from `clauses`
-;           && 
-;           `pivot` is normalized
-;           && 
-;          `clause` is normalized }
-;   While this function repeats part of the work done by 
-;   $find_and_remove_pivot_from_clauses, it is added to simplify the task
-;   of identifying which are the remaining clauses upon which we must continue
-;   applying resolution steps
-(program $return_untouched_clauses ((clause Bool) (clauses Bool :list) 
-                                    (pivot Bool))
-         :signature (Bool Bool) Bool
-         (
-          (
-           ($return_untouched_clauses pivot (and clause clauses))
-
-           (eo::ite ($f_list_contains_elem @cl pivot clause)
-
-                    clauses
-                    
-                    ($f_list_cons and clause ($return_untouched_clauses pivot clauses))
-                    )
-           )
-
-          (; By pre, `clause` should contain `pivot`.
-           ; { clause is just a single @cl clause }
-           ($return_untouched_clauses pivot clause)
-
-           true
-           )
-          )
-         )
-
 ; program: $check_resolution_with_normalized_clauses 
 ; args:
 ; - clauses Bool: >
@@ -320,7 +280,8 @@
 ; note: >
 ;   PRE : { `clauses` are normalized (double negation is simplified) &
 ;           `already_tried_pivot_clauses`, `already_tried_pivot_clauses` and
-;           `clauses` are mutually disjoint }
+;           `clauses` are mutually disjoint &
+;           `conclusion` is normalized }
 (program $check_resolution_with_normalized_clauses  ((current_clauses Bool)
                                                      (already_tried_pivot_clauses Bool)
                                                      (already_tried_not_pivot_clauses Bool)
@@ -473,13 +434,14 @@
      
      (
       (normalized_clauses ($normalize_clauses clauses))
+      (normalized_conclusion ($normalize_single_clause conclusion))
       )
      
     ($check_resolution_with_normalized_clauses normalized_clauses
                                                true
                                                true
                                                pivots 
-                                               conclusion)
+                                               normalized_conclusion)
     )
     )
    )

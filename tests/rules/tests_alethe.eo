@@ -1478,68 +1478,6 @@
 
              (@cl r)))
 
-;------------------------------------
-; $return_untouched_clauses
-;------------------------------------
-
-(declare-const p Bool)
-(declare-const q Bool)
-(declare-const r Bool)
-
-
-(step $test_$return_untouched_clauses_1 true 
-      :rule $assert_eq 
-      :args (($return_untouched_clauses
-              p
-              (and (@cl p (not q))
-                   (@cl q r)))
-
-             (and (@cl q r))))
-
-(step $test_$return_untouched_clauses_2 true 
-      :rule $assert_eq 
-      :args (($return_untouched_clauses
-              p
-              (and (@cl (not p) r)
-                   (@cl p (not q))
-                   (@cl q r)))
-
-             (and (@cl (not p) r)
-                  (@cl q r))))
-
-(step $test_$return_untouched_clauses_3 true 
-      :rule $assert_eq 
-      :args (($return_untouched_clauses
-              (not p)
-              (and (@cl (not p) r)
-                   (@cl p (not q))
-                   (@cl q r)))
-
-             (and (@cl p (not q))
-                  (@cl q r))))
-
-(step $test_$return_untouched_clauses_4 true 
-      :rule $assert_eq 
-      :args (($return_untouched_clauses
-              (not q)
-              (and (@cl (not p) r)
-                   (@cl p (not q))
-                   (@cl q r)))
-
-             (and (@cl (not p) r)
-                  (@cl q r))))
-
-(step $test_$return_untouched_clauses_5 true 
-      :rule $assert_eq 
-      :args (($return_untouched_clauses
-              q
-              (and (@cl (not p) r)
-                   (@cl p (not q))
-                   (@cl q r)))
-
-             (and (@cl (not p) r)
-                  (@cl p (not q)))))
-
 ;------------------------------------------
 ; $check_resolution_with_normalized_clauses
 ;------------------------------------------
@@ -2189,3 +2127,32 @@
                        p false
                        (and p q) false
                        (and s r) true)))
+
+; Example from VeriT certificate.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+(assume premise_1 (@cl (= c (= b a))))
+(assume premise_2 (@cl (not (= c (= b a)))
+                       (= c (= a b))))
+(step $test_resolution_3
+      (@cl (= c (= a b)))
+      :rule resolution :premises (premise_1 premise_2) 
+      :args ((@varlist (= c (= b a)) true)))
+
+; Example from VeriT certificate.
+(declare-const a Bool)
+(declare-const b Bool)
+
+(assume premise_1 (@cl (not (not (not a))) a))
+(assume premise_2 (@cl (not (not a)) (not (not b))))
+(step $test_resolution_4 
+      (@cl a (not (not b))) 
+      :rule resolution 
+      :premises ( premise_1 premise_2 ) 
+      :args ( (@varlist (not (not a)) false) ))
+
+
+
+
