@@ -1,5 +1,4 @@
 ; Rules
-
 (include "./rules/tests_alethe.eo")
 (include "./rules/tests_arith.eo")
 (include "./rules/tests_tautologies.eo")
@@ -7,4 +6,6 @@
 ; Programs
 (include "./programs/tests_arith.eo")
 (include "./programs/tests_trees.eo")
+(include "./programs/tests_lists.eo")
+(include "./programs/tests_pairs.eo")
 (include "./programs/tests_programs.eo")
