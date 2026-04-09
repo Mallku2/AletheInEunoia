@@ -3884,10 +3884,16 @@
           (
            ($ite_intro_check_conjuncts (@varlist (ite guard if else) tail) conjuncts)
 
-           (eo::and ($f_list_contains_elem 
+           (eo::and (eo::or
+                     ($f_list_contains_elem 
                      and 
-                     (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
+                     (ite guard (= (ite guard if else) if) (= (ite guard if else) else))
                      conjuncts)
+
+                     ($f_list_contains_elem 
+                      and 
+                      (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
+                      conjuncts))
 
                     ($ite_intro_check_conjuncts tail conjuncts))
            )
@@ -3971,7 +3977,6 @@
   )
 )
 
-;TRUST
 ; rule: ite_intro
 ; requires: >
 ;   For every ite construction of the form "ite 𝜓𝑖 ri 𝑟′𝑖" present on `t1`, 
