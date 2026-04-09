@@ -1229,7 +1229,7 @@
                     (eo::ite ($eo_is_eq ($f_list_length or tl) 1)
 
                              ; Non nil-terminated list?
-                             (eo::ite ($eo_is_eq ($f_list_index or tl 0) hd)
+                             (eo::ite ($eo_is_eq tl hd)
 
                                       hd
 
@@ -1259,7 +1259,7 @@
                     (eo::ite ($eo_is_eq ($f_list_length and tl) 1)
 
                              ; Non nil-terminated list?
-                             (eo::ite ($eo_is_eq ($f_list_index and tl 0) hd)
+                             (eo::ite ($eo_is_eq tl hd)
 
                                       hd
 
@@ -1312,7 +1312,9 @@
       (tail_ac_simp ($ac_simp_rec tail))
       )
 
-     ($ac_simp_step and ($f_list_cons and formula_ac_simp tail_ac_simp)))
+     ($ac_simp_step and 
+                    ($to_nil_terminated_f_list and true
+                                               ($f_list_cons and formula_ac_simp tail_ac_simp))))
     )
 
    (
@@ -1326,7 +1328,10 @@
       (tail_ac_simp ($ac_simp_rec tail))
       )
 
-     ($ac_simp_step or ($f_list_cons or formula_ac_simp tail_ac_simp)))
+     ($ac_simp_step or 
+                    ($to_nil_terminated_f_list or false
+                                               ($f_list_cons or formula_ac_simp tail_ac_simp))
+                    ))
     )
 
    (; { formula != or ..., and ... }

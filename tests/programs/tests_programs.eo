@@ -52,6 +52,12 @@
 
              a))
 
+(step $test_$flat_and_or_1e true 
+      :rule $assert_eq 
+      :args (($flat_and_or and (and a a))
+
+             (and a a)))
+
 (step $test_$flat_and_or_2 true 
       :rule $assert_eq 
       :args (($flat_and_or and ($f_list_cons and 

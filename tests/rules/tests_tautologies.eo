@@ -3121,6 +3121,14 @@
 
              a))
 
+(step $test_$idempotency_simp_2b true
+      :rule $assert_eq 
+      :args (($idempotency_simp ($f_list_cons or 
+                                              a 
+                                              ($f_list_cons or a false)))
+
+             a))
+
 (step $test_$idempotency_simp_3 true
       :rule $assert_eq 
       :args (($idempotency_simp ($f_list_cons or a a))
@@ -3142,11 +3150,166 @@
 
              a))
 
-;; (step $test_$ac_simp_step_1b true
-;;       :rule $assert_eq 
-;;       :args (($ac_simp_step or false (or a a))
+(step $test_$ac_simp_step_1b true
+      :rule $assert_eq 
+      :args (($ac_simp_step or (or a a))
 
-;;              a))
+             a))
+
+(step $test_$ac_simp_step_1c true
+      :rule $assert_eq 
+      :args (($ac_simp_step or (or a a b))
+
+             (or a b)))
+
+(step $test_$ac_simp_step_1d true
+      :rule $assert_eq 
+      :args (($ac_simp_step or ($f_list_cons or a a))
+
+             a))
+
+(step $test_$ac_simp_step_1e true
+      :rule $assert_eq 
+      :args (($ac_simp_step or (or a))
+
+             (or a)))
+
+(step $test$ac_simp_step_2 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or a a b b))
+             
+             (or a b)))
+
+(step $test_$ac_simp_step_3 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or a b a b)) 
+             
+             (or a b)))
+
+(step $test_$ac_simp_step_4 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or a b a b)) 
+             
+             (or a b)))
+
+(step $test_$ac_simp_step_5 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or a b a c b)) 
+             
+             (or a c b)))
+
+(step $test_$ac_simp_step_6 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or a b a c b c)) 
+             
+             (or a b c)))
+
+(step $test_$ac_simp_step_7 true
+      :rule $assert_eq
+      :args (($ac_simp_step and (and a a b)) 
+             
+             (and a b)))
+
+(step $test_$ac_simp_step_8 true
+      :rule $assert_eq
+      :args (($ac_simp_step and (and a a b b)) 
+             
+             (and a b)))
+
+(step $test_$ac_simp_step_9 true
+      :rule $assert_eq
+      :args (($ac_simp_step and (and a b a b)) 
+             
+             (and a b)))
+
+(step $test_$ac_simp_step_10 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or a a b b))
+             
+             (or a b)))
+
+(step $test_$ac_simp_step_11 true
+      :rule $assert_eq
+      :args (($ac_simp_step and (and a b a c b)) 
+             
+             (and a c b)))
+
+(step $test_$ac_simp_step_12 true
+      :rule $assert_eq
+      :args (($ac_simp_step and (and a b a c b c)) 
+             
+             (and a b c)))
+
+; Flattening
+(step $test_$ac_simp_step_13 true
+      :rule $assert_eq
+      :args (($ac_simp_step and (and (and a b) c))
+             
+             (and a b c)))
+
+(step $test_$ac_simp_step_14 true
+      :rule $assert_eq
+      :args (($ac_simp_step and (and (and a b) (and c d))) 
+             
+             (and a b c d)))
+
+(step $test_$ac_simp_step_14 true
+      :rule $assert_eq
+      :args (($ac_simp_step and (and (and a b) (and (and c d) true))) 
+             
+             (and a b c d)))
+
+(step $test_$ac_simp_step_15 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or (or a b) c)) 
+             
+             (or a b c)))
+
+(step $test_$ac_simp_step_16 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or (or a b) (or c d))) 
+             
+             (or a b c d)))
+
+(step $test_$ac_simp_step_17 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or (or a b) (or (or c d) false))) 
+             
+             (or a b c d)))
+
+; Mixed cases:rule $assert_eq
+(step $test_$ac_simp_step_18 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or (or a b a) (or (or c d d) false))) 
+             
+             (or b a c d)))
+
+(step $test_$ac_simp_step_19 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or (or a b a) (or a b a) (or (or c d d) false))) 
+             
+             (or b a c d)))
+
+(step $test_$ac_simp_step_20 true
+      :rule $assert_eq
+      :args (($ac_simp_step and (and (and a b a) (and (and c d d) true))) 
+             
+             (and b a c d)))
+
+(step $test_$ac_simp_step_21 true
+      :rule $assert_eq
+      :args (($ac_simp_step and (and (and a b a) 
+                                     (and a b a) 
+                                     (and (and c d d) true))) 
+             
+             (and b a c d)))
+
+; Nesting
+(step $test_$ac_simp_step_22 true
+      :rule $assert_eq
+      :args (($ac_simp_step or (or a a (and b b))) 
+             
+             (or a (and b b))))
 
 ;-------------
 ; $ac_simp_rec
@@ -3165,21 +3328,33 @@
 
 (step $test_$ac_simp_rec_1b true
       :rule $assert_eq 
-      :args (($ac_simp_rec (or a a))
+      :args (($ac_simp_rec (or a b b))
 
-             a))
+             (or a b)))
 
 (step $test_$ac_simp_rec_1c true
       :rule $assert_eq 
-      :args (($ac_simp_rec (or a a b))
+      :args (($ac_simp_rec ($f_list_cons or a a))
 
-             (or a b)))
+             a))
+
+(step $test_$ac_simp_rec_1d true
+      :rule $assert_eq 
+      :args (($ac_simp_rec (or a))
+
+             (or a)))
+
+(step $test_$ac_simp_rec_1e true
+      :rule $assert_eq 
+      :args (($ac_simp_rec (or a a))
+
+             a))
 
 (step $test$ac_simp_rec_2 true
       :rule $assert_eq
       :args (($ac_simp_rec (or a a b b))
              
-             ($f_list_cons or a b)))
+             (or a b)))
 
 (step $test_$ac_simp_rec_3 true
       :rule $assert_eq
@@ -3215,7 +3390,7 @@
       :rule $assert_eq
       :args (($ac_simp_rec (and a a b b)) 
              
-             ($f_list_cons and a b)))
+             (and a b)))
 
 (step $test_$ac_simp_rec_9 true
       :rule $assert_eq
@@ -3310,7 +3485,23 @@
              
              (or a b)))
 
+; Taken from a VeriT certificate.
+(declare-const p00 Bool)
+(declare-const p01 Bool)
+(declare-const p10 Bool)
+(declare-const p11 Bool)
 
+(step $test_ac_simp_rec_22 true
+      :rule $assert_eq
+      :args (($ac_simp_rec (or (or (and p00 (and (not p00) p00))
+                                   (and p01 (and (not p01) p01)))
+                               (or (and p10 (and (not p10) p10))
+                                   (and p11 (and (not p11) p11)))))
+
+             (or (and (not p00) p00)
+                 (and (not p01) p01)
+                 (and (not p10) p10)
+                 (and (not p11) p11))))
 
 ;--------
 ; ac_simp
@@ -3327,7 +3518,7 @@
       :rule ac_simp)
 
 (step $test_ac_simp_2
-      (@cl (= (or a a b b) ($f_list_cons or a b)))
+      (@cl (= (or a a b b) (or a b)))
       :rule ac_simp)
 
 (step $test_ac_simp_3
@@ -3351,7 +3542,7 @@
       :rule ac_simp)
 
 (step $test_ac_simp_8
-      (@cl (= (and a a b b) ($f_list_cons and a b)))
+      (@cl (= (and a a b b) (and a b)))
       :rule ac_simp)
 
 (step $test_ac_simp_9
@@ -3423,6 +3614,23 @@
 
 (step $test_ac_simp_24
       (@cl (= (or (or a (or a a)) (and b (and b c))) (or a (and b c))))
+      :rule ac_simp)
+
+; Taken from a VeriT certificate
+(declare-const p00 Bool)
+(declare-const p01 Bool)
+(declare-const p10 Bool)
+(declare-const p11 Bool)
+
+(step $test_ac_simp_25
+      (@cl (= (or (or (and p00 (and (not p00) p00))
+                      (and p01 (and (not p01) p01)))
+                  (or (and p10 (and (not p10) p10))
+                      (and p11 (and (not p11) p11))))
+              (or (and (not p00) p00)
+                  (and (not p01) p01)
+                  (and (not p10) p10)
+                  (and (not p11) p11))))
       :rule ac_simp)
 
 ;----------
