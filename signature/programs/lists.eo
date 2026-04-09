@@ -501,6 +501,53 @@
           )
          )
 
+; program: $to_nil_terminated_f_list
+; args:
+; - f (-> A A A): Constructor of f-lists.
+; - nil A: Nil terminator of `f`-lists.
+; - value A: A single element or `f`-list.
+; return: The injection of `value` into the set of properly `nil`-terminated `f`-lists.
+; note: >
+;   Useful to guarantee that a function returns `nil`-terminated `f`-lists, when 
+;   required. It considers sub-terms such that every sub-`f`-list is also 
+;   `nil`-terminated.
+(program $to_nil_terminated_f_list ((A Type) (f (-> A A A)) (op (-> A A A))
+                                    (hd_1 A) (tl_1 A) (tl_2 A) (elem A) (nil A))
+         :signature ((-> A A A) A A) A
+         (
+          (
+           ($to_nil_terminated_f_list f nil (f (f hd_1 tl_1) nil))
+
+           (f ($to_nil_terminated_f_list f nil (f hd_1 tl_1)) nil)
+           )
+
+          (; { hd_1 != op ... }
+           ($to_nil_terminated_f_list f nil (f hd_1 nil))
+
+           (f hd_1 nil)
+           )
+
+          (; { tl_2 != nil }
+           ($to_nil_terminated_f_list f nil (f (f hd_1 tl_1) tl_2))
+
+           (f ($to_nil_terminated_f_list f nil (f hd_1 tl_1)) 
+              ($to_nil_terminated_f_list f nil tl_2))
+           )
+
+          (; { hd != f ... }
+           ($to_nil_terminated_f_list f nil (f hd_1 tl_1))
+
+           (f hd_1 ($to_nil_terminated_f_list f nil tl_1))
+           )
+
+          (; { hd != f ... }
+           ($to_nil_terminated_f_list f nil hd_1)
+
+           (f hd_1 nil)
+           )
+          )
+         )
+
 ;-------------
 ; Reflection
 ;-------------
