@@ -1010,37 +1010,38 @@
    (
     ($bool_simplify_small_step (not (=> phi1 phi2)))
 
-    ($f_list_cons and phi1 (not phi2))
+    (and phi1 (not phi2))
     )
 
-   (
+   (; (not (or a b)) -> (not (or a (or b false))) -> 
+    ; (and (not a) (not (or b false))) instead of (and (not a) (not b))
     ($bool_simplify_small_step (not (or phi1 phi2)))
 
-    ($f_list_cons and (not phi1) (not phi2))
+    (and (not phi1) (not phi2))
     )
 
    (
     ($bool_simplify_small_step (not (and phi1 phi2)))
 
-    ($f_list_cons or (not phi1) (not phi2))
+    (or (not phi1) (not phi2))
     )
 
    (
     ($bool_simplify_small_step (=> phi1 (=> phi2 phi3)))
     
-    (=> ($f_list_cons and phi1 phi2) phi3)
+    (=> (and phi1 phi2) phi3)
     )
 
    (
     ($bool_simplify_small_step (=> (=> phi1 phi2) phi2))
 
-    ($f_list_cons or phi1 phi2)
+    (or phi1 phi2)
     )
 
    (
     ($bool_simplify_small_step (and (=> phi3 phi2) phi3))
 
-    ($f_list_cons and phi3 phi2)
+    (and phi3 phi2)
     )
 
    (; { phi1 != (=> phi3 phi2) }
@@ -1060,13 +1061,13 @@
               (eo::ite ($eo_is_eq phi1 antecedent)
 
                        ; Sixth case of bool_simplify.
-                       ($f_list_cons and phi1 consequent)
+                       (and phi1 consequent)
 
                        ; { not ($eo_is_eq phi1 antecedent) }
-                       ($f_list_cons and phi1 phi2)))
+                       (and phi1 phi2)))
 
              ; { not ($is_implication phi2) }
-             ($f_list_cons and phi1 phi2))
+             (and phi1 phi2))
     )
 
    (
