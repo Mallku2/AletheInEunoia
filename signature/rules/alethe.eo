@@ -4883,6 +4883,21 @@
 )
 
 ;-------------------
+; Rule symm
+;-------------------
+
+; rule: symm
+; premises: >
+;   An equality of the form (@cl (not (= phi psy))), for arbitrary formulas phi 
+;   and psy.
+; conclusion-explicit: >
+;   The conclusion should have the form (@cl (= psy phi)).
+(declare-rule symm ((phi Bool) (psy Bool))
+  :premises ((@cl (= phi psy)))
+  :conclusion-explicit (@cl (= psy phi))
+)
+
+;-------------------
 ; Rule not_symm
 ;-------------------
 
