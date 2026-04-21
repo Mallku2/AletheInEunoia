@@ -1363,7 +1363,7 @@
     ($check_ac_simp lhs rhs)
 
      ($eo_is_eq
-      ($normalize_formula_modulo_commutativity ($ac_simp_rec lhs)) 
+      ($normalize_formula_modulo_commutativity ($ac_simp_rec lhs))
 
       ($normalize_formula_modulo_commutativity rhs))
     )
