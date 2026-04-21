@@ -1366,22 +1366,6 @@
 
       ($normalize_formula_modulo_commutativity rhs))
     )
-
-   ;; (
-   ;;  ($check_ac_simp (and formula tail) rhs)
-
-   ;;   ($f_list_equal_mod_commut_and_length
-   ;;    and 
-   ;;    ($ac_simp_rec (and formula tail)) rhs)
-   ;;  )
-   
-   ;; (
-   ;;  ($check_ac_simp (or formula tail) rhs)
-
-   ;;   ($f_list_equal_mod_commut_and_length 
-   ;;    or
-   ;;    ($ac_simp_rec (or formula tail)) rhs)
-   ;;  )
    )
   )
 

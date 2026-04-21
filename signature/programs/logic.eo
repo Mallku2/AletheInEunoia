@@ -1,5 +1,6 @@
 (include "../theories/theory.eo")
 (include "./trees.eo")
+(include "./utils.eo")
 
 ; Library of auxiliary programs, useful to manipulate logic formulas.
 
@@ -23,7 +24,19 @@
            false
            )
 
-          (; { atom != op ..., not ... }
+          (
+           ($formula_is_an_atom false)
+
+           false
+           )
+
+          (
+           ($formula_is_an_atom true)
+
+           false
+           )
+
+          (; { atom != op ..., not ..., false, true }
            ($formula_is_an_atom atom)
 
            true
@@ -46,9 +59,39 @@
          :signature (Bool Bool) Bool
          (
           (
+           ($less_or_equal_formulas false formula_1)
+
+           true
+           )
+
+          (; { formula_1 != false }
+           ($less_or_equal_formulas formula_1 false)
+
+           false
+           )
+
+          (
+           ($less_or_equal_formulas formula_1 true)
+
+           true
+           )
+
+          (; { formula_1 != true }
+           ($less_or_equal_formulas true formula_1)
+
+           false
+           )
+
+          (
            ($less_or_equal_formulas formula_1 formula_1)
 
            true
+           )
+
+          (
+           ($less_or_equal_formulas (not lhs_1) (not lhs_2))
+
+           ($less_or_equal_formulas lhs_1 lhs_2)
            )
 
           (
@@ -97,7 +140,7 @@
                                         ($formula_is_an_atom formula_2))
 
                                ; Arbitrary order among atoms.
-                               (eo::cmp formula_1 formula_2)
+                               ($less_or_equal_atoms formula_1 formula_2)
 
                                ; { not (eo::and ($formula_is_an_atom formula_1)
                                ;                ($formula_is_an_atom formula_2)) }
@@ -164,24 +207,35 @@
           (
            ($normalize_formula_modulo_commutativity (op lhs rhs))
 
-           (eo::ite (eo::or (eo::is_eq op or) (eo::is_eq op and)) 
+           (eo::define
+
+            (
+             (lhs_normalized ($normalize_formula_modulo_commutativity lhs))
+             (rhs_normalized ($normalize_formula_modulo_commutativity rhs))
+             )
+
+           (eo::ite (eo::or (eo::is_eq op or) (eo::is_eq op and))
 
                     (eo::define
 
                      (
-                      (lesser ($get_lesser_formula op (op lhs rhs)))
+                      (lesser ($get_lesser_formula op (op lhs_normalized 
+                                                          rhs_normalized)))
                       )
 
-                     (op ($normalize_formula_modulo_commutativity lesser)
+                     (op lesser
                          ($normalize_formula_modulo_commutativity 
-                          ($binary_tree_remove_elem op (op lhs rhs) lesser))))
+                          ($binary_tree_remove_elem op 
+                                                    (op lhs_normalized 
+                                                        rhs_normalized) 
+                                                    lesser))))
 
                     ; { not (eo::or (eo::is_eq op or) (eo::is_eq op and)) }
                     ; No commutativity guaranteed.
-                    (op lhs rhs))
+                    (op lhs rhs)))
            )
 
-          (; { atom != op ... }
+          (; { atom != op ..., not ... }
            ($normalize_formula_modulo_commutativity atom)
 
            atom
