@@ -1,0 +1,409 @@
+(include "../../signature/programs/logic.eo")
+(include "../../signature/programs/lists.eo")
+(include "../unit_test_services.eo")
+
+; Unit tests for logic.eo programs.
+
+;---------------------------------
+; $formula_is_an_atom
+;---------------------------------
+(declare-const a Bool)
+
+(step $test_$formula_is_an_atom_1 true 
+      :rule $assert_eq
+      :args (($formula_is_an_atom a) 
+             true))
+
+(step $test_$formula_is_an_atom_2 true 
+      :rule $assert_eq
+      :args (($formula_is_an_atom (not a)) 
+             false))
+
+(step $test_$formula_is_an_atom_3 true 
+      :rule $assert_eq
+      :args (($formula_is_an_atom (or a a)) 
+             false))
+
+(step $test_$formula_is_an_atom_4 true 
+      :rule $assert_eq
+      :args (($formula_is_an_atom (and a a)) 
+             false))
+
+(step $test_$formula_is_an_atom_5 true 
+      :rule $assert_eq
+      :args (($formula_is_an_atom (xor a a)) 
+             false))
+
+(step $test_$formula_is_an_atom_6 true 
+      :rule $assert_eq
+      :args (($formula_is_an_atom (=> a a)) 
+             false))
+
+;---------------------------------
+; $less_or_equal_formulas
+;---------------------------------
+(declare-const a Bool)
+
+(step $test_$less_or_equal_formulas_1 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas a (not a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_1b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (not a) a) 
+             false))
+
+(step $test_$less_or_equal_formulas_2 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas a (or a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_2b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (or a a) a) 
+             false))
+
+(step $test_$less_or_equal_formulas_3 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas a (and a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_3b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (and a a) a) 
+             false))
+
+(step $test_$less_or_equal_formulas_4 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas a (=> a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_4b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (=> a a) a) 
+             false))
+
+(step $test_$less_or_equal_formulas_5 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas a (xor a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_5b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (xor a a) a) 
+             false))
+
+(step $test_$less_or_equal_formulas_6 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (xor a a) (xor a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_7 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (xor a a) (xor a (not a))) 
+             true))
+
+(step $test_$less_or_equal_formulas_7b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (xor a (not a)) (xor a a)) 
+             false))
+
+(step $test_$less_or_equal_formulas_8 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (xor (not a) (not a)) 
+                                      (xor (not a) (or a a))) 
+             true))
+
+(step $test_$less_or_equal_formulas_8b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (xor (not a) (or a a)) 
+                                      (xor (not a) (not a))) 
+             false))
+
+(step $test_$less_or_equal_formulas_9 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (and a a) 
+                                      (or a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_9b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (or a a)
+                                      (and a a)) 
+             false))
+
+(step $test_$less_or_equal_formulas_10 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (or a a) 
+                                      (xor a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_10b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (xor a a)
+                                      (or a a)) 
+             false))
+
+(step $test_$less_or_equal_formulas_11 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (xor a a) 
+                                      (=> a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_11b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (=> a a)
+                                      (xor a a)) 
+             false))
+
+(step $test_$less_or_equal_formulas_12 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (not a) 
+                                      (or a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_12b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (or a a)
+                                      (not a)) 
+             false))
+
+(step $test_$less_or_equal_formulas_13 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (not a) 
+                                      (and a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_13b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (and a a)
+                                      (not a)) 
+             false))
+
+(step $test_$less_or_equal_formulas_14 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (not a) 
+                                      (xor a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_14b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (or a a)
+                                      (xor a)) 
+             false))
+
+(step $test_$less_or_equal_formulas_15 true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (not a) 
+                                      (=> a a)) 
+             true))
+
+(step $test_$less_or_equal_formulas_15b true 
+      :rule $assert_eq
+      :args (($less_or_equal_formulas (=> a a)
+                                      (not a)) 
+             false))
+
+;------------------------
+; $get_lesser_formula
+;------------------------
+(declare-const a Bool)
+
+(step $test_$get_lesser_formula_1 true 
+      :rule $assert_eq
+      :args (($get_lesser_formula or ($f_list_cons or a (not a)))
+             a))
+
+(step $test_$get_lesser_formula_2 true 
+      :rule $assert_eq
+      :args (($get_lesser_formula or ($f_list_cons or 
+                                                   a 
+                                                   ($f_list_cons or 
+                                                                 (not a)
+                                                                 (and a a))))
+             a))
+
+(step $test_$get_lesser_formula_3 true 
+      :rule $assert_eq
+      :args (($get_lesser_formula or ($f_list_cons or 
+                                                   a 
+                                                   ($f_list_cons or 
+                                                                 (not a)
+                                                                 ($f_list_cons or 
+                                                                               (=> a a)
+                                                                               (=> a a)))))
+             a))
+
+(step $test_$get_lesser_formula_4 true 
+      :rule $assert_eq
+      :args (($get_lesser_formula or ($f_list_cons or 
+                                                   (not a)
+                                                   ($f_list_cons or 
+                                                                 (not a)
+                                                                 ($f_list_cons or 
+                                                                               (=> a a)
+                                                                               (=> a a)))))
+             (not a)))
+
+(step $test_$get_lesser_formula_5 true 
+      :rule $assert_eq
+      :args (($get_lesser_formula or ($f_list_cons or 
+                                                   (=> a a)
+                                                   ($f_list_cons or 
+                                                                 (not a)
+                                                                 ($f_list_cons or 
+                                                                               (not a)
+                                                                               (=> a a)))))
+             (not a)))
+
+(step $test_$get_lesser_formula_6 true 
+      :rule $assert_eq
+      :args (($get_lesser_formula or ($f_list_cons or 
+                                                   (=> a a)
+                                                   ($f_list_cons or 
+                                                                 (not a)
+                                                                 ($f_list_cons or 
+                                                                               (=> a a)
+                                                                               (not a)))))
+             (not a)))
+
+(step $test_$get_lesser_formula_7 true 
+      :rule $assert_eq
+      :args (($get_lesser_formula and ($f_list_cons or 
+                                                   (=> a a)
+                                                   ($f_list_cons or 
+                                                                 (not a)
+                                                                 ($f_list_cons or 
+                                                                               (=> a a)
+                                                                               (not a)))))
+             ($f_list_cons or 
+                           (=> a a)
+                           ($f_list_cons or 
+                                         (not a)
+                                         ($f_list_cons or 
+                                                       (=> a a)
+                                                       (not a))))))
+
+;----------------------------------------
+; $normalize_formula_modulo_commutativity
+;----------------------------------------
+(declare-const a Bool)
+(declare-const b Bool)
+
+(step $test_$normalize_formula_modulo_commutativity_1 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity ($f_list_cons or 
+                                                                    (=> b a)
+                                                                    (not a)))
+             ($f_list_cons or (not a) (=> b a))))
+
+(step $test_$normalize_formula_modulo_commutativity_2 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity ($f_list_cons =>
+                                                                    (=> b b)
+                                                                    (not a)))
+             ($f_list_cons =>
+                           (=> b b)
+                           (not a))))
+
+(step $test_$normalize_formula_modulo_commutativity_3 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity ($f_list_cons and
+                                                                    (=> a a)
+                                                                    (not a)))
+             ($f_list_cons and
+                           (not a)
+                           (=> a a))))
+
+(step $test_$normalize_formula_modulo_commutativity_4 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity ($f_list_cons and
+                                                                    (=> b a)
+                                                                    (not a)))
+             ($f_list_cons and
+                           (not a)
+                           (=> b a))))
+
+(step $test_$normalize_formula_modulo_commutativity_5 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity ($f_list_cons and
+                                                                    (not a)
+                                                                    (=> b a)))
+             ($f_list_cons and
+                           (not a)
+                           (=> b a))))
+
+(step $test_$normalize_formula_modulo_commutativity_6 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity ($f_list_cons and
+                                                                    (not a)
+                                                                    ($f_list_cons and
+                                                                                  (=> b a)
+                                                                                  a)))
+             ($f_list_cons and
+                           a
+                           ($f_list_cons and
+                                         (not a)
+                                         (=> b a)))))
+
+(step $test_$normalize_formula_modulo_commutativity_7 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity ($f_list_cons and
+                                                                    (not a)
+                                                                    ($f_list_cons and
+                                                                                  ($f_list_cons or (not a) b)
+                                                                                  a)))
+             ($f_list_cons and
+                           a
+                           ($f_list_cons and
+                                         (not a)
+                                         ($f_list_cons or b (not a))))))
+
+(step $test_$normalize_formula_modulo_commutativity_8 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity (not (=> a (not a))))
+             (not (=> a (not a)))))
+
+(step $test_$normalize_formula_modulo_commutativity_9 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity (not (=> a (not ($f_list_cons or (not a) a)))))
+             (not (=> a (not ($f_list_cons or (not a) a))))))
+
+; Testing normal forms that should be equal.
+(step $test_$normalize_formula_modulo_commutativity_10 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity (or a (not a)))
+             ($normalize_formula_modulo_commutativity (or (not a) a))))
+
+(step $test_$normalize_formula_modulo_commutativity_11 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity (and a (not a)))
+             ($normalize_formula_modulo_commutativity (and (not a) a))))
+
+(step $test_$normalize_formula_modulo_commutativity_12 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity (and a (not a) (or (=> a a) (not a))))
+             ($normalize_formula_modulo_commutativity (and a (or (not a) (=> a a)) (not a)))))
+
+(step $test_$normalize_formula_modulo_commutativity_13 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity (and (and (not a) (xor a b)) 
+                                                           (not a) 
+                                                           (or (=> a a) (not a))))
+             ($normalize_formula_modulo_commutativity (and (or (not a) (=> a a)) 
+                                                           (and (not a) (xor a b))
+                                                           (not a)))))
+
+(step $test_$normalize_formula_modulo_commutativity_14 true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity (and (and (not a) (xor a b)) 
+                                                           (not a) 
+                                                           (or (=> a b) (not a))
+                                                           a
+                                                           b))
+             ($normalize_formula_modulo_commutativity (and (or (not a) (=> a b)) 
+                                                           (and (not a) (xor a b))
+                                                           (not a)
+                                                           b
+                                                           a))))

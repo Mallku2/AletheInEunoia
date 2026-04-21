@@ -1,5 +1,6 @@
 (include "../theories/theory.eo")
 (include "../programs/arith.eo")
+(include "../programs/logic.eo")
 (include "../programs/programs.eo")
 
 ; Rules that introduce tautologies.
@@ -1351,26 +1352,36 @@
 ; return: >
 ;   A boolean indicating if `lhs` can be reduced to `rhs`, using the rules
 ;   in `$ac_simp_rec`.
-(program $check_ac_simp ((formula Bool) (tail Bool :list) (rhs Bool))
+(program $check_ac_simp ((formula Bool) (tail Bool :list) 
+                         (lhs Bool) (rhs Bool))
 
   :signature (Bool Bool) Bool
 
   (
    (
-    ($check_ac_simp (and formula tail) rhs)
+    ($check_ac_simp lhs rhs)
 
-     ($f_list_equal_mod_commut_and_length 
-      and 
-      ($ac_simp_rec (and formula tail)) rhs)
+     ($eo_is_eq
+      ($normalize_formula_modulo_commutativity ($ac_simp_rec lhs)) 
+
+      ($normalize_formula_modulo_commutativity rhs))
     )
+
+   ;; (
+   ;;  ($check_ac_simp (and formula tail) rhs)
+
+   ;;   ($f_list_equal_mod_commut_and_length
+   ;;    and 
+   ;;    ($ac_simp_rec (and formula tail)) rhs)
+   ;;  )
    
-   (
-    ($check_ac_simp (or formula tail) rhs)
+   ;; (
+   ;;  ($check_ac_simp (or formula tail) rhs)
 
-     ($f_list_equal_mod_commut_and_length 
-      or
-      ($ac_simp_rec (or formula tail)) rhs)
-    )
+   ;;   ($f_list_equal_mod_commut_and_length 
+   ;;    or
+   ;;    ($ac_simp_rec (or formula tail)) rhs)
+   ;;  )
    )
   )
 

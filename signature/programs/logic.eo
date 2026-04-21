@@ -1,0 +1,190 @@
+(include "../theories/theory.eo")
+(include "./trees.eo")
+
+; Library of auxiliary programs, useful to manipulate logic formulas.
+
+; program: $formula_is_an_atom
+; args:
+; - formula Bool: A propositional logic formula.
+; return: A boolean indicating if `formula` is an atomic propositional symbol.
+(program $formula_is_an_atom ((op (-> Bool Bool Bool)) (not (-> Bool Bool))
+                      (lhs Bool) (rhs Bool) (atom Bool))
+         :signature (Bool) Bool
+         (
+          (
+           ($formula_is_an_atom (op lhs rhs))
+
+           false
+           )
+          
+          (
+           ($formula_is_an_atom (not lhs))
+
+           false
+           )
+
+          (; { atom != op ..., not ... }
+           ($formula_is_an_atom atom)
+
+           true
+           )
+          )
+         )
+
+; program: $less_or_equal_formulas
+; args:
+; - formula_1 Bool: An arbitrary propositional logic formula.
+; - formula_2 Bool: An arbitrary propositional logic formula.
+; return: >
+;   A boolean value indicating if it is true that `formula_1` is <= than
+;   `formula_2`, according to an order that is arbitrary among atoms 
+;   (but fixed for each run).
+(program $less_or_equal_formulas ((op (-> Bool Bool Bool))
+                                  (lhs_1 Bool) (rhs_1 Bool :list)
+                                  (lhs_2 Bool) (rhs_2 Bool :list)
+                                  (formula_1 Bool) (formula_2 Bool))
+         :signature (Bool Bool) Bool
+         (
+          (
+           ($less_or_equal_formulas formula_1 formula_1)
+
+           true
+           )
+
+          (
+           ($less_or_equal_formulas (op lhs_1 rhs_1) (op lhs_2 rhs_2))
+
+           (eo::and ($less_or_equal_formulas lhs_1 lhs_2)
+                    ($less_or_equal_formulas rhs_1 rhs_2))
+           )
+
+          (
+           ($less_or_equal_formulas (and lhs_1 rhs_1) (or lhs_2 rhs_2))
+
+           true
+           )
+
+          (
+           ($less_or_equal_formulas (or lhs_1 rhs_1) (xor lhs_2 rhs_2))
+
+           true
+           )
+
+          (
+           ($less_or_equal_formulas (xor lhs_1 rhs_1) (=> lhs_2 rhs_2))
+
+           true
+           )
+
+          (
+           ($less_or_equal_formulas (not lhs_1) (op lhs_2 rhs_2))
+
+           true
+           )
+
+          (
+           ($less_or_equal_formulas formula_1 formula_2)
+
+           
+           (eo::ite (eo::and ($formula_is_an_atom formula_1)
+                             (eo::not ($formula_is_an_atom formula_2)))
+
+                      true
+                      
+                      ; { not (eo::and ($formula_is_an_atom formula_1)
+                      ;                (eo::not ($formula_is_an_atom formula_2)))}
+                      (eo::ite (eo::and ($formula_is_an_atom formula_1)
+                                        ($formula_is_an_atom formula_2))
+
+                               ; Arbitrary order among atoms.
+                               (eo::cmp formula_1 formula_2)
+
+                               ; { not (eo::and ($formula_is_an_atom formula_1)
+                               ;                ($formula_is_an_atom formula_2)) }
+                               ; Default case.
+                               false))
+           )
+          )
+         )
+
+; program: $get_lesser_formula
+; args:
+; - op (-> Bool Bool Bool): Logical connective at the root of the formula.
+; - formula Bool: >
+;   Propositional logic formula from which we want to extract its "lesser" 
+;   sub-formula. 
+; return: >
+;   Smaller sub-formula in `formula`, when looked as a tree with `op` at its root, or
+;   just `formula`, if it is not an `op`-tree.
+(program $get_lesser_formula ((lhs Bool) (rhs Bool) (op (-> Bool Bool Bool)))
+         :signature ((-> Bool Bool Bool) Bool) Bool
+         (
+          (
+           ($get_lesser_formula op (op lhs rhs))
+
+           (eo::define
+            (
+             (lhs_lesser ($get_lesser_formula op lhs))
+             (rhs_lesser ($get_lesser_formula op rhs))
+             )
+
+            (eo::ite ($less_or_equal_formulas lhs_lesser rhs_lesser)
+
+                     lhs_lesser
+
+                     rhs_lesser))
+           )
+
+          (; { lhs is not an op-list }
+           ($get_lesser_formula op lhs)
+
+           lhs
+           )
+          )
+         )
+
+; program: $normalize_formula_modulo_commutativity
+; args:
+; - Formula Bool: A propositional logic formula.
+; return: >
+;   A formula equivalent to `formula`, where the commutativity of disjunctions and
+;   conjunctions is leveraged to reorder sub-terms in `formula` according to some
+;   the order imposed by `$less_or_equal_formulas`.
+(program $normalize_formula_modulo_commutativity ((lhs Bool) (rhs Bool) 
+                                                  (op (-> Bool Bool Bool))
+                                                  (atom Bool))
+         :signature (Bool) Bool
+         (
+          (
+           ($normalize_formula_modulo_commutativity (not lhs))
+
+           (not ($normalize_formula_modulo_commutativity lhs))
+           )
+
+          (
+           ($normalize_formula_modulo_commutativity (op lhs rhs))
+
+           (eo::ite (eo::or (eo::is_eq op or) (eo::is_eq op and)) 
+
+                    (eo::define
+
+                     (
+                      (lesser ($get_lesser_formula op (op lhs rhs)))
+                      )
+
+                     (op ($normalize_formula_modulo_commutativity lesser)
+                         ($normalize_formula_modulo_commutativity 
+                          ($binary_tree_remove_elem op (op lhs rhs) lesser))))
+
+                    ; { not (eo::or (eo::is_eq op or) (eo::is_eq op and)) }
+                    ; No commutativity guaranteed.
+                    (op lhs rhs))
+           )
+
+          (; { atom != op ... }
+           ($normalize_formula_modulo_commutativity atom)
+
+           atom
+           )
+          )
+         )
