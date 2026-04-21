@@ -213,7 +213,7 @@
       :rule $assert_eq
       :args (($less_or_equal_formulas (or p00 p11)
                                       (or p11 p00)) 
-             false))
+             true))
 
 (step $test_$less_or_equal_formulas_13 true 
       :rule $assert_eq
