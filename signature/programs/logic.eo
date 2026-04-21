@@ -97,8 +97,26 @@
           (
            ($less_or_equal_formulas (op lhs_1 rhs_1) (op lhs_2 rhs_2))
 
-           (eo::and ($less_or_equal_formulas lhs_1 lhs_2)
-                    ($less_or_equal_formulas rhs_1 rhs_2))
+           (eo::define
+
+            (
+             (eq_lhs_1_2 (eo::is_eq lhs_1 lhs_2))
+             )
+            
+           (eo::ite (eo::and ($less_or_equal_formulas lhs_1 lhs_2)
+                             (eo::not eq_lhs_1_2))
+
+                    true
+                   
+                    ; { eo::not (eo::and ($less_or_equal_formulas lhs_1 lhs_2)
+                    ;                    (eo::not eq_lhs_1_2)) }
+                    (eo::ite eq_lhs_1_2
+
+                             ($less_or_equal_formulas rhs_1 rhs_2)
+                             
+                             ; { not eq_lhs_1_2 }
+                             ; { lhs_1 > lhs_2 }
+                             false)))
            )
 
           (
