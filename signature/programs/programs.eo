@@ -1278,8 +1278,12 @@
 
 ; program: let_get_vars_substitutes
 ; args:
-; - let_get_vars_substitutes nil:
-; return:
+; - vars @VarList: A list of variables bound by the let construction.
+; - values @VarList: A list of values assigned to variables in `vars`, in the same order as in `vars`.
+; return: >
+;   A @VarList containing @pairs of the form (x, v), for a variable x contained 
+;   in `vars`, and value `v` contained in `values`, both in the same position, 
+;   respectively.
 (program $let_get_vars_substitutes ((B Type) (x B)
                                    (vardefs @VarList :list)
                                    (U Type) (value_x U) 
@@ -1289,10 +1293,10 @@
          (
           (
            ($let_get_vars_substitutes (@varlist x vardefs)
-                                     (@varlist value_x parameters))
+                                      (@varlist value_x parameters))
 
            ($f_list_cons @varlist 
-                        ($f_list_cons @varlist x value_x)
+                        (@pair x value_x)
                         ($let_get_vars_substitutes vardefs parameters))
            )
 
@@ -1302,7 +1306,7 @@
            @varlist.nil
            )
           )
-)
+         )
 
 ;-------------
 ; Unbounded occurrences of variables
