@@ -2235,7 +2235,7 @@
 
 (step $test_$bit_to_boolean_1 true 
       :rule $assert_eq 
-      :args (($bit_to_boolean #b0 1)
+      :args (($bit_to_boolean #b0 0)
 
              false))
 
@@ -3872,3 +3872,88 @@
       (@cl (and (and true (or a b)) (=> c d)))
       :rule and_intro
       :premises (premise_lhs_5 premise_rhs_5))
+
+;--------------------------
+; $verify_bind_let_premises
+;--------------------------
+
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+
+; Silly first case: only 1 premise, the conclusion
+(step $test_$verify_bind_let_premises_1 true 
+      :rule $assert_eq 
+      :args (($verify_bind_let_premises (and (@cl (= a b)))
+                                        (@varlist a)
+                                        (@varlist b))
+
+             true))
+
+(step $test_$verify_bind_let_premises_2 true 
+      :rule $assert_eq 
+      :args (($verify_bind_let_premises (and (@cl (= a b)) (@cl (= c d)))
+                                        (@varlist a c)
+                                        (@varlist b d))
+
+             true))
+
+(step $test_$verify_bind_let_premises_3 true 
+      :rule $assert_eq 
+      :args (($verify_bind_let_premises (and (@cl (= a b)) (@cl (= c d)) (@cl (= e f)))
+                                        (@varlist a c e)
+                                        (@varlist b d f))
+
+             true))
+
+; Reflexive eqs. are omitted.
+(step $test_$verify_bind_let_premises_4 true 
+      :rule $assert_eq 
+      :args (($verify_bind_let_premises (and (@cl (= a b)) (@cl (= c d)) (@cl (= e f)))
+                                        (@varlist a c e c)
+                                        (@varlist b d f c))
+
+             true))
+
+(step $test_$verify_bind_let_premises_5 true 
+      :rule $assert_eq 
+      :args (($verify_bind_let_premises (and (@cl (= a b)) (@cl (= c d)) (@cl (= e f)))
+                                        (@varlist a c c e)
+                                        (@varlist b d c f))
+
+             true))
+
+(step $test_$verify_bind_let_premises_6 true 
+      :rule $assert_eq 
+      :args (($verify_bind_let_premises (and (@cl (= a b)) (@cl (= c d)) (@cl (= e f)))
+                                        (@varlist a c c e)
+                                        (@varlist b c d f))
+
+             true))
+
+;--------------------------
+; $check_bind_let
+;--------------------------
+
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+(define x () (eo::var "x" Bool))
+(define y () (eo::var "y" Bool))
+
+; Silly first case: only 1 premise, the conclusion
+(step $test_$check_bind_let_1 true 
+      :rule $assert_eq 
+      :args (($check_bind_let (@ctx (@varlist x y)
+                                    (and (= (@var (@varlist y) y) (@var (@varlist y) y))
+                                         (= (@var (@varlist x) x) (@var (@varlist y) y))
+                                         (@ctx @varlist.nil true)))
+                              (@ctx @varlist.nil true)
+                              (and (@cl (= x y)) (@cl (= a a)))
+                              (@cl (= (_ (@let (@varlist x) x) a)
+                                      (_ (@let (@varlist y) y) a))))
+
+             true))
+

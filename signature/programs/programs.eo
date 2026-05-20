@@ -816,9 +816,38 @@
           )
          )
 
-;-------------
-; contexts
-;-------------
+;------------------------------
+; contexts and related services
+;------------------------------
+
+; TODO: remove this once we have higher-order programs
+; program: $embed_within_vars
+; args:
+; - varlist @VarList: A list of names of variables.
+; return: >
+;   A @VarList obtained by embedding each name, from `varlist` within a @var 
+;   construction (i.e., (@var (@varlist id) id) for a name id in `varlist`).
+; note: >
+;   Useful when it is required to compare a list of bounded occurrences of variables
+;   (i.e., built with `@var`) against a list of just plain names of variables.
+(program $embed_within_vars ((T Type) (id T) (tail @VarList :list))
+         :signature (@VarList) @VarList
+         (
+          (
+           ($embed_within_vars @varlist.nil)
+           
+           @varlist.nil
+           )
+
+          (
+           ($embed_within_vars (@varlist id tail))
+           
+           ($f_list_cons @varlist 
+                         (@var (@varlist id) id)
+                         ($embed_within_vars tail))
+           )
+          )
+         )
 
 ; program: context_get_substitute
 ; args:
@@ -967,11 +996,11 @@
 ; program: $context_var_is_fixed
 ; args:
 ; - context Bool: >
-;    A context built with @ctx, in a normalized form, where there are,
+;    A context built with `@ctx`, in a normalized form, where there are,
 ;    at most, one binding defined for a given variable.
 ; - var A: >
 ;   Variable for which we want to know if it is fixed, as indicated
-;   in "context".
+;   in "context". Must not be a bound occurrence (i.e., built with `@var`).
 ; return: >
 ;   A boolean indicating if "var" is fixed in "context".
 (program $context_var_is_fixed ((A Type) (var A) (var_2 A)
@@ -995,25 +1024,6 @@
 
           (
            ($context_var_is_fixed 
-            (and (= (@var (@varlist var) var) (@var (@varlist var) var))) var)
-
-           true
-           )
-
-          (; { (@var (@varlist var) var) <> any}
-           ($context_var_is_fixed (and (= (@var (@varlist var) var) any)) var)
-
-           false
-           )
-
-          (; { (@var (@varlist var) var) <> var_2}
-           ($context_var_is_fixed (and (= var_2 any)) var)
-
-           false
-           )
-
-          (
-           ($context_var_is_fixed 
             (and (= (@var (@varlist var) var) (@var (@varlist var) var)) eqs) var)
            
            true
@@ -1027,18 +1037,18 @@
 
           (; { (@var (@varlist var) var) <> var_2}
            ($context_var_is_fixed (and (= var_2 any) eqs) var)
-           
+
            ($context_var_is_fixed eqs var)
            )
 
           (; This is the last "element" of our representation of 
            ; contexts.
-           ($context_var_is_fixed (and true) var)
+           ($context_var_is_fixed true var)
 
            false
            )
           )
-)
+         )
 
 ; TODO: re-implement this as a map once programs are first-class values
 ; program: $context_vars_are_fixed
@@ -1110,7 +1120,6 @@
           )
 )
 
-; TODO: 
 ; program: $context_vars_are_defined
 ; args:
 ; - context Bool: A context, built with @ctx.
@@ -1138,15 +1147,14 @@
           )
 )
 
-;TODO
 ; program: $context_is_extended
 ; args:
 ; - new_ctx Bool: A context built with @ctx.
 ; - old_ctx Bool: A context built with @ctx.
 ; return: >
-;    Returns a boolean that indicates if new_ctx is defined just as
-;    an extension of old_ctx. We allow for new_ctx to be equal to
-;    old_ctx.
+;    Returns a boolean that indicates if `new_ctx` is defined just as
+;    an extension of `old_ctx`. We allow for `new_ctx` to be equal to
+;    `old_ctx`.
 (program $context_is_extended ((old_ctx Bool) (new_ctx Bool)
                                (varlist @VarList) (eq Bool) (and_list Bool :list))
     :signature (Bool Bool) Bool
@@ -1242,10 +1250,9 @@
            ($let_get_values (_ nested_func_app value))
 
            ($varlist_reverse ($f_list_cons @varlist 
-                                         value 
-                                         ($let_get_values nested_func_app)))
+                                           value 
+                                           ($let_get_values nested_func_app)))
            )
-          
           )
          )
 
