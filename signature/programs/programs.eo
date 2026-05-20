@@ -1242,16 +1242,16 @@
           (
            ($let_get_values (_ (@let varlist body) value))
 
-           ($f_list_cons @varlist value @varlist.nil)
+           (@varlist value)
            )
 
           (
            ; { nested_func_app =/= (@let ...) }
            ($let_get_values (_ nested_func_app value))
 
-           ($varlist_reverse ($f_list_cons @varlist 
-                                           value 
-                                           ($let_get_values nested_func_app)))
+           ($f_list_concat @varlist @varlist.nil 
+                           ($let_get_values nested_func_app)
+                           (@varlist value))
            )
           )
          )
