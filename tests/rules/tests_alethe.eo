@@ -3940,6 +3940,8 @@
 (declare-const b Bool)
 (declare-const c Bool)
 (declare-const d Bool)
+(declare-const e Bool)
+(declare-const f Bool)
 (define x () (eo::var "x" Bool))
 (define y () (eo::var "y" Bool))
 
@@ -3952,8 +3954,74 @@
                                          (@ctx @varlist.nil true)))
                               (@ctx @varlist.nil true)
                               (and (@cl (= x y)) (@cl (= a a)))
-                              (@cl (= (_ (@let (@varlist x) x) a)
-                                      (_ (@let (@varlist y) y) a))))
+                              (@cl (= (_ (@let ((x Bool)) x) a)
+                                      (_ (@let ((y Bool)) y) a))))
+
+             true))
+
+(step $test_$check_bind_let_2 true 
+      :rule $assert_eq 
+      :args (($check_bind_let (@ctx ((x1 Bool) (x2 Bool) (y1 Bool) (y2 Bool))
+                                    (and (= (@var ((y1 Bool)) y1) (@var ((y1 Bool)) y1))
+                                         (= (@var ((y2 Bool)) y2) (@var ((y2 Bool)) y2))
+                                         (= (@var ((x1 Bool)) x1) (@var ((y1 Bool)) y1))
+                                         (= (@var ((x2 Bool)) x2) (@var ((y2 Bool)) y2))
+                                         (@ctx @varlist.nil true)))
+                              (@ctx @varlist.nil true)
+                              (and (@cl (= (eo::var "x2" Bool) (eo::var "y2" Bool))) 
+                                   (@cl (= a a)) (@cl (= b b)))
+                              (@cl (= (_ (_ (@let ((x1 Bool) (x2 Bool)) x2) a) b)
+                                      (_ (_ (@let ((y1 Bool) (y2 Bool)) y2) a) b))))
+
+             true))
+
+(step $test_$check_bind_let_3 true 
+      :rule $assert_eq 
+      :args (($check_bind_let (@ctx ((x1 Bool) (x2 Bool) (y1 Bool) (y2 Bool))
+                                    (and (= (@var ((y1 Bool)) y1) (@var ((y1 Bool)) y1))
+                                         (= (@var ((y2 Bool)) y2) (@var ((y2 Bool)) y2))
+                                         (= (@var ((x1 Bool)) x1) (@var ((y1 Bool)) y1))
+                                         (= (@var ((x2 Bool)) x2) (@var ((y2 Bool)) y2))
+                                         (@ctx @varlist.nil true)))
+                              (@ctx @varlist.nil true)
+                              (and (@cl (= (eo::var "x2" Bool) (eo::var "y2" Bool))) 
+                                   (@cl (= b b)))
+                              (@cl (= (_ (_ (@let ((x1 Bool) (x2 Bool)) x2) a) b)
+                                      (_ (_ (@let ((y1 Bool) (y2 Bool)) y2) a) b))))
+
+             true))
+
+(step $test_$check_bind_let_4 true 
+      :rule $assert_eq 
+      :args (($check_bind_let (@ctx ((x1 Bool) (x2 Bool) (y1 Bool) (y2 Bool))
+                                    (and (= (@var ((y1 Bool)) y1) (@var ((y1 Bool)) y1))
+                                         (= (@var ((y2 Bool)) y2) (@var ((y2 Bool)) y2))
+                                         (= (@var ((x1 Bool)) x1) (@var ((y1 Bool)) y1))
+                                         (= (@var ((x2 Bool)) x2) (@var ((y2 Bool)) y2))
+                                         (@ctx @varlist.nil true)))
+                              (@ctx @varlist.nil true)
+                              (and (@cl (= (eo::var "x2" Bool) (eo::var "y2" Bool))))
+                              (@cl (= (_ (_ (@let ((x1 Bool) (x2 Bool)) x2) a) b)
+                                      (_ (_ (@let ((y1 Bool) (y2 Bool)) y2) a) b))))
+
+             true))
+
+(step $test_$check_bind_let_5 true 
+      :rule $assert_eq 
+      :args (($check_bind_let (@ctx ((x1 Bool) (x2 Bool) (x3 Bool) (y1 Bool) (y2 Bool)
+                                     (y3 Bool))
+                                    (and (= (@var ((y1 Bool)) y1) (@var ((y1 Bool)) y1))
+                                         (= (@var ((y2 Bool)) y2) (@var ((y2 Bool)) y2))
+                                         (= (@var ((y3 Bool)) y3) (@var ((y3 Bool)) y3))
+                                         (= (@var ((x1 Bool)) x1) (@var ((y1 Bool)) y1))
+                                         (= (@var ((x2 Bool)) x2) (@var ((y2 Bool)) y2))
+                                         (= (@var ((x3 Bool)) x3) (@var ((y3 Bool)) y3))
+                                         (@ctx @varlist.nil true)))
+                              (@ctx @varlist.nil true)
+                              (and (@cl (= (eo::var "x2" Bool) (eo::var "y2" Bool)))
+                                   (@cl (= a d)) (@cl (= b e)) (@cl (= c f)))
+                              (@cl (= (_ (_ (_ (@let ((x1 Bool) (x2 Bool) (x3 Bool)) x2) a) b) c)
+                                      (_ (_ (_ (@let ((y1 Bool) (y2 Bool) (y3 Bool)) y2) d) e) f))))
 
              true))
 
