@@ -4345,27 +4345,27 @@
                                (let_vars_values @VarList :list))
   :signature (Bool Bool Bool @VarList) Bool
   (
-   ;; (; Discarding the conclusion of the immediate premise passed to let_elim.
-   ;;  ($verify_let_premises previous_context (and conclusion premises) conclusion 
-   ;;                        let_vars_values)
+   (; Discarding the conclusion of the immediate premise passed to let_elim.
+    ($verify_let_premises previous_context (and conclusion premises) conclusion 
+                          let_vars_values)
 
-   ;;  ($verify_let_premises previous_context premises conclusion 
-   ;;                        let_vars_values)
-   ;;  )
+    ($verify_let_premises previous_context premises conclusion 
+                          let_vars_values)
+    )
 
-   ;; (; { conclusion != (@cl (= lhs rhs)) }
-   ;;  ($verify_let_premises previous_context (and (@cl (= lhs rhs)) premises) 
-   ;;                        conclusion (@varlist (@pair var lhs) let_vars_values))
+   (; { conclusion != (@cl (= lhs rhs)) }
+    ($verify_let_premises previous_context (and (@cl (= lhs rhs)) premises) 
+                          conclusion (@varlist (@pair var lhs) let_vars_values))
 
-   ;;  (eo::and
-   ;;   ; `previous_context` defines rhs as the substitute of var.
-   ;;   (eo::is_eq ($context_get_substitute previous_context var) rhs)
+    (eo::and
+     ; `previous_context` defines rhs as the substitute of var.
+     (eo::is_eq ($context_get_substitute previous_context var) rhs)
 
-   ;;   ($verify_let_premises previous_context premises 
-   ;;                         conclusion let_vars_values)
+     ($verify_let_premises previous_context premises 
+                           conclusion let_vars_values)
 
-   ;;   )
-   ;;  )
+     )
+    )
 
    ;; (; { lhs != lhs_2 }
    ;;  ; It must the base that a premise of the form (@cl (= lhs lhs)) was omitted.
@@ -4383,7 +4383,7 @@
    ;;  )
 
    (
-    ($verify_let_premises previous_context conclusion true @varlist.nil)
+    ($verify_let_premises previous_context true conclusion @varlist.nil)
     
     true
     )
@@ -4430,14 +4430,15 @@
       (eo::and 
        ; The conclusion of the immediate premise of let_elim should be of the
        ; form (@cl (= ($let_get_body let_def) rhs)).
-       ($eo_is_eq ($f_list_index and premises 0) conclusion)
+       ($eo_is_eq ($f_list_last_element and true premises) 
+                  conclusion)
 
        ; `premises` should be of the expected form, and in correspondence to what
        ; `previous_context` defines.
        ($verify_let_premises previous_context premises conclusion
                              ($let_get_vars_substitutes ($let_get_vars let_def)
                                                         ($let_get_values let_def))))
-      )
+     )
 
      ; `previous_context` must be just an extension of `current_context`.
      ($context_is_extended previous_context current_context)
