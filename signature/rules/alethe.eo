@@ -4367,20 +4367,20 @@
      )
     )
 
-   ;; (; { lhs != lhs_2 }
-   ;;  ; It must the base that a premise of the form (@cl (= lhs lhs)) was omitted.
-   ;;  ($verify_let_premises previous_context (and (@cl (= lhs_2 rhs)) premises) 
-   ;;                        conclusion (@varlist (@pair var lhs) let_vars_values))
+   (; { lhs != lhs_2 }
+    ; It must the base that a premise of the form (@cl (= lhs lhs)) was omitted.
+    ($verify_let_premises previous_context (and (@cl (= lhs_2 rhs)) premises) 
+                          conclusion (@varlist (@pair var lhs) let_vars_values))
 
-   ;;  (eo::and
-   ;;   ; `previous_context` defines lhs as the substitute of var.
-   ;;   (eo::is_eq ($context_get_substitute previous_context var) lhs)
+    (eo::and
+     ; `previous_context` defines lhs as the substitute of var.
+     (eo::is_eq ($context_get_substitute previous_context var) lhs)
 
-   ;;   ($verify_let_premises previous_context (and (@cl (= lhs_2 rhs)) premises) 
-   ;;                         conclusion let_vars_values)
+     ($verify_let_premises previous_context (and (@cl (= lhs_2 rhs)) premises) 
+                           conclusion let_vars_values)
 
-   ;;   )
-   ;;  )
+     )
+    )
 
    (
     ($verify_let_premises previous_context true conclusion @varlist.nil)
