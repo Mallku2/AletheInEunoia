@@ -82,7 +82,7 @@
           (; { literals != false }
            ($normalize_single_clause (@cl formula formulas))
 
-           ($f_list_cons @cl 
+           ($f_list_cons @cl
                          ($remove_double_negation formula) 
                          ($normalize_single_clause formulas))
            )
@@ -4501,7 +4501,7 @@
     (eo::and 
       ; Every variable bound in the rhs_let_def let appear fixed in `previous_context`.
       ($context_vars_are_fixed previous_context vars_rhs_let)
-
+     
       ; Vars in lhs_vars are substituted by rhs_vars in `previous_context`.
       ; Note: we need to embed each var in rhs_vars within a @var construction,
       ; since that is how they will appear within a context.
@@ -4537,14 +4537,18 @@
        (lhs_body ($let_get_body lhs_let))
        (rhs_body ($let_get_body rhs_let))
        )
-
       ($verify_bind_let_premises premises
 
-                                 ($f_list_cons @varlist lhs_body
-                                               ($let_get_values lhs_let))
-
-                                 ($f_list_cons @varlist rhs_body
-                                               ($let_get_values rhs_let))))
+                                 ($f_list_concat @varlist @varlist.nil 
+                                                 ($f_list_reverse @varlist @varlist.nil 
+                                                                  ($let_get_values lhs_let))
+                                                 (@varlist lhs_body))
+      
+                                 ($f_list_concat @varlist @varlist.nil 
+                                                 ($f_list_reverse @varlist @varlist.nil 
+                                                                  ($let_get_values rhs_let))
+                                                 (@varlist rhs_body)))
+      )
      )
     )
     )
@@ -4561,9 +4565,9 @@
 ; conclusion-explicit: A conclusion satisfying the previous side-condition.
 (declare-rule bind_let ((current_context Bool) (previous_context Bool) (premises Bool) 
                         (conclusion Bool))
-  :assumption current_context
+  :assumption previous_context
   :premise-list premises and
-  :args (previous_context)
+  :args (current_context)
   :requires ((($check_bind_let previous_context current_context premises conclusion) true))
   :conclusion-explicit conclusion
 )
