@@ -4383,7 +4383,7 @@
     )
 
    (
-    ($verify_let_premises previous_context true conclusion @varlist.nil)
+    ($verify_let_premises previous_context true conclusion let_vars_values)
     
     true
     )
