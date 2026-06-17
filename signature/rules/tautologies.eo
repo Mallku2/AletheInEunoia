@@ -122,7 +122,7 @@
 ; args:
 ; - formula Bool: An arbitrary formula.
 ; return: >
-;   The result from removing leading double negations from `formula`.
+;   The result of removing leading double negations from `formula`.
 (program $remove_leading_negations ((formula Bool))
          :signature (Bool) Bool
          (
@@ -144,7 +144,7 @@
 ; args:
 ; - disjunct Bool: An disjunct built with `or`.
 ; return: >
-;   The result from removing leading double negations from each disjunct
+;   The result of removing leading double negations from each disjunct
 ;   in `disjunct`.
 (program $remove_leading_negations_in_disjuncts ((disjunct Bool) (disjuncts Bool :list))
          :signature (Bool) Bool
@@ -169,7 +169,7 @@
 ; args:
 ; - formula Bool: A formula.
 ; return: >
-;   The result from applying one of the following equivalence-preserving 
+;   The result of applying one of the following equivalence-preserving 
 ;   transformations:
 ;   - ⊥∨⋯∨⊥ ⇒ ⊥
 ;   - 𝜑1 ∨ ⋯ ∨ 𝜑𝑛 ⇒ 𝜑1 ∨ ⋯ ∨ 𝜑𝑛′ where the right-hand side has some ⊥ literal 
@@ -261,7 +261,7 @@
 ; args:
 ; - formula Bool: A formula.
 ; return: >
-;   The result from applying the equivalence-preserving transformations described
+;   The result of applying the equivalence-preserving transformations described
 ;   in `$or_simplify_small_step` until a fixed point is reached.
 ; note: PRE : { $remove_leading_negations_in_disjuncts `formula` = `formula`}
 (program $or_simplify_rec ((disjunct Bool) (disjuncts Bool :list))
@@ -348,7 +348,7 @@
 ; args:
 ; - psi Bool: A formula.
 ; return: >
-;   The result from applying the following equivalence-preserving transformations until
+;   The result of applying the following equivalence-preserving transformations until
 ;   a fixed point is reached:
 ;   - ¬(¬ ᴪ) ⇒ ᴪ
 ;   - ¬⊥ ⇒ ⊤
@@ -422,15 +422,15 @@
 ; args:
 ; - formula Bool: A formula.
 ; return: >
-;   The result from applying one of the following equivalence-preserving 
+;   The result of applying one of the following equivalence-preserving 
 ;   transformations:
-;   - ¬(𝜑1 →𝜑2) ⇒(𝜑1 ∧¬𝜑2)
-;   - ¬(𝜑1 ∨𝜑2) ⇒(¬𝜑1 ∧¬𝜑2)
-;   - ¬(𝜑1 ∧𝜑2) ⇒(¬𝜑1 ∨¬𝜑2)
-;   - (𝜑1 →(𝜑2 →𝜑3)) ⇒(𝜑1 ∧𝜑2) → 𝜑3
-;   - ((𝜑1 →𝜑2) →𝜑2) ⇒(𝜑1 ∨𝜑2)
-;   - (𝜑1 ∧(𝜑1 →𝜑2)) ⇒(𝜑1 ∧𝜑2)
-;   - ((𝜑1 →𝜑2) ∧𝜑1) ⇒(𝜑1 ∧𝜑2)
+;   - ¬(𝜑1 → 𝜑2) ⇒ (𝜑1 ∧ ¬𝜑2)
+;   - ¬(𝜑1 ∨ 𝜑2) ⇒ (¬𝜑1 ∧ ¬𝜑2)
+;   - ¬(𝜑1 ∧ 𝜑2) ⇒ (¬𝜑1 ∨ ¬𝜑2)
+;   - (𝜑1 → (𝜑2 → 𝜑3)) ⇒ (𝜑1 ∧ 𝜑2) → 𝜑3
+;   - ((𝜑1 → 𝜑2) → 𝜑2) ⇒ (𝜑1 ∨ 𝜑2)
+;   - (𝜑1 ∧ (𝜑1 → 𝜑2)) ⇒ (𝜑1 ∧ 𝜑2)
+;   - ((𝜑1 → 𝜑2) ∧ 𝜑1) ⇒ (𝜑1 ∧ 𝜑2)
 (program $bool_simplify_small_step ((phi1 Bool) (phi2 Bool :list) (phi3 Bool :list))
   :signature (Bool) Bool
   (
@@ -508,7 +508,7 @@
 ; args:
 ; - formula Bool: A formula.
 ; return: >
-;   The result from applying the equivalence-preserving transformations described
+;   The result of applying the equivalence-preserving transformations described
 ;   in `$bool_simplify_small_step` until a fixed point is reached.
 (program $bool_simplify_rec ((operator (-> Bool Bool Bool)) (op Bool)
                              (ops Bool :list))
@@ -555,9 +555,9 @@
               ; We continue reducing, right-to-left.
               (eo::define 
 
-               ((ops_simplified ($bool_simplify_rec ops)))
+               ((tail_simplified ($bool_simplify_rec ops)))
 
-               (eo::ite ($eo_is_eq ops_simplified ops)
+               (eo::ite ($eo_is_eq tail_simplified ops)
 
                         (eo::define 
 
@@ -574,8 +574,8 @@
                                    ($bool_simplify_rec (operator op_simplified 
                                                                  ops))))
 
-                        ; { not ($eo_is_eq ops_simplified ops) }
-                        ($bool_simplify_rec (operator op ops_simplified))))
+                        ; { not ($eo_is_eq tail_simplified ops) }
+                        ($bool_simplify_rec (operator op tail_simplified))))
 
               ; { not ($eo_is_eq whole_op_simplified 
               ;                  (operator op ops)) }
