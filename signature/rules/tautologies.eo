@@ -44,7 +44,7 @@
 ; - conclusion Bool: Conclusion clause given to rule cong.
 ; return: >
 ;   A boolean indicating if `conclusion` has the form 
-;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
 ;   function `f`.
 (program $check_eq_congruent ((hd Bool) (tail Bool :list))
   :signature (Bool) Bool
@@ -74,7 +74,7 @@
 ; rule: eq_congruent
 ; requires: >
 ;   For the conclusion to be built with @cl and to have the form:
-;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛)
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛)
 ; conclusion-explicit: A clause built with @cl.
 (declare-rule eq_congruent ((hd Bool) (tail Bool :list))
   :requires ((($check_eq_congruent (@cl hd tail)) true))
@@ -123,7 +123,7 @@
 ; - conclusion Bool: Conclusion clause given to rule eq_congruent_pred.
 ; return: >
 ;   A boolean indicating if `conclusion` has the form 
-;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ⋯ 𝑡𝑛), (p 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ⋯ 𝑡𝑛), (p 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
 ;   predicate `p`.
 (program $check_eq_congruent_pred ((hd Bool) (tail Bool :list))
   :signature (Bool) Bool
@@ -164,7 +164,7 @@
 ; rule: eq_congruent_pred
 ; requires: >
 ;   For the conclusion to be built with @cl and to have the form:
-;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), ¬(P 𝑡1 ⋯ 𝑡𝑛), (P 𝑢1 ⋯ 𝑢𝑛), 
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(P 𝑡1 ⋯ 𝑡𝑛), (P 𝑢1 ⋯ 𝑢𝑛), 
 ;   where 𝑃 is a predicate symbol.
 ; conclusion-explicit: A clause built with @cl satisfying the previous side-condition.
 (declare-rule eq_congruent_pred ((hd Bool) (tail Bool :list))
