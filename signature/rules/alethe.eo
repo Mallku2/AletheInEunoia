@@ -5154,22 +5154,3 @@
   :conclusion-explicit conclusion
   )
 
-
-;-------------
-; Rare
-;-------------
-
-;TODO
-(program $check_rare_rewrite ((Flag Bool) (CL Bool))
-  :signature (Bool Bool) Bool
-  (
-   (($check_rare_rewrite Flag CL) true)
-  )
-)
-
-;TRUST
-(declare-rule rare_rewrite ((flag Bool) (conclusion Bool))
-  :args (flag)
-  :requires ((($check_rare_rewrite flag conclusion) true))
-  :conclusion-explicit conclusion
-)
