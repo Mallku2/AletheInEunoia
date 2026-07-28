@@ -87,33 +87,42 @@
 
 ; program: $check_n_ary_application_eq_congruent_pred
 ; args:
-; - not_p Bool: >
-;   Second-to-last disjunct in the conclusion passed to the eq_congruent_pred rule.
-; - p Bool: Last disjunct in the conclusion passed to the eq_congruent rule.
+; - not_p_app Bool: >
+;   For a conclusion of an instantiation of the rule `eq_congruent_pred`, of the
+;   form ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ⋯ 𝑡𝑛), (p 𝑢1 ⋯ 𝑢𝑛), this parameter should
+;   be the term ¬(p 𝑡1 ⋯ 𝑡𝑛).
+; - p_app Bool: The term (p 𝑢1 ⋯ 𝑢𝑛) in the conclusion of the instantiation of the `eq_congruent_pred` rule.
 ; - assumptions Bool: >
-;    Clause with the assumptions of the form ¬(𝑡i ≈ 𝑢i) present in the conclusion
-;    passed to the rule, but in the reverse order.
+;    Clause with the assumptions of the form ¬(𝑡i ≈ 𝑢i) present in the instantiation
+;    of the rule, but in the reverse order.
 ; return: >
-;    A boolean indicating if `not_p`, `p` and `assumptions` correspond to the proper
-;    application of the eq_congruent_pred rule, for a n-ary predicate.
+;    A boolean indicating if `not_p_app`, `p_app` and `assumptions` correspond to 
+;    a proper instantiation of the `eq_congruent_pred` rule, for a n-ary predicate.
 (program $check_n_ary_application_eq_congruent_pred ((T Type) (U Type) 
-                                                     (p (-> T U Bool)) (p2 (-> T U Bool)) 
-                                                     (t1 T) (t2 T)
+                                                     (p (-> T U Bool)) 
+                                                     (lhs_p (-> T U Bool))
+                                                     (rhs_p (-> T U Bool))
+                                                     (t1 T) (u1 T)
+                                                     (ti T) (ui T)
                                                      (tail Bool :list))
     :signature (Bool Bool Bool) Bool
     (
-     (
-      ($check_n_ary_application_eq_congruent_pred (not (p t1)) (p t2) 
-                                                  (@cl (not (= t1 t2))))
+     (; First part of the (not (p ...)) and (p ...) terms.
+      ($check_n_ary_application_eq_congruent_pred (not (p t1)) (p u1) 
+                                                  (@cl (not (= t1 u1))))
 
       true
       )
 
-     ( ; TODO: ill-typed?
-      ($check_n_ary_application_eq_congruent_pred (not (p t1)) (p2 t2)
-                                                  (@cl (not (= t1 t2)) tail))
+     (; TODO: ill-typed?
+      ; For a conclusion of the form:
+      ; ¬(𝑡1 ≈ 𝑢1), ... ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ... 𝑡𝑛), (p 𝑢1 ... 𝑢𝑛),
+      ; (lhs_p ti) should be the term (p 𝑡1 ... 𝑡i) while (rhs_p ui) should be 
+      ; (p 𝑢1 ... ui ), for some i <= n.
+      ($check_n_ary_application_eq_congruent_pred (not (lhs_p ti)) (rhs_p ui)
+                                                  (@cl (not (= ti ui)) tail))
 
-      ($check_n_ary_application_eq_congruent_pred (not p) p2 tail)
+      ($check_n_ary_application_eq_congruent_pred (not lhs_p) rhs_p tail)
       )
      )
     )
