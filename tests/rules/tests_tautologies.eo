@@ -589,38 +589,144 @@
 
              true))
 
-;-------------
-; $and_simplify_rec
-;-------------
+;------------------------------
+; $and_simplify_rec_remove_true
+;------------------------------
 ; Some constants to build terms, for testing purposes.
 (declare-const a Bool)
 (declare-const b Bool)
 (declare-const c Bool)
 
-; First case of $and_simplify_rec
 (step $test_$and_simplify_rec_1 true 
       :rule $assert_eq 
-      :args (($and_simplify_rec (and true true)) true))
+      :args (($and_simplify_rec_remove_true true) true))
 
-
-; Second case of $and_simplify_rec
 (step $test_$and_simplify_rec_2 true 
       :rule $assert_eq 
-      :args (($and_simplify_rec (and true a b true)) 
-             ($f_list_cons and a b)))
+      :args (($and_simplify_rec_remove_true (and true true)) true))
 
 (step $test_$and_simplify_rec_3 true 
       :rule $assert_eq 
-      :args (($and_simplify_rec (and true a b true c true)) 
-             ($f_list_cons and a ($f_list_cons and b c))))
+      :args (($and_simplify_rec_remove_true (and true true true)) true))
 
-
-; Fourth case of $and_simplify_rec
 (step $test_$and_simplify_rec_4 true 
       :rule $assert_eq 
-      :args (($and_simplify_rec (and a false true)) 
-             false))
+      :args (($and_simplify_rec_remove_true (and a true)) a))
 
+(step $test_$and_simplify_rec_4b true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_true (and true a)) a))
+
+(step $test_$and_simplify_rec_5 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_true (and true a true)) a))
+
+(step $test_$and_simplify_rec_6 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_true (and true a true b)) 
+             ($f_list_cons and a b)))
+
+(step $test_$and_simplify_rec_7 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_true (and true a true b c)) 
+             ($f_list_cons and a 
+                           ($f_list_cons and b c))))
+
+;------------------------------
+; $and_simplify_rec_abs_elem
+;------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+(step $test_$and_simplify_rec_abs_elem_1 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem false) false))
+
+(step $test_$and_simplify_rec_abs_elem_2 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem (and false a)) false))
+
+(step $test_$and_simplify_rec_abs_elem_3 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem (and b false a)) false))
+
+(step $test_$and_simplify_rec_abs_elem_4 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem (and b false a c)) false))
+
+(step $test_$and_simplify_rec_abs_elem_5 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem (and b false a true c)) false))
+
+(step $test_$and_simplify_rec_abs_elem_6 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem (and b false true a true c)) false))
+
+;----------------------------------
+; $and_simplify_rec_remove_repeated
+;----------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+(step $test_$and_simplify_rec_remove_repeated_1 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated false) false))
+
+(step $test_$and_simplify_rec_remove_repeated_2 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated true) true))
+
+(step $test_$and_simplify_rec_remove_repeated_3 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated a) a))
+
+(step $test_$and_simplify_rec_remove_repeated_4 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated (and a a)) (and a)))
+
+(step $test_$and_simplify_rec_remove_repeated_5 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated (and a b a)) (and b a)))
+
+(step $test_$and_simplify_rec_remove_repeated_6 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated (and a b c a)) (and b c a)))
+
+;-----------------------------
+; $and_simplify_rec_exclud_mid
+;-----------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+(step $test_$and_simplify_rec_exclud_mid_1 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid false) false))
+
+(step $test_$and_simplify_rec_exclud_mid_2 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid (and a (not a))) false))
+
+(step $test_$and_simplify_rec_exclud_mid_3 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid (and b a (not a))) false))
+
+(step $test_$and_simplify_rec_exclud_mid_4 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid (and b c a (not a))) false))
+
+(step $test_$and_simplify_rec_exclud_mid_5 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid (and (not a) true b c true a)) false))
+
+(step $test_$and_simplify_rec_exclud_mid_6 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid (and (not a) (not a) true b c true a)) false))
 
 ;-------------
 ; and_simplify
@@ -776,7 +882,6 @@
       (@cl (= (and (not (not (not (not a)))) true (not (not (not a))) b)
               false))
       :rule and_simplify)
-
 
 ;-----------------
 ; $or_simplify_rec
