@@ -8,18 +8,12 @@
 ; args:
 ; - formula Bool: A propositional logic formula.
 ; return: A boolean indicating if `formula` is an atomic propositional symbol.
-(program $formula_is_an_atom ((op (-> Bool Bool Bool)) (not (-> Bool Bool))
-                      (lhs Bool) (rhs Bool) (atom Bool))
+(program $formula_is_an_atom ((A Type) (elem A)
+                              (f (-> A Bool)) (atom Bool))
          :signature (Bool) Bool
          (
           (
-           ($formula_is_an_atom (op lhs rhs))
-
-           false
-           )
-          
-          (
-           ($formula_is_an_atom (not lhs))
+           ($formula_is_an_atom (_ f elem))
 
            false
            )
@@ -52,118 +46,74 @@
 ;   A boolean value indicating if it is true that `formula_1` is <= than
 ;   `formula_2`, according to an order that is arbitrary among atoms 
 ;   (but fixed for each run).
-(program $less_or_equal_formulas ((op (-> Bool Bool Bool))
-                                  (lhs_1 Bool) (rhs_1 Bool :list)
-                                  (lhs_2 Bool) (rhs_2 Bool :list)
-                                  (formula_1 Bool) (formula_2 Bool))
+(program $less_or_equal_formulas ((A Type) (elem A) (elem_1 A) (elem_2 A)
+                                  (op (-> A Bool))
+                                  (op_1 (-> A Bool))
+                                  (op_2 (-> A Bool))
+                                  (B Type) (function_symbol (-> B Bool))
+                                  (formula Bool) (formula_1 Bool) (formula_2 Bool)
+                                  )
          :signature (Bool Bool) Bool
          (
           (
-           ($less_or_equal_formulas false formula_1)
+           ($less_or_equal_formulas false formula)
 
            true
            )
 
-          (; { formula_1 != false }
-           ($less_or_equal_formulas formula_1 false)
+          (; { formula != false }
+           ($less_or_equal_formulas formula false)
 
            false
            )
 
           (
-           ($less_or_equal_formulas formula_1 true)
+           ($less_or_equal_formulas formula true)
 
            true
            )
 
           (; { formula_1 != true }
-           ($less_or_equal_formulas true formula_1)
+           ($less_or_equal_formulas true formula)
 
            false
            )
 
           (
-           ($less_or_equal_formulas formula_1 formula_1)
+           ($less_or_equal_formulas (_ op elem_1) (_ op elem_2))
+
+           ($less_or_equal_formulas elem_1 elem_2)
+           )
+
+          (; { op_1 != op_2 }
+           ($less_or_equal_formulas (_ op_1 elem_1) (_ op_2 elem_2))
+
+           ($less_or_equal_formulas op_1 op_2)
+           )
+
+          (; { function_symbol != op ... }
+           ($less_or_equal_formulas function_symbol (_ op elem))
 
            true
            )
 
-          (
-           ($less_or_equal_formulas (not lhs_1) (not lhs_2))
+          (; { function_symbol != op ... }
+           ($less_or_equal_formulas (_ op elem) function_symbol)
 
-           ($less_or_equal_formulas lhs_1 lhs_2)
+           false
            )
 
           (
-           ($less_or_equal_formulas (op lhs_1 rhs_1) (op lhs_2 rhs_2))
-
-           (eo::define
-
-            (
-             (eq_lhs_1_2 (eo::is_eq lhs_1 lhs_2))
-             )
-            
-           (eo::ite (eo::and ($less_or_equal_formulas lhs_1 lhs_2)
-                             (eo::not eq_lhs_1_2))
-
-                    true
-                   
-                    ; { eo::not (eo::and ($less_or_equal_formulas lhs_1 lhs_2)
-                    ;                    (eo::not eq_lhs_1_2)) }
-                    (eo::ite eq_lhs_1_2
-
-                             ($less_or_equal_formulas rhs_1 rhs_2)
-                             
-                             ; { not eq_lhs_1_2 }
-                             ; { lhs_1 > lhs_2 }
-                             false)))
-           )
-
-          (
-           ($less_or_equal_formulas (and lhs_1 rhs_1) (or lhs_2 rhs_2))
+           ($less_or_equal_formulas formula formula)
 
            true
            )
 
-          (
-           ($less_or_equal_formulas (or lhs_1 rhs_1) (xor lhs_2 rhs_2))
-
-           true
-           )
-
-          (
-           ($less_or_equal_formulas (xor lhs_1 rhs_1) (=> lhs_2 rhs_2))
-
-           true
-           )
-
-          (
-           ($less_or_equal_formulas (not lhs_1) (op lhs_2 rhs_2))
-
-           true
-           )
-
-          (
+          (; { formula_1 != formula_2 }
            ($less_or_equal_formulas formula_1 formula_2)
 
-           
-           (eo::ite (eo::and ($formula_is_an_atom formula_1)
-                             (eo::not ($formula_is_an_atom formula_2)))
-
-                      true
-                      
-                      ; { not (eo::and ($formula_is_an_atom formula_1)
-                      ;                (eo::not ($formula_is_an_atom formula_2)))}
-                      (eo::ite (eo::and ($formula_is_an_atom formula_1)
-                                        ($formula_is_an_atom formula_2))
-
-                               ; Arbitrary order among atoms.
-                               ($less_or_equal_atoms formula_1 formula_2)
-
-                               ; { not (eo::and ($formula_is_an_atom formula_1)
-                               ;                ($formula_is_an_atom formula_2)) }
-                               ; Default case.
-                               false))
+           ; Arbitrary order among atoms.
+           ($less_or_equal_atoms formula_1 formula_2)
            )
           )
          )
