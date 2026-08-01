@@ -163,14 +163,14 @@
 
 (step $test_$less_or_equal_formulas_9 true 
       :rule $assert_eq
-      :args (($less_or_equal_formulas (and a a) 
+      :args (($less_or_equal_formulas (and a a)
                                       (or a a)) 
              true))
 
 (step $test_$less_or_equal_formulas_9b true 
       :rule $assert_eq
       :args (($less_or_equal_formulas (or a a)
-                                      (and a a)) 
+                                      (and a a))
              false))
 
 (step $test_$less_or_equal_formulas_10 true 
@@ -189,13 +189,13 @@
       :rule $assert_eq
       :args (($less_or_equal_formulas (xor a a) 
                                       (=> a a)) 
-             true))
+             false))
 
 (step $test_$less_or_equal_formulas_11b true 
       :rule $assert_eq
       :args (($less_or_equal_formulas (=> a a)
                                       (xor a a)) 
-             false))
+             true))
 
 (step $test_$less_or_equal_formulas_12 true 
       :rule $assert_eq
@@ -444,6 +444,11 @@
       :rule $assert_eq
       :args (($normalize_formula_modulo_commutativity (or a (not a)))
              ($normalize_formula_modulo_commutativity (or (not a) a))))
+
+(step $test_$normalize_formula_modulo_commutativity_10b true 
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity (or b (not a)))
+             ($normalize_formula_modulo_commutativity (or (not a) b))))
 
 (step $test_$normalize_formula_modulo_commutativity_11 true 
       :rule $assert_eq
@@ -732,3 +737,59 @@
                (and (not s55) p55)
                ))
              ))
+
+; Another Verit example.
+(declare-const U Type)
+(declare-const p10 (-> U U Bool))
+(declare-const p9 (-> U Bool))
+(declare-const f16 (-> U U U U))
+(declare-const p3 (-> U Bool))
+(declare-const f2 (-> U U U))
+(declare-const p4 (-> U Bool))
+(declare-const f7 (-> U U))
+(declare-const p1 (-> U U Bool))
+(declare-const f12 (-> U U))
+(declare-const c18 U)
+(declare-const p14 (-> U U U Bool))
+(declare-const f17 (-> U U U U))
+(declare-const f13 (-> U U U U))
+(declare-const f6 (-> U U))
+(declare-const f5 (-> U U))
+(declare-const f11 (-> U U))
+(declare-const p15 (-> U U Bool))
+(declare-const c8 U)
+(declare-const c_0 U)
+(declare-const c_1 U)
+
+(step $test_$normalize_formula_modulo_commutativity_17 true
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity
+               (or (not (= (f5 c_0) (f5 c_0)))
+                   (not (= (f5 c_1) (f5 c_1)))))
+              ($normalize_formula_modulo_commutativity
+               (or (not (= (f5 c_1) (f5 c_1)))
+                   (not (= (f5 c_0) (f5 c_0)))))))
+
+(step $test_$normalize_formula_modulo_commutativity_17b true
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity
+               (or (not (= c_0 (f16 c_0 c_0 c_0)))
+                   (not (p10 c_0 c_0))))
+              ($normalize_formula_modulo_commutativity
+               (or (not (p10 c_0 c_0))
+                   (not (= c_0 (f16 c_0 c_0 c_0)))))))
+
+(step $test_$normalize_formula_modulo_commutativity_17c true
+      :rule $assert_eq
+      :args (($normalize_formula_modulo_commutativity
+               (or (not (p10 c_0 c_0)) 
+                   (not (p9 c_0)) 
+                   (not (= c_0 (f16 c_0 c_0 c_0))) 
+                   (= c_0 c_0) 
+                   (not (p3 c_0))))
+              ($normalize_formula_modulo_commutativity
+               (or (not (p10 c_0 c_0)) 
+                   (not (p9 c_0)) 
+                   (not (= c_0 (f16 c_0 c_0 c_0))) 
+                   (= c_0 c_0) 
+                   (not (p3 c_0))))))
