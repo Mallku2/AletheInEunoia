@@ -4018,8 +4018,8 @@
                               (@ctx @varlist.nil true)
                               (and (@cl (= c f)) (@cl (= b e)) (@cl (= a d))
                                    (@cl (= (eo::var "x2" Bool) (eo::var "y2" Bool))))
-                              (@cl (= (_ (_ (_ (@let ((x1 Bool) (x2 Bool) (x3 Bool)) x2) a) b) c)
-                                      (_ (_ (_ (@let ((y1 Bool) (y2 Bool) (y3 Bool)) y2) d) e) f))))
+                              (@cl (= (_ (_ (_ (@let ((x1 Bool) (x2 Bool) (x3 Bool)) x2) c) b) a)
+                                      (_ (_ (_ (@let ((y1 Bool) (y2 Bool) (y3 Bool)) y2) f) e) d))))
 
              true))
 

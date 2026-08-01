@@ -4605,13 +4605,11 @@
       ($verify_bind_let_premises premises
 
                                  ($f_list_concat @varlist @varlist.nil 
-                                                 ($f_list_reverse @varlist @varlist.nil 
-                                                                  ($let_get_values lhs_let))
+                                                 ($let_get_values lhs_let)
                                                  (@varlist lhs_body))
       
                                  ($f_list_concat @varlist @varlist.nil 
-                                                 ($f_list_reverse @varlist @varlist.nil 
-                                                                  ($let_get_values rhs_let))
+                                                 ($let_get_values rhs_let)
                                                  (@varlist rhs_body)))
       )
      )
