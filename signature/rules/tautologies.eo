@@ -11,12 +11,15 @@
 ; program: $check_eq_transitive_remaining_equalities
 ; args:
 ; - t2 A: Left-hand side of the next equation that we should look for.
-; - tn A: Right-hand side of the last equation.
-; - assumptions Bool: Clause with the remaining assumptions passed to eq_transitive.
+; - tn A: Right-hand side of the equation of the last disjunct, in the conclusion.
+; - assumptions Bool: Clause with the remaining equations from the conclusion.
 ; return: >
 ;   A boolean indicating if there is a chain of equivalences between terms, beginning
 ;   from `t2`, following the equalities contained into `assumptions`, and reaching
 ;   to term `tn`.
+; note: >
+;  PRE : { `assumptions` is properly ordered: if the last disjunct of the conclusion
+;          is 𝑡1 ≈ 𝑡𝑛, `assumptions` should have the form ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛) }
 (program $check_eq_transitive_remaining_equalities ((A Type) (t2 A) (t3 A)
                                                     (tn_1 A) (tn A) 
                                                     (tail Bool :list))
@@ -43,11 +46,14 @@
 ; - last_equality Bool: >
 ;   Last disjunct present in the conclusion clause passed to `eq_transitive`.
 ;   It must be an equality among arbitrary terms.
-; - assumptions Bool: Clause with the remaining assumptions passed to eq_transitive.
+; - assumptions Bool: Clause with the remaining assumptions passed to `eq_transitive`.
 ; return: >
 ;   A boolean indicating if there is a chain of equivalences between terms, beginning
 ;   from the left-hand side of `last-equality`, following the equalities contained 
 ;   into `assumptions`, and reaching to right-hand side of `last-equality`.
+; note: >
+;  PRE : { `assumptions` is properly ordered: if `last_equality` is of the form
+;          `𝑡1 ≈ 𝑡𝑛`, `assumptions` should have the form ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛) }
 (program $check_eq_transitive_from_first_equality ((A Type) (t1 A) (t2 A) (tn A)
                                                    (tail Bool :list))
 
@@ -68,6 +74,8 @@
 ; return: >
 ;   A boolean indicating if `conclusion` is of the form
 ;   ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛), 𝑡1 ≈ 𝑡𝑛
+; note: >
+;  PRE : { `conclusion` is properly ordered: it has the form ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛), 𝑡1 ≈ 𝑡𝑛}
 (program $check_eq_transitive ((hd Bool) (tail Bool :list))
   :signature (Bool) Bool
   (
@@ -93,8 +101,8 @@
 
 ; rule: eq_transitive
 ; requires: >
-;   For "conclusion" to be of the form:
-;   ¬(𝑡1 ≈𝑡2), … , ¬(𝑡𝑛−1 ≈𝑡𝑛), 𝑡1 ≈𝑡𝑛
+;   For "conclusion" to be exactly of the form:
+;   ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛), 𝑡1 ≈ 𝑡𝑛
 ; conclusion-explicit: >
 ;   Conclusion should be a clause built with @cl, satisfying the described
 ;   side-condition.
