@@ -346,8 +346,8 @@
 ; - conclusion Bool: Conclusion passed to rule `connective_def`
 ; return: >
 ;   A boolean indicating if `conclusion` has one of the following forms:
-;   - (xor 𝜑1 𝜑2) ≈((¬𝜑1 ∧ 𝜑2) ∨(𝜑1 ∧¬𝜑2))
-;   - (𝜑1 ≈ 𝜑2) ≈ ((𝜑1 →𝜑2) ∧ (𝜑2 →𝜑1))
+;   - (xor 𝜑1 𝜑2) ≈((¬𝜑1 ∧ 𝜑2) ∨(𝜑1 ∧ ¬𝜑2))
+;   - (𝜑1 ≈ 𝜑2) ≈ ((𝜑1 → 𝜑2) ∧ (𝜑2 → 𝜑1))
 ;   - (ite 𝜑1 𝜑2 𝜑3) ≈ ((𝜑1 → 𝜑2) ∧(¬𝜑1 → 𝜑3))
 ;   - (∀𝑥1, … , 𝑥𝑛. 𝜑) ≈ ¬(∃𝑥1, … , 𝑥𝑛. ¬𝜑)
 ;   - (∃𝑥1, … , 𝑥𝑛. 𝜑) ≈ ¬(∀𝑥1, … , 𝑥𝑛. ¬𝜑)
