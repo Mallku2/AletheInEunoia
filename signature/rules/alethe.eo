@@ -4553,7 +4553,7 @@
 ; - conclusion Bool: Conclusion given to rule let_elim.
 ; return: >
 ;    A boolean indicating if the given conclusion has the form
-;    (let 𝑥1 = 𝑡1, … , 𝑥𝑛 = 𝑡𝑛 in 𝑢) ≈ (let y1 = s1, … , y𝑛= s𝑛 in 𝑢')
+;    (let 𝑥1 = 𝑡1, … , 𝑥𝑛 = 𝑡𝑛 in 𝑢) ≈ (let y1 = s1, … , y𝑛 = s𝑛 in 𝑢')
 ;    And the premises are of the form:
 ;    𝑖1. Γ ⊳ 𝑡1 ≈ 𝑠1 (… )
 ;     ...
@@ -4597,14 +4597,14 @@
        (eo::not ($f_list_contains_f_list @varlist lhs_free_vars vars_rhs_let))
        )
 
-     ; rhs_vars should not appear in `current_context`.
+     ; `rhs_vars` should not appear in `current_context`.
      (eo::not ($context_vars_are_defined current_context vars_rhs_let))
 
      ; `previous_context` must be just an extension of `current_context`.
      ($context_is_extended previous_context current_context)
 
-     ; lhs_vars should not appear in the first part of `previous_context` (which
-     ;; is `current_context`)
+     ; `vars_lhs_let` should not appear in `current_context`.
+     ; TODO: check the actual necessity of this.
      (eo::not ($context_vars_are_defined current_context vars_lhs_let))
 
      ; Verify that the premises are actual proofs of equivalences between values
