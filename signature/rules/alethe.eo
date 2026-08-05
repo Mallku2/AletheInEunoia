@@ -4555,11 +4555,13 @@
 
 ; rule: bind_let
 ; assumption:
-; - ctx: Context from the actual subproof.
-; premise-list: And-list of the premises passed to the rule.
+; - previous_context: Context from the previous last step of the subproof being closed by `bind_let`.
+; premise-list: And-list of the premises invoked by the rule.
+; args:
+; - current_context: Context of the current `bind_let` step.
 ; requires: >
-;    For the given conclusion to be a proper elimination of a let, under the provided
-;    premises and context, as specified by predicate $check_let_elim.
+;    For the given conclusion to be a proper variable renaming of a let, under 
+;    the provided premises and context, as specified by predicate `$check_bind_let`.
 ; conclusion-explicit: A conclusion satisfying the previous side-condition.
 (declare-rule bind_let ((current_context Bool) (previous_context Bool) (premises Bool) 
                         (conclusion Bool))
