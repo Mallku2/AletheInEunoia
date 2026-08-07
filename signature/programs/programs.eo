@@ -973,9 +973,9 @@
 ;   A @VarList with the values associated with each variable from, and in the 
 ;   same order as in, "variables".
 (program $context_get_vars_substs ((A Type) (id A) (B Type)
-                                      (value B) (varlist @VarList) 
-                                      (context Bool) (and_list Bool)
-                                      (ids @VarList :list))
+                                   (value B) (varlist @VarList) 
+                                   (context Bool) (and_list Bool)
+                                   (ids @VarList :list))
          :signature (Bool @VarList) @VarList
          (
           (
@@ -1303,21 +1303,31 @@
           (
            ($fv (forall vars bool_body))
 
-           ; TODO: repeating stuff...
+           (eo::define
+
+            (
+             (fv_bool_body ($fv bool_body))
+             )
+
            ($f_list_filter @varlist @varlist.nil
-                           ($fv bool_body)
-                           ($varlist_flag_members ($fv bool_body) 
-                                          vars))
+                           fv_bool_body
+                           ($varlist_flag_members fv_bool_body
+                                                  vars)))
            )
 
           (
            ($fv (exists vars bool_body))
 
-           ; TODO: repeating stuff...
-           ($f_list_filter @varlist @varlist.nil
-                           ($fv bool_body)
-                           ($varlist_flag_members ($fv bool_body) 
-                                          vars))
+           (eo::define
+
+            (
+             (fv_bool_body ($fv bool_body))
+             )
+            
+            ($f_list_filter @varlist @varlist.nil
+                            fv_bool_body
+                            ($varlist_flag_members fv_bool_body
+                                                   vars)))
            )
 
           (; We consider (@var varlist x) as our representation of variables 
@@ -1328,22 +1338,28 @@
            ; binding occurrences of variables, from a given binder.
            ($fv (@var (@varlist x) x))
 
-           ($f_list_cons @varlist 
-                         ; (@var (@varlist x) x) 
-                         x
-                         @varlist.nil)
+           ($f_list_cons @varlist x @varlist.nil)
            )
 
           (
            ($fv (_ function actual_argument))
            
-           ; TODO: repeating stuff...
-           ($f_list_filter @varlist @varlist.nil 
-                           ($varlist_concat ($fv function)
-                                            ($fv actual_argument))
-                           ($flag_duplicates @varlist @varlist.nil
-                            ($varlist_concat ($fv function)
-                                             ($fv actual_argument))))
+           (eo::define
+            
+            (
+             (fv_function ($fv function))
+             (fv_actual_argument ($fv actual_argument))
+             )
+
+            (eo::define
+
+             (
+              (every_fv ($varlist_concat fv_function fv_actual_argument))
+              )
+
+             ; We remove duplicated variables.
+             ($f_list_filter @varlist @varlist.nil every_fv
+                             ($flag_duplicates @varlist @varlist.nil every_fv))))
            )
 
           (
@@ -1372,7 +1388,7 @@
            ($f_list_cons @varlist x @varlist.nil)
            )
           )
-)
+         )
 
 ;-------------
 ; Substitution
