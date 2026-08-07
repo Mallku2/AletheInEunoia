@@ -4482,76 +4482,76 @@
 ;    𝑖𝑛. Γ ⊳ 𝑡𝑛 ≈ 𝑠𝑛 (… )
 ;    𝑗. Γ, y1, ..., yn, 𝑥1 ↦ y1, ... , 𝑥𝑛 ↦ y𝑛 ⊳ 𝑢 ≈ 𝑢′ (… )
 (program $check_bind_let ((previous_context Bool) (current_context Bool) (premises Bool) 
-                         (A Type) (lhs_let A) (rhs_let A))
-  :signature (Bool Bool Bool Bool) Bool
-  (
-   (
-    ($check_bind_let previous_context current_context
-                     premises
-                     (@cl (= lhs_let
-                             rhs_let)))
+                          (A Type) (lhs_let A) (rhs_let A))
+         :signature (Bool Bool Bool Bool) Bool
+         (
+          (
+           ($check_bind_let previous_context current_context
+                            premises
+                            (@cl (= lhs_let
+                                    rhs_let)))
 
-    (eo::define
+           (eo::define
 
-     (
-      (vars_lhs_let ($let_get_vars lhs_let))
-      (vars_rhs_let ($let_get_vars rhs_let))
-      )
+            (
+             (vars_lhs_let ($let_get_vars lhs_let))
+             (vars_rhs_let ($let_get_vars rhs_let))
+             )
 
-    (eo::and 
-      ; Every variable bound in the rhs_let_def let appear fixed in `previous_context`.
-      ($context_vars_are_fixed previous_context vars_rhs_let)
-     
-      ; Vars in lhs_vars are substituted by rhs_vars in `previous_context`.
-      ; Note: we need to embed each var in rhs_vars within a @var construction,
-      ; since that is how they will appear within a context.
-      ($f_list_equal_mod_commut_and_length 
-        @varlist 
-        ($embed_within_vars vars_rhs_let)
-        ($context_get_vars_substs previous_context vars_lhs_let))
+            (eo::and 
+             ; Every variable bound in the rhs_let_def let appear fixed in `previous_context`.
+             ($context_vars_are_fixed previous_context vars_rhs_let)
+             
+             ; Vars in lhs_vars are substituted by rhs_vars in `previous_context`.
+             ; Note: we need to embed each var in rhs_vars within a @var construction,
+             ; since that is how they will appear within a context.
+             ($f_list_equal_mod_commut_and_length 
+              @varlist 
+              ($embed_within_vars vars_rhs_let)
+              ($context_get_vars_substs previous_context vars_lhs_let))
 
-      ; rhs_vars should not appear free in lhs_let
-      (eo::define 
-       (
-        (lhs_free_vars ($fv lhs_let))
-        )
+             ; rhs_vars should not appear free in lhs_let
+             (eo::define 
+              (
+               (lhs_free_vars ($fv lhs_let))
+               )
 
-       (eo::not ($f_list_contains_f_list @varlist lhs_free_vars vars_rhs_let))
-       )
+              (eo::not ($f_list_contains_f_list @varlist lhs_free_vars vars_rhs_let))
+              )
 
-     ; `rhs_vars` should not appear in `current_context`.
-     (eo::not ($context_vars_are_defined current_context vars_rhs_let))
+             ; `rhs_vars` should not appear in `current_context`.
+             (eo::not ($context_vars_are_defined current_context vars_rhs_let))
 
-     ; `previous_context` must be just an extension of `current_context`.
-     ($context_is_extended previous_context current_context)
+             ; `previous_context` must be just an extension of `current_context`.
+             ($context_is_extended previous_context current_context)
 
-     ; `vars_lhs_let` should not appear in `current_context`.
-     ; TODO: check the actual necessity of this.
-     (eo::not ($context_vars_are_defined current_context vars_lhs_let))
+             ; `vars_lhs_let` should not appear in `current_context`.
+             ; TODO: check the actual necessity of this.
+             (eo::not ($context_vars_are_defined current_context vars_lhs_let))
 
-     ; Verify that the premises are actual proofs of equivalences between values
-     ; assigned in the lhs and rhs let.
-     (eo::define
+             ; Verify that the premises are actual proofs of equivalences between values
+             ; assigned in the lhs and rhs let.
+             (eo::define
 
-      (
-       (lhs_body ($let_get_body lhs_let))
-       (rhs_body ($let_get_body rhs_let))
-       )
-      ($verify_bind_let_premises premises
+              (
+               (lhs_body ($let_get_body lhs_let))
+               (rhs_body ($let_get_body rhs_let))
+               )
+              ($verify_bind_let_premises premises
 
-                                 ($f_list_concat @varlist @varlist.nil 
-                                                 ($let_get_values lhs_let)
-                                                 (@varlist lhs_body))
-      
-                                 ($f_list_concat @varlist @varlist.nil 
-                                                 ($let_get_values rhs_let)
-                                                 (@varlist rhs_body)))
-      )
-     )
-    )
-    )
-   )
-  )
+                                         ($f_list_concat @varlist @varlist.nil 
+                                                         ($let_get_values lhs_let)
+                                                         (@varlist lhs_body))
+                                         
+                                         ($f_list_concat @varlist @varlist.nil 
+                                                         ($let_get_values rhs_let)
+                                                         (@varlist rhs_body)))
+              )
+             )
+            )
+           )
+          )
+         )
 
 ; rule: bind_let
 ; assumption:
