@@ -2965,7 +2965,7 @@
 )
 
 ;------------------
-; Rule 81: onepoint
+; Rule onepoint
 ;------------------
 
 ; program: $flag_non_fixed_variables
