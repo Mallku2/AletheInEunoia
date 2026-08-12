@@ -2055,7 +2055,7 @@
 )
 
 ;-----------------
-; Rule 29: qnt_cnf
+; Rule qnt_cnf
 ;-----------------
 
 ; program: $negative_normal_form
@@ -2452,42 +2452,6 @@
           )
          )
 
-; program: $flat_cnf
-; args:
-; - formula Bool: The CNF of some formula.
-; return: A flattened version of `formula`.
-(program $flat_cnf ((formula Bool) (conjunct Bool) (conjuncts Bool :list))
-
-         :signature (Bool) Bool
-
-         (
-          (
-           ($flat_cnf (and conjunct conjuncts))
-
-           (eo::define
-
-            (
-             (left_most_leaf ($binary_tree_get_left_most_leaf 
-                              and
-                              (and conjunct conjuncts)))
-             )
-
-            ($f_list_cons and 
-                          left_most_leaf
-                          ($flat_cnf 
-                           ($binary_tree_remove_elem and 
-                                                     (and conjunct conjuncts) 
-                                                     left_most_leaf))))
-           )
-         
-          (; { `formula` is not a conjunction }
-           ($flat_cnf formula)
-
-           formula
-           )
-          )
-         )
-
 ; program: $$conjunctive_normal_form
 ; args:
 ; - formula Bool: An formula in prenex form and NNF.
@@ -2515,7 +2479,7 @@
           (; { `formula` does not begin with quantifiers }
            ($conjunctive_normal_form formula)
 
-           ($flat_cnf ($rec_conjunctive_normal_form formula))
+           ($flat_and_or and ($rec_conjunctive_normal_form formula))
            )
           )
          )
