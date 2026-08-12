@@ -3059,7 +3059,7 @@
 )
 
 ;------------------
-; Rule 82: qnt_join
+; Rule qnt_join
 ;------------------
 
 
@@ -3083,10 +3083,11 @@
    (
     ($check_qnt_join varlist_1 varlist_2 varlist_3)
 
-    ($f_list_equal @varlist 
-                   varlist_3
-                   ($f_list_remove_duplicates @varlist @varlist.nil 
-                                              ($varlist_concat varlist_1 varlist_2)))
+    ($f_list_equal_mod_commut_and_length 
+     @varlist 
+     varlist_3
+     ($f_list_remove_duplicates @varlist
+                                ($varlist_concat varlist_1 varlist_2)))
     )
   )
 )
