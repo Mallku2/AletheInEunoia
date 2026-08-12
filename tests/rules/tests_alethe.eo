@@ -474,24 +474,6 @@
                                                        ($f_list_cons or c e))))))
 
 ;------------------------------------------
-; $flat_cnf
-;------------------------------------------
-; Some constants to build terms, for testing purposes.
-(declare-const a Bool)
-(declare-const b Bool)
-(declare-const c Bool)
-(declare-const d Bool)
-(declare-const e Bool)
-
-; Atomic props.
-(step $test_$flat_cnf_1 true 
-      :rule $assert_eq 
-      :args (($flat_cnf ($f_list_cons and ($f_list_cons and a b) c))
-
-             ($f_list_cons and a ($f_list_cons and b c))))
-
-
-;------------------------------------------
 ; $conjunctive_normal_form
 ;------------------------------------------
 ; Some constants to build terms, for testing purposes.
