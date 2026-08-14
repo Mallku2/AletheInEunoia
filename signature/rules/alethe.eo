@@ -42,7 +42,7 @@
 )
 
 ;----------------------
-; Rule 6: th_resolution
+; Rule th_resolution
 ;----------------------
 
 ; program: $remove_double_negation
@@ -163,13 +163,7 @@
                          ($remove_pivot_from_clause pivot tail))
            )
 
-          ;; (
-          ;;  ($remove_pivot_from_clause pivot pivot)
-
-          ;;  @empty_cl
-          ;;  )
-
-          (
+          (; { tail != @cl ... }
            ($remove_pivot_from_clause pivot tail)
            
            @empty_cl
@@ -469,9 +463,9 @@
   :conclusion-explicit conclusion
 )
 
-;-------------
-; Rule 7: resolution
-;-------------
+;----------------
+; Rule resolution
+;----------------
 
 ; rule: resolution
 ; premises:
