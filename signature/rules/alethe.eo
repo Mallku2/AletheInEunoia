@@ -2849,7 +2849,7 @@
 
 
 ;--------------------
-; Rule 46: not_equiv1
+; Rule not_equiv1
 ;--------------------
 ; rule: not_equiv1
 ; premises:
@@ -2864,7 +2864,7 @@
 )
 
 ;--------------------
-; Rule 47: not_equiv2
+; Rule not_equiv2
 ;--------------------
 ; rule: not_equiv2
 ; premises:
@@ -4036,7 +4036,7 @@
 )
 
 ;-------------------
-; Rule 102: not_symm
+; Rule not_symm
 ;-------------------
 
 ; rule: not_symm

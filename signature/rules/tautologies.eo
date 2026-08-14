@@ -329,7 +329,7 @@
 )
 
 ;--------------------
-; Rule 61: equiv_neg1
+; Rule equiv_neg1
 ;--------------------
 
 ; rule: equiv_neg1
@@ -339,7 +339,7 @@
 )
 
 ;--------------------
-; Rule 62: equiv_neg2
+; Rule equiv_neg2
 ;--------------------
 
 ; rule: equiv_neg2
@@ -349,7 +349,7 @@
 )
 
 ;------------------
-; Rule 65: ite_pos1
+; Rule ite_pos1
 ;------------------
 
 ; rule: ite_pos1
@@ -359,7 +359,7 @@
 )
 
 ;------------------
-; Rule 66: ite_pos2
+; Rule ite_pos2
 ;------------------
 
 ; rule: ite_pos2
