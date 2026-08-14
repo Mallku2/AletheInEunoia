@@ -2818,7 +2818,7 @@
 )
 
 ;-------------
-; Rule 37: not_and
+; Rule not_and
 ;-------------
 
 ; program: check_not_and
