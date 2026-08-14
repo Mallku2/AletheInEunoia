@@ -163,13 +163,7 @@
                          ($remove_pivot_from_clause pivot tail))
            )
 
-          ;; (
-          ;;  ($remove_pivot_from_clause pivot pivot)
-
-          ;;  @empty_cl
-          ;;  )
-
-          (
+          (; { tail != @cl ... }
            ($remove_pivot_from_clause pivot tail)
            
            @empty_cl
@@ -260,46 +254,6 @@
           )
          )
 
-; program: $return_untouched_clauses
-; args:
-; - pivot Bool: >
-;   Pivot that is being considered in the current binary resolution step.
-; - clauses Bool: And-list of clauses.
-; return: The And-list of clauses without the clause containing `pivot`.
-; note: >
-;   PRE : { `pivot` is contained in some clause from `clauses`
-;           && 
-;           `pivot` is normalized
-;           && 
-;          `clause` is normalized }
-;   While this function repeats part of the work done by 
-;   $find_and_remove_pivot_from_clauses, it is added to simplify the task
-;   of identifying which are the remaining clauses upon which we must continue
-;   applying resolution steps
-(program $return_untouched_clauses ((clause Bool) (clauses Bool :list) 
-                                    (pivot Bool))
-         :signature (Bool Bool) Bool
-         (
-          (
-           ($return_untouched_clauses pivot (and clause clauses))
-
-           (eo::ite ($f_list_contains_elem @cl pivot clause)
-
-                    clauses
-                    
-                    ($f_list_cons and clause ($return_untouched_clauses pivot clauses))
-                    )
-           )
-
-          (; By pre, `clause` should contain `pivot`.
-           ; { clause is just a single @cl clause }
-           ($return_untouched_clauses pivot clause)
-
-           true
-           )
-          )
-         )
-
 ; program: $check_resolution_with_normalized_clauses 
 ; args:
 ; - clauses Bool: >
@@ -320,7 +274,8 @@
 ; note: >
 ;   PRE : { `clauses` are normalized (double negation is simplified) &
 ;           `already_tried_pivot_clauses`, `already_tried_pivot_clauses` and
-;           `clauses` are mutually disjoint }
+;           `clauses` are mutually disjoint &
+;           `conclusion` is normalized }
 (program $check_resolution_with_normalized_clauses  ((current_clauses Bool)
                                                      (already_tried_pivot_clauses Bool)
                                                      (already_tried_not_pivot_clauses Bool)
@@ -473,13 +428,14 @@
      
      (
       (normalized_clauses ($normalize_clauses clauses))
+      (normalized_conclusion ($normalize_single_clause conclusion))
       )
      
     ($check_resolution_with_normalized_clauses normalized_clauses
                                                true
                                                true
                                                pivots 
-                                               conclusion)
+                                               normalized_conclusion)
     )
     )
    )
@@ -507,9 +463,9 @@
   :conclusion-explicit conclusion
 )
 
-;-------------
+;----------------
 ; Rule resolution
-;-------------
+;----------------
 
 ; rule: resolution
 ; premises:
@@ -4379,7 +4335,7 @@
     ($f_list_equal_mod_commut_and_length 
      @varlist 
      varlist_3
-     ($f_list_remove_duplicates @varlist @varlist.nil 
+     ($f_list_remove_duplicates @varlist
                                 ($varlist_concat varlist_1 varlist_2)))
     )
   )
@@ -4760,10 +4716,16 @@
           (
            ($ite_intro_check_conjuncts (@varlist (ite guard if else) tail) conjuncts)
 
-           (eo::and ($f_list_contains_elem 
+           (eo::and (eo::or
+                     ($f_list_contains_elem 
                      and 
-                     (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
+                     (ite guard (= (ite guard if else) if) (= (ite guard if else) else))
                      conjuncts)
+
+                     ($f_list_contains_elem 
+                      and 
+                      (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
+                      conjuncts))
 
                     ($ite_intro_check_conjuncts tail conjuncts))
            )
@@ -4847,7 +4809,6 @@
   )
 )
 
-;TRUST
 ; rule: ite_intro
 ; requires: >
 ;   For every ite construction of the form "ite 𝜓𝑖 ri 𝑟′𝑖" present on `t1`, 
@@ -4948,3 +4909,39 @@
   :requires ((($check_rare_rewrite flag conclusion) true))
   :conclusion-explicit conclusion
 )
+
+;-------------------
+; Rule weakening
+;-------------------
+
+; program: $check_weakening
+; args:
+; - premise Bool: Premise clause passed to rule `weakening`.
+; - conclusion Bool: Conclusion clause passed to rule `weakening`.
+; return: >
+;   A boolean indicating if `conclusion` follows from `premise` by weakening
+;   of disjunction.
+(program $check_weakening ((premise Bool) (conclusion Bool))
+         :signature (Bool Bool) Bool
+         (
+          (
+           ($check_weakening premise conclusion)
+
+           (eo::and ($f_list_contains_f_list @cl premise conclusion)
+                    (eo::gt ($f_list_length @cl conclusion)
+                            ($f_list_length @cl premise)))
+           )
+          )
+         )
+
+; rule: weakening
+; premises:
+; - premise Bool: A premise clause passed to the rule.
+; requires: >
+;   For the conclusion to follow from the premise, from weakening of disjunction.
+; conclusion: A conclusion clause satisfying the previous side-condition. 
+(declare-rule weakening ((premise Bool) (conclusion Bool))
+  :premises (premise)
+  :requires ((($check_weakening premise conclusion) true))
+  :conclusion-explicit conclusion
+  )

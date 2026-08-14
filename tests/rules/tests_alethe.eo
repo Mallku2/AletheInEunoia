@@ -761,8 +761,8 @@
       :rule $assert_eq 
       :args (($ite_intro_check_conjuncts (@varlist (ite a b c))
                                          (and (ite a
-                                                   (= b (ite a b c)) 
-                                                   (= c (ite a b c)))))
+                                                   (= (ite a b c) b) 
+                                                   (= (ite a b c) c))))
 
              true))
 
@@ -770,8 +770,8 @@
       :rule $assert_eq 
       :args (($ite_intro_check_conjuncts (@varlist (ite (p f1) f4 f2))
                                          (and (ite (p f1)
-                                                   (= f4 (ite (p f1) f4 f2)) 
-                                                   (= f2 (ite (p f1) f4 f2)))))
+                                                   (= (ite (p f1) f4 f2) f4) 
+                                                   (= (ite (p f1) f4 f2) f2))))
 
              true))
 
@@ -836,8 +836,8 @@
       :args (($check_ite_intro (not (= b (ite c b a)))
                                (not (= b (ite c b a)))
                                (and (ite c 
-                                         (= b (ite c b a)) 
-                                         (= a (ite c b a)))))
+                                         (= (ite c b a) b) 
+                                         (= (ite c b a) a))))
 
              true))
 
@@ -849,8 +849,8 @@
               (=> (and (p f1) (or (= f1 f2) (not (= (ite (p f1) f4 f2) f3)))) (p f3))
 
               (and (ite (p f1)
-                        (= f4 (ite (p f1) f4 f2)) 
-                        (= f2 (ite (p f1) f4 f2)))))
+                        (= (ite (p f1) f4 f2) f4) 
+                        (= (ite (p f1) f4 f2) f2))))
 
              true))
 
@@ -904,6 +904,7 @@
 (declare-const a Bool)
 (declare-const b Bool)
 (declare-const c Bool)
+(declare-const d Bool)
 (declare-const U Type)
 (declare-const f1 U)
 (declare-const f2 U)
@@ -914,10 +915,10 @@
 ; Taken from VeriT certificates
 (step $test_ite_intro_1 
       (@cl (= (not (= b (ite c b a)))
-                      (and (not (= b (ite c b a)))
-                           (ite c 
-                                (= b (ite c b a)) 
-                                (= a (ite c b a)))))) 
+              (and (not (= b (ite c b a)))
+                   (ite c 
+                        (= b (ite c b a)) 
+                        (= a (ite c b a)))))) 
       :rule ite_intro)
 
 (step $test_ite_intro_2 
@@ -928,6 +929,11 @@
                     (= f4 (ite (p f1) f4 f2)) 
                     (= f2 (ite (p f1) f4 f2)))))) 
       :rule ite_intro)
+
+(step $test_ite_intro_3
+      (@cl (= (= a (ite b c d)) 
+              (and (= a (ite b c d)) 
+                   (ite b (= c (ite b c d)) (= d (ite b c d)))))) :rule ite_intro)
 
 ;-----------------
 ; not_equiv1
@@ -1477,68 +1483,6 @@
                    (@cl q r)))
 
              (@cl r)))
-
-;------------------------------------
-; $return_untouched_clauses
-;------------------------------------
-
-(declare-const p Bool)
-(declare-const q Bool)
-(declare-const r Bool)
-
-
-(step $test_$return_untouched_clauses_1 true 
-      :rule $assert_eq 
-      :args (($return_untouched_clauses
-              p
-              (and (@cl p (not q))
-                   (@cl q r)))
-
-             (and (@cl q r))))
-
-(step $test_$return_untouched_clauses_2 true 
-      :rule $assert_eq 
-      :args (($return_untouched_clauses
-              p
-              (and (@cl (not p) r)
-                   (@cl p (not q))
-                   (@cl q r)))
-
-             (and (@cl (not p) r)
-                  (@cl q r))))
-
-(step $test_$return_untouched_clauses_3 true 
-      :rule $assert_eq 
-      :args (($return_untouched_clauses
-              (not p)
-              (and (@cl (not p) r)
-                   (@cl p (not q))
-                   (@cl q r)))
-
-             (and (@cl p (not q))
-                  (@cl q r))))
-
-(step $test_$return_untouched_clauses_4 true 
-      :rule $assert_eq 
-      :args (($return_untouched_clauses
-              (not q)
-              (and (@cl (not p) r)
-                   (@cl p (not q))
-                   (@cl q r)))
-
-             (and (@cl (not p) r)
-                  (@cl q r))))
-
-(step $test_$return_untouched_clauses_5 true 
-      :rule $assert_eq 
-      :args (($return_untouched_clauses
-              q
-              (and (@cl (not p) r)
-                   (@cl p (not q))
-                   (@cl q r)))
-
-             (and (@cl (not p) r)
-                  (@cl p (not q)))))
 
 ;------------------------------------------
 ; $check_resolution_with_normalized_clauses
@@ -2190,6 +2134,43 @@
                        (and p q) false
                        (and s r) true)))
 
+; Example from VeriT certificate.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+(assume premise_1 (@cl (= c (= b a))))
+(assume premise_2 (@cl (not (= c (= b a)))
+                       (= c (= a b))))
+(step $test_resolution_3
+      (@cl (= c (= a b)))
+      :rule resolution :premises (premise_1 premise_2) 
+      :args ((@varlist (= c (= b a)) true)))
+
+; Example from VeriT certificate.
+(declare-const a Bool)
+(declare-const b Bool)
+
+(assume premise_1 (@cl (not (not (not a))) a))
+(assume premise_2 (@cl (not (not a)) (not (not b))))
+(step $test_resolution_4 
+      (@cl a (not (not b))) 
+      :rule resolution 
+      :premises ( premise_1 premise_2 ) 
+      :args ( (@varlist (not (not a)) false) ))
+
+; Example from VeriT certificate.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(assume premise_1 (@cl (not (not (and (not (= a b)) (= a c))))))
+(assume premise_2 (@cl (not (not (not (and (not (= a b)) (= a c))))) (not (not (and (not (= b a)) (= a c))))))
+(step $test_resolution_5 
+      (@cl (not (not (and (not (= b a)) (= a c)))))
+      :rule resolution
+      :premises ( premise_1 premise_2 ) 
+      :args ( (@varlist (not (not (and (not (= a b)) (= a c)))) true) ))
+
 ;-----------
 ; bfun_elim
 ;-----------
@@ -2254,7 +2235,7 @@
 
 (step $test_$bit_to_boolean_1 true 
       :rule $assert_eq 
-      :args (($bit_to_boolean #b0 1)
+      :args (($bit_to_boolean #b0 0)
 
              false))
 
@@ -3801,3 +3782,49 @@
                             (Concat_32_1_31 false y$n0s31))))
       :rule bfun_elim
       :premises ( h13 ))
+
+
+;-----------------
+; weakening
+;-----------------
+
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+
+(assume premise_1 (@cl))
+(step $test_weakening_1
+      (@cl a)
+      :rule weakening
+      :premises (premise_1))
+
+(assume premise_1b (@cl a))
+(step $test_weakening_1b
+      (@cl a b)
+      :rule weakening
+      :premises (premise_1b))
+
+(assume premise_2 (@cl a b))
+(step $test_weakening_2
+      (@cl a b c)
+      :rule weakening
+      :premises (premise_2))
+
+(assume premise_3 (@cl b a))
+(step $test_weakening_3
+      (@cl a b c)
+      :rule weakening
+      :premises (premise_3))
+
+(assume premise_4 (@cl a b c))
+(step $test_weakening_4
+      (@cl a b c d)
+      :rule weakening
+      :premises (premise_4))
+
+(assume premise_5 (@cl a c b))
+(step $test_weakening_5
+      (@cl b a c d)
+      :rule weakening
+      :premises (premise_5))
