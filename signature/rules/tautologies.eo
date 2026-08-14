@@ -812,14 +812,14 @@
 )
 
 ;-----------------------
-; Rule 73: or_simplify
+; Rule or_simplify
 ;-----------------------
 
 ; program: $remove_leading_negations_in_disjuncts
 ; args:
 ; - disjunct Bool: An disjunct built with `or`.
 ; return: >
-;   The result of removing leading double negations from each disjunct
+;   The result from removing leading double negations from each disjunct
 ;   in `disjunct`.
 (program $remove_leading_negations_in_disjuncts ((disjunct Bool) (disjuncts Bool :list))
          :signature (Bool) Bool
@@ -844,7 +844,7 @@
 ; args:
 ; - formula Bool: A formula.
 ; return: >
-;   The result of applying one of the following equivalence-preserving 
+;   The result from applying one of the following equivalence-preserving 
 ;   transformations:
 ;   - ⊥∨⋯∨⊥ ⇒ ⊥
 ;   - 𝜑1 ∨ ⋯ ∨ 𝜑𝑛 ⇒ 𝜑1 ∨ ⋯ ∨ 𝜑𝑛′ where the right-hand side has some ⊥ literal 
@@ -936,7 +936,7 @@
 ; args:
 ; - formula Bool: A formula.
 ; return: >
-;   The result of applying the equivalence-preserving transformations described
+;   The result from applying the equivalence-preserving transformations described
 ;   in `$or_simplify_small_step` until a fixed point is reached.
 ; note: PRE : { $remove_leading_negations_in_disjuncts `formula` = `formula`}
 (program $or_simplify_rec ((disjunct Bool) (disjuncts Bool :list))
