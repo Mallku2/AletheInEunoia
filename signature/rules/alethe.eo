@@ -2055,7 +2055,7 @@
 )
 
 ;-----------------
-; Rule 29: qnt_cnf
+; Rule qnt_cnf
 ;-----------------
 
 ; program: $negative_normal_form
@@ -2452,42 +2452,6 @@
           )
          )
 
-; program: $flat_cnf
-; args:
-; - formula Bool: The CNF of some formula.
-; return: A flattened version of `formula`.
-(program $flat_cnf ((formula Bool) (conjunct Bool) (conjuncts Bool :list))
-
-         :signature (Bool) Bool
-
-         (
-          (
-           ($flat_cnf (and conjunct conjuncts))
-
-           (eo::define
-
-            (
-             (left_most_leaf ($binary_tree_get_left_most_leaf 
-                              and
-                              (and conjunct conjuncts)))
-             )
-
-            ($f_list_cons and 
-                          left_most_leaf
-                          ($flat_cnf 
-                           ($binary_tree_remove_elem and 
-                                                     (and conjunct conjuncts) 
-                                                     left_most_leaf))))
-           )
-         
-          (; { `formula` is not a conjunction }
-           ($flat_cnf formula)
-
-           formula
-           )
-          )
-         )
-
 ; program: $$conjunctive_normal_form
 ; args:
 ; - formula Bool: An formula in prenex form and NNF.
@@ -2515,7 +2479,7 @@
           (; { `formula` does not begin with quantifiers }
            ($conjunctive_normal_form formula)
 
-           ($flat_cnf ($rec_conjunctive_normal_form formula))
+           ($flat_and_or and ($rec_conjunctive_normal_form formula))
            )
           )
          )
@@ -2885,7 +2849,7 @@
 
 
 ;--------------------
-; Rule 46: not_equiv1
+; Rule not_equiv1
 ;--------------------
 ; rule: not_equiv1
 ; premises:
@@ -2900,7 +2864,7 @@
 )
 
 ;--------------------
-; Rule 47: not_equiv2
+; Rule not_equiv2
 ;--------------------
 ; rule: not_equiv2
 ; premises:
@@ -3260,7 +3224,7 @@
 
 
 ;------------------
-; Rule 81: onepoint
+; Rule onepoint
 ;------------------
 
 ; program: $flag_non_fixed_variables
@@ -3354,7 +3318,7 @@
 )
 
 ;------------------
-; Rule 82: qnt_join
+; Rule qnt_join
 ;------------------
 
 
@@ -3378,10 +3342,11 @@
    (
     ($check_qnt_join varlist_1 varlist_2 varlist_3)
 
-    ($f_list_equal @varlist 
-                   varlist_3
-                   ($f_list_remove_duplicates @varlist @varlist.nil 
-                                              ($varlist_concat varlist_1 varlist_2)))
+    ($f_list_equal_mod_commut_and_length 
+     @varlist 
+     varlist_3
+     ($f_list_remove_duplicates @varlist
+                                ($varlist_concat varlist_1 varlist_2)))
     )
   )
 )
@@ -3751,7 +3716,7 @@
 )
 
 ;-------------------
-; Rule 97: ite_intro
+; Rule ite_intro
 ;-------------------
 
 ; program: $ite_intro_check_conjuncts
@@ -3777,10 +3742,16 @@
           (
            ($ite_intro_check_conjuncts (@varlist (ite guard if else) tail) conjuncts)
 
-           (eo::and ($f_list_contains_elem 
+           (eo::and (eo::or
+                     ($f_list_contains_elem 
                      and 
-                     (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
+                     (ite guard (= (ite guard if else) if) (= (ite guard if else) else))
                      conjuncts)
+
+                     ($f_list_contains_elem 
+                      and 
+                      (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
+                      conjuncts))
 
                     ($ite_intro_check_conjuncts tail conjuncts))
            )
@@ -3806,7 +3777,11 @@
           (
            ($get_ite_terms (ite guard if else))
 
-           (@varlist (ite guard if else))
+           ($varlist_concat
+            (@varlist (ite guard if else))
+            ($varlist_concat ($get_ite_terms guard)
+                             ($varlist_concat ($get_ite_terms if) 
+                                              ($get_ite_terms else))))
            )
 
           (
@@ -3851,10 +3826,15 @@
     
     ($ite_intro_check_conjuncts ($get_ite_terms t1) conjuncts)
     )
+
+   (; Case t1 = t2 in the ite_intro rule.
+    ($check_ite_intro t1 t2 conjuncts)
+    
+    ($ite_intro_check_conjuncts ($get_ite_terms t1) conjuncts)
+    )
   )
 )
 
-;TRUST
 ; rule: ite_intro
 ; requires: >
 ;   For every ite construction of the form "ite 𝜓𝑖 ri 𝑟′𝑖" present on `t1`, 
@@ -3923,7 +3903,7 @@
 )
 
 ;-------------------
-; Rule 102: not_symm
+; Rule not_symm
 ;-------------------
 
 ; rule: not_symm
