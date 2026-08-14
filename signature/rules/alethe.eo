@@ -2055,7 +2055,7 @@
 )
 
 ;-----------------
-; Rule 29: qnt_cnf
+; Rule qnt_cnf
 ;-----------------
 
 ; program: $negative_normal_form
@@ -2849,7 +2849,7 @@
 
 
 ;--------------------
-; Rule 46: not_equiv1
+; Rule not_equiv1
 ;--------------------
 ; rule: not_equiv1
 ; premises:
@@ -2864,7 +2864,7 @@
 )
 
 ;--------------------
-; Rule 47: not_equiv2
+; Rule not_equiv2
 ;--------------------
 ; rule: not_equiv2
 ; premises:
@@ -3222,38 +3222,9 @@
   :conclusion-explicit conclusion
 )
 
-;TODO
-(program $check_ac_simp ((l Bool) (r Bool))
-  :signature (Bool Bool) Bool
-  (
-   (($check_ac_simp l r) true)
-  )
-)
-
-;TRUST
-(declare-rule ac_simp ((l Bool) (r Bool))
-  :args ((@cl (= l r)))
-  :requires ((($check_ac_simp l r) true))
-  :conclusion (@cl (= l r))
-)
-
-;TODO
-(program $check_ite_simplify ((l Bool) (r Bool))
-  :signature (Bool Bool) Bool
-  (
-   (($check_ite_simplify l r) true)
-  )
-)
-
-;TRUST
-(declare-rule ite_simplify ((l Bool) (r Bool))
-  :args ((@cl (= l r)))
-  :requires ((($check_ite_simplify l r) true))
-  :conclusion (@cl (= l r))
-)
 
 ;------------------
-; Rule 81: onepoint
+; Rule onepoint
 ;------------------
 
 ; program: $flag_non_fixed_variables
@@ -3347,7 +3318,7 @@
 )
 
 ;------------------
-; Rule 82: qnt_join
+; Rule qnt_join
 ;------------------
 
 
@@ -3371,10 +3342,11 @@
    (
     ($check_qnt_join varlist_1 varlist_2 varlist_3)
 
-    ($f_list_equal @varlist 
-                   varlist_3
-                   ($f_list_remove_duplicates @varlist @varlist.nil 
-                                              ($varlist_concat varlist_1 varlist_2)))
+    ($f_list_equal_mod_commut_and_length 
+     @varlist 
+     varlist_3
+     ($f_list_remove_duplicates @varlist
+                                ($varlist_concat varlist_1 varlist_2)))
     )
   )
 )
@@ -3395,80 +3367,6 @@
   :conclusion-explicit (@cl (= (quantification varlist_1 
                                                (quantification varlist_2 body))
                                (quantification varlist_3 body)))
-)
-
-;TODO
-(program $check_eq_simplify ((conclusion Bool))
-  :signature (Bool) Bool
-  (
-   (($check_eq_simplify conclusion) true)
-  )
-)
-
-;TRUST
-(declare-rule eq_simplify ((conclusion Bool))
-  :requires ((($check_eq_simplify conclusion) true))
-  :conclusion-explicit conclusion
-)
-
-;TODO
-(program $check_div_simplify ((l Bool) (r Bool))
-  :signature (Bool Bool) Bool
-  (
-   (($check_div_simplify l r) true)
-  )
-)
-
-;TRUST
-(declare-rule div_simplify ((l Bool) (r Bool))
-  :args ((@cl (= l r)))
-  :requires ((($check_div_simplify l r) true))
-  :conclusion (@cl (= l r))
-)
-
-;TODO
-(program $check_unary_minus_simplify ((l Bool) (r Bool))
-  :signature (Bool Bool) Bool
-  (
-   (($check_unary_minus_simplify l r) true)
-  )
-)
-
-;TRUST
-(declare-rule unary_minus_simplify ((l Bool) (r Bool))
-  :args ((@cl (= l r)))
-  :requires ((($check_unary_minus_simplify l r) true))
-  :conclusion (@cl (= l r))
-)
-
-;TODO
-(program $check_minus_simplify ((l Bool) (r Bool))
-  :signature (Bool Bool) Bool
-  (
-   (($check_minus_simplify l r) true)
-  )
-)
-
-;TRUST
-(declare-rule minus_simplify ((l Bool) (r Bool))
-  :args ((@cl (= l r)))
-  :requires ((($check_minus_simplify l r) true))
-  :conclusion (@cl (= l r))
-)
-
-;TODO
-(program $check_sum_simplify ((l Bool) (r Bool))
-  :signature (Bool Bool) Bool
-  (
-   (($check_sum_simplify l r) true)
-  )
-)
-
-;TRUST
-(declare-rule sum_simplify ((l Bool) (r Bool))
-  :args ((@cl (= l r)))
-  :requires ((($check_sum_simplify l r) true))
-  :conclusion (@cl (= l r))
 )
 
 ;-------------
@@ -3818,7 +3716,7 @@
 )
 
 ;-------------------
-; Rule 97: ite_intro
+; Rule ite_intro
 ;-------------------
 
 ; program: $ite_intro_check_conjuncts
@@ -3844,10 +3742,16 @@
           (
            ($ite_intro_check_conjuncts (@varlist (ite guard if else) tail) conjuncts)
 
-           (eo::and ($f_list_contains_elem 
+           (eo::and (eo::or
+                     ($f_list_contains_elem 
                      and 
-                     (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
+                     (ite guard (= (ite guard if else) if) (= (ite guard if else) else))
                      conjuncts)
+
+                     ($f_list_contains_elem 
+                      and 
+                      (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
+                      conjuncts))
 
                     ($ite_intro_check_conjuncts tail conjuncts))
            )
@@ -3873,7 +3777,11 @@
           (
            ($get_ite_terms (ite guard if else))
 
-           (@varlist (ite guard if else))
+           ($varlist_concat
+            (@varlist (ite guard if else))
+            ($varlist_concat ($get_ite_terms guard)
+                             ($varlist_concat ($get_ite_terms if) 
+                                              ($get_ite_terms else))))
            )
 
           (
@@ -3918,10 +3826,15 @@
     
     ($ite_intro_check_conjuncts ($get_ite_terms t1) conjuncts)
     )
+
+   (; Case t1 = t2 in the ite_intro rule.
+    ($check_ite_intro t1 t2 conjuncts)
+    
+    ($ite_intro_check_conjuncts ($get_ite_terms t1) conjuncts)
+    )
   )
 )
 
-;TRUST
 ; rule: ite_intro
 ; requires: >
 ;   For every ite construction of the form "ite 𝜓𝑖 ri 𝑟′𝑖" present on `t1`, 
@@ -3990,7 +3903,7 @@
 )
 
 ;-------------------
-; Rule 102: not_symm
+; Rule not_symm
 ;-------------------
 
 ; rule: not_symm
