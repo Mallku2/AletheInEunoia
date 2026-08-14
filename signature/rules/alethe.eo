@@ -2228,7 +2228,7 @@
 )
 
 ;-----------------
-; Rule 29: qnt_cnf
+; Rule qnt_cnf
 ;-----------------
 
 ; program: $negative_normal_form
@@ -2853,7 +2853,7 @@
 )
 
 ;-----------------
-; Rule 35: shuffle
+; Rule shuffle
 ;-----------------
 
 ; rule: shuffle
@@ -2909,7 +2909,7 @@
 )
 
 ;-------------
-; Rule 37: not_and
+; Rule not_and
 ;-------------
 
 ; program: check_not_and
@@ -3079,7 +3079,7 @@
 
 
 ;--------------------
-; Rule 46: not_equiv1
+; Rule not_equiv1
 ;--------------------
 ; rule: not_equiv1
 ; premises:
@@ -3094,7 +3094,7 @@
 )
 
 ;--------------------
-; Rule 47: not_equiv2
+; Rule not_equiv2
 ;--------------------
 ; rule: not_equiv2
 ; premises:
@@ -3159,7 +3159,7 @@
 )
 
 ;-------------
-; Rule 49: and_neg
+; Rule and_neg
 ;-------------
 
 ; program: check_and_neg
@@ -3457,7 +3457,7 @@
 
 
 ;------------------
-; Rule 81: onepoint
+; Rule onepoint
 ;------------------
 
 ; program: $flag_non_fixed_variables
@@ -3551,7 +3551,7 @@
 )
 
 ;------------------
-; Rule 82: qnt_join
+; Rule qnt_join
 ;------------------
 
 
@@ -3578,7 +3578,7 @@
     ($f_list_equal_mod_commut_and_length 
      @varlist 
      varlist_3
-     ($f_list_remove_duplicates @varlist @varlist.nil 
+     ($f_list_remove_duplicates @varlist
                                 ($varlist_concat varlist_1 varlist_2)))
     )
   )
@@ -3949,7 +3949,7 @@
 )
 
 ;-------------------
-; Rule 97: ite_intro
+; Rule ite_intro
 ;-------------------
 
 ; program: $ite_intro_check_conjuncts
@@ -3975,10 +3975,16 @@
           (
            ($ite_intro_check_conjuncts (@varlist (ite guard if else) tail) conjuncts)
 
-           (eo::and ($f_list_contains_elem 
+           (eo::and (eo::or
+                     ($f_list_contains_elem 
                      and 
-                     (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
+                     (ite guard (= (ite guard if else) if) (= (ite guard if else) else))
                      conjuncts)
+
+                     ($f_list_contains_elem 
+                      and 
+                      (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
+                      conjuncts))
 
                     ($ite_intro_check_conjuncts tail conjuncts))
            )
@@ -4062,7 +4068,6 @@
   )
 )
 
-;TRUST
 ; rule: ite_intro
 ; requires: >
 ;   For every ite construction of the form "ite 𝜓𝑖 ri 𝑟′𝑖" present on `t1`, 
@@ -4131,7 +4136,7 @@
 )
 
 ;-------------------
-; Rule 102: not_symm
+; Rule not_symm
 ;-------------------
 
 ; rule: not_symm
@@ -4163,3 +4168,39 @@
   :requires ((($check_rare_rewrite flag conclusion) true))
   :conclusion-explicit conclusion
 )
+
+;-------------------
+; Rule weakening
+;-------------------
+
+; program: $check_weakening
+; args:
+; - premise Bool: Premise clause passed to rule `weakening`.
+; - conclusion Bool: Conclusion clause passed to rule `weakening`.
+; return: >
+;   A boolean indicating if `conclusion` follows from `premise` by weakening
+;   of disjunction.
+(program $check_weakening ((premise Bool) (conclusion Bool))
+         :signature (Bool Bool) Bool
+         (
+          (
+           ($check_weakening premise conclusion)
+
+           (eo::and ($f_list_contains_f_list @cl premise conclusion)
+                    (eo::gt ($f_list_length @cl conclusion)
+                            ($f_list_length @cl premise)))
+           )
+          )
+         )
+
+; rule: weakening
+; premises:
+; - premise Bool: A premise clause passed to the rule.
+; requires: >
+;   For the conclusion to follow from the premise, from weakening of disjunction.
+; conclusion: A conclusion clause satisfying the previous side-condition. 
+(declare-rule weakening ((premise Bool) (conclusion Bool))
+  :premises (premise)
+  :requires ((($check_weakening premise conclusion) true))
+  :conclusion-explicit conclusion
+  )
