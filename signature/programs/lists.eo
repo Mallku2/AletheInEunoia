@@ -393,29 +393,6 @@
    )
   )
 
-; program: $f_list_reverse
-; args:
-; - f (-> A A A): Constructor of f-lists.
-; - nil A: nil element of f-lists.
-; - list A: List to be reversed.
-; return: A list with the same elements of `list`, but in reversed order.
-(program $f_list_reverse ((A Type) (hd A) (tl A :list) (f (-> A A A)) (nil A))
-  :signature ((-> A A A) A A) A
-  (
-   (
-    ($f_list_reverse f nil (f hd tl))
-
-    ($f_list_concat f nil ($f_list_reverse f nil tl) ($f_list_cons f hd nil))
-    )
-
-   (
-    ($f_list_reverse f nil nil)
-
-    nil
-    )
-  )
-)
-
 ; program: $f_list_zip
 ; args:
 ; - f (-> A A A): Constructor of f-lists.
@@ -549,7 +526,6 @@
           (; { hd != f ... }
            ($to_nil_terminated_f_list f nil hd_1)
 
-           ;; (f hd_1 nil)
            hd_1
            )
           )
