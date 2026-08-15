@@ -10,3 +10,4 @@
 (include "./programs/tests_lists.eo")
 (include "./programs/tests_pairs.eo")
 (include "./programs/tests_programs.eo")
+(include "./programs/tests_utils.eo")

@@ -166,13 +166,7 @@
                          ($remove_pivot_from_clause pivot tail))
            )
 
-          ;; (
-          ;;  ($remove_pivot_from_clause pivot pivot)
-
-          ;;  @empty_cl
-          ;;  )
-
-          (
+          (; { tail != @cl ... }
            ($remove_pivot_from_clause pivot tail)
            
            @empty_cl
@@ -472,9 +466,9 @@
   :conclusion-explicit conclusion
 )
 
-;-------------
+;----------------
 ; Rule resolution
-;-------------
+;----------------
 
 ; rule: resolution
 ; premises:
@@ -5053,6 +5047,25 @@
   :conclusion-explicit (@cl (not (= psy phi)))
 )
 
+;-------------
+; Rare
+;-------------
+
+;TODO
+(program $check_rare_rewrite ((Flag Bool) (CL Bool))
+  :signature (Bool Bool) Bool
+  (
+   (($check_rare_rewrite Flag CL) true)
+  )
+)
+
+;TRUST
+(declare-rule rare_rewrite ((flag Bool) (conclusion Bool))
+  :args (flag)
+  :requires ((($check_rare_rewrite flag conclusion) true))
+  :conclusion-explicit conclusion
+)
+
 ;-------------------
 ; Rule weakening
 ;-------------------
@@ -5088,23 +5101,3 @@
   :requires ((($check_weakening premise conclusion) true))
   :conclusion-explicit conclusion
   )
-
-
-;-------------
-; Rare
-;-------------
-
-;TODO
-(program $check_rare_rewrite ((Flag Bool) (CL Bool))
-  :signature (Bool Bool) Bool
-  (
-   (($check_rare_rewrite Flag CL) true)
-  )
-)
-
-;TRUST
-(declare-rule rare_rewrite ((flag Bool) (conclusion Bool))
-  :args (flag)
-  :requires ((($check_rare_rewrite flag conclusion) true))
-  :conclusion-explicit conclusion
-)
