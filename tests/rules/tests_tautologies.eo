@@ -4404,7 +4404,7 @@
       :rule tautology
       :premises (premise_6))
 
-(assume premise_7 (@cl d d (not (not (not a))) (not (not (not (not a))))  
+(assume premise_7 (@cl d d (not (not (not a))) (not (not (not (not a)))) c
                        (not (not (not a)))))
 (step $test_tautology_7
       (@cl true)
