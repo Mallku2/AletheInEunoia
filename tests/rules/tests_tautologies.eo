@@ -589,38 +589,144 @@
 
              true))
 
-;-------------
-; $and_simplify_rec
-;-------------
+;------------------------------
+; $and_simplify_rec_remove_true
+;------------------------------
 ; Some constants to build terms, for testing purposes.
 (declare-const a Bool)
 (declare-const b Bool)
 (declare-const c Bool)
 
-; First case of $and_simplify_rec
 (step $test_$and_simplify_rec_1 true 
       :rule $assert_eq 
-      :args (($and_simplify_rec (and true true)) true))
+      :args (($and_simplify_rec_remove_true true) true))
 
-
-; Second case of $and_simplify_rec
 (step $test_$and_simplify_rec_2 true 
       :rule $assert_eq 
-      :args (($and_simplify_rec (and true a b true)) 
-             ($f_list_cons and a b)))
+      :args (($and_simplify_rec_remove_true (and true true)) true))
 
 (step $test_$and_simplify_rec_3 true 
       :rule $assert_eq 
-      :args (($and_simplify_rec (and true a b true c true)) 
-             ($f_list_cons and a ($f_list_cons and b c))))
+      :args (($and_simplify_rec_remove_true (and true true true)) true))
 
-
-; Fourth case of $and_simplify_rec
 (step $test_$and_simplify_rec_4 true 
       :rule $assert_eq 
-      :args (($and_simplify_rec (and a false true)) 
-             false))
+      :args (($and_simplify_rec_remove_true (and a true)) a))
 
+(step $test_$and_simplify_rec_4b true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_true (and true a)) a))
+
+(step $test_$and_simplify_rec_5 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_true (and true a true)) a))
+
+(step $test_$and_simplify_rec_6 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_true (and true a true b)) 
+             ($f_list_cons and a b)))
+
+(step $test_$and_simplify_rec_7 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_true (and true a true b c)) 
+             ($f_list_cons and a 
+                           ($f_list_cons and b c))))
+
+;------------------------------
+; $and_simplify_rec_abs_elem
+;------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+(step $test_$and_simplify_rec_abs_elem_1 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem false) false))
+
+(step $test_$and_simplify_rec_abs_elem_2 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem (and false a)) false))
+
+(step $test_$and_simplify_rec_abs_elem_3 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem (and b false a)) false))
+
+(step $test_$and_simplify_rec_abs_elem_4 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem (and b false a c)) false))
+
+(step $test_$and_simplify_rec_abs_elem_5 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem (and b false a true c)) false))
+
+(step $test_$and_simplify_rec_abs_elem_6 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_abs_elem (and b false true a true c)) false))
+
+;----------------------------------
+; $and_simplify_rec_remove_repeated
+;----------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+(step $test_$and_simplify_rec_remove_repeated_1 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated false) false))
+
+(step $test_$and_simplify_rec_remove_repeated_2 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated true) true))
+
+(step $test_$and_simplify_rec_remove_repeated_3 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated a) a))
+
+(step $test_$and_simplify_rec_remove_repeated_4 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated (and a a)) (and a)))
+
+(step $test_$and_simplify_rec_remove_repeated_5 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated (and a b a)) (and b a)))
+
+(step $test_$and_simplify_rec_remove_repeated_6 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_remove_repeated (and a b c a)) (and b c a)))
+
+;-----------------------------
+; $and_simplify_rec_exclud_mid
+;-----------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+(step $test_$and_simplify_rec_exclud_mid_1 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid false) false))
+
+(step $test_$and_simplify_rec_exclud_mid_2 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid (and a (not a))) false))
+
+(step $test_$and_simplify_rec_exclud_mid_3 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid (and b a (not a))) false))
+
+(step $test_$and_simplify_rec_exclud_mid_4 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid (and b c a (not a))) false))
+
+(step $test_$and_simplify_rec_exclud_mid_5 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid (and (not a) true b c true a)) false))
+
+(step $test_$and_simplify_rec_exclud_mid_6 true 
+      :rule $assert_eq 
+      :args (($and_simplify_rec_exclud_mid (and (not a) (not a) true b c true a)) false))
 
 ;-------------
 ; and_simplify
@@ -1160,6 +1266,7 @@
 (declare-const a Bool)
 (declare-const b Bool)
 (declare-const c Bool)
+(declare-const d Bool)
 
 ; First case of $bool_simplify_small_step
 (step $test_$bool_simplify_small_step_1 true 
@@ -1173,11 +1280,31 @@
       :args (($bool_simplify_small_step (not (or a b)))
              (and (not a) (not b))))
 
+(step $test_$bool_simplify_small_step_2b true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not ($f_list_cons or a ($f_list_cons or b c))))
+             ($f_list_cons and (not a) (not ($f_list_cons or b c)))))
+
+(step $test_$bool_simplify_small_step_2c true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not ($f_list_cons or a ($f_list_cons or b ($f_list_cons or c d)))))
+             ($f_list_cons and (not a) (not ($f_list_cons or b ($f_list_cons or c d))))))
+
 ; Third case of $bool_simplify_small_step
 (step $test_$bool_simplify_small_step_3 true 
       :rule $assert_eq 
       :args (($bool_simplify_small_step (not (and a b)))
              (or (not a) (not b))))
+
+(step $test_$bool_simplify_small_step_3b true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not ($f_list_cons and a ($f_list_cons and b c))))
+             ($f_list_cons or (not a) (not ($f_list_cons and b c)))))
+
+(step $test_$bool_simplify_small_step_3c true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not ($f_list_cons and ($f_list_cons and a b) ($f_list_cons and c d))))
+             ($f_list_cons or (not ($f_list_cons and a b)) (not ($f_list_cons and c d)))))
 
 ; Fourth case of $bool_simplify_small_step
 (step $test_$bool_simplify_small_step_4 true 
@@ -1212,6 +1339,7 @@
 (declare-const a Bool)
 (declare-const b Bool)
 (declare-const c Bool)
+(declare-const d Bool)
 
 ; First case of $bool_simplify_rec
 (step $test_$bool_simplify_rec_1 true 
@@ -1225,11 +1353,31 @@
       :args (($bool_simplify_rec (not (or a b)))
              (and (not a) (not b))))
 
+(step $test_$bool_simplify_rec_2b true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not ($f_list_cons or a ($f_list_cons or b c))))
+             ($f_list_cons and (not a) ($f_list_cons and (not b) (not c)))))
+
+(step $test_$bool_simplify_rec_2c true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not ($f_list_cons or a ($f_list_cons or b ($f_list_cons or c d)))))
+             ($f_list_cons and (not a) ($f_list_cons and (not b) ($f_list_cons and (not c) (not d))))))
+
 ; Third case of $bool_simplify_rec
 (step $test_$bool_simplify_rec_3 true 
       :rule $assert_eq 
       :args (($bool_simplify_rec (not (and a b)))
              (or (not a) (not b))))
+
+(step $test_$bool_simplify_rec_3b true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not ($f_list_cons and a ($f_list_cons and b c))))
+             ($f_list_cons or (not a) ($f_list_cons or (not b) (not c)))))
+
+(step $test_$bool_simplify_rec_3c true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not ($f_list_cons and a ($f_list_cons and b ($f_list_cons and c d)))))
+             ($f_list_cons or (not a) ($f_list_cons or (not b) ($f_list_cons or (not c) (not d))))))
 
 ; Fourth case of $bool_simplify_rec
 (step $test_$bool_simplify_rec_4 true 
@@ -3052,7 +3200,7 @@
 
 
 ;---------------------------
-; unary_minus_simplify
+; sum_simplify
 ;---------------------------
 
 (declare-const a Int)
@@ -3752,120 +3900,6 @@
 (declare-const s45 Bool)  ; (= e4 (op e5 e0))
 (declare-const s55 Bool)  ; (= e5 (op e5 e0))
 
-;; (step $test_ac_simp_rec_25 true
-;;       :rule $assert_eq
-;;       :args (($ac_simp_rec 
-;;               (or
-;;                (or
-;;                 (or
-;;                  (or
-;;                   (or
-;;                    (or
-;;                     (or
-;;                      (or
-;;                       (or
-;;                        (or
-;;                         (and p00 (and (not p00) p00))
-;;                         (and p01 (and (not r100) p10)))
-;;                        (and p02 (and (not r200) p20)))
-;;                       (and p03 (and (not r300) p30)))
-;;                      (and p04 (and (not r400) p40)))
-;;                     (and p05 (and (not r500) p50)))
-;;                    (or
-;;                     (or
-;;                      (or
-;;                       (or
-;;                        (or
-;;                         (and p10 (and (not p10) p01))
-;;                         (and p11 (and (not s11) p11)))
-;;                        (and p12 (and (not s21) p21)))
-;;                       (and p13 (and (not s31) p31)))
-;;                      (and p14 (and (not s41) p41)))
-;;                     (and p15 (and (not s51) p51))))
-;;                   (or
-;;                    (or
-;;                     (or
-;;                      (or
-;;                       (or
-;;                        (and p20 (and (not p20) p02))
-;;                        (and p21 (and (not s12) p12)))
-;;                       (and p22 (and (not s22) p22)))
-;;                      (and p23 (and (not s32) p32)))
-;;                     (and p24 (and (not s42) p42)))
-;;                    (and p25 (and (not s52) p52))))
-;;                  (or
-;;                   (or
-;;                    (or
-;;                     (or
-;;                      (or
-;;                       (and p30 (and (not p30) p03))
-;;                       (and p31 (and (not s13) p13)))
-;;                      (and p32 (and (not s23) p23)))
-;;                     (and p33 (and (not s33) p33)))
-;;                    (and p34 (and (not s43) p43)))
-;;                   (and p35 (and (not s53) p53))))
-;;                 (or
-;;                  (or
-;;                   (or
-;;                    (or
-;;                     (or
-;;                      (and p40 (and (not p40) p04))
-;;                      (and p41 (and (not s14) p14)))
-;;                     (and p42 (and (not s24) p24)))
-;;                    (and p43 (and (not s34) p34)))
-;;                   (and p44 (and (not s44) p44)))
-;;                  (and p45 (and (not s54) p54))))
-;;                (or
-;;                 (or
-;;                  (or
-;;                   (or
-;;                    (or
-;;                     (and p50 (and (not p50) p05))
-;;                     (and p51 (and (not s15) p15)))
-;;                    (and p52 (and (not s25) p25)))
-;;                   (and p53 (and (not s35) p35)))
-;;                  (and p54 (and (not s45) p45)))
-;;                 (and p55 (and (not s55) p55)))))
-
-;;              (or
-;;               (and (not p00) p00)
-;;               (and p01 (not r100) p10)
-;;               (and p02 (not r200) p20)
-;;               (and p03 (not r300) p30)
-;;               (and p04 (not r400) p40)
-;;               (and p05 (not r500) p50)
-;;               (and p10 (not p10) p01)
-;;               (and (not s11) p11)
-;;               (and p12 (not s21) p21)
-;;               (and p13 (not s31) p31)
-;;               (and p14 (not s41) p41)
-;;               (and p15 (not s51) p51)
-;;               (and p20 (not p20) p02)
-;;               (and p21 (not s12) p12)
-;;               (and (not s22) p22)
-;;               (and p23 (not s32) p32)
-;;               (and p24 (not s42) p42)
-;;               (and p25 (not s52) p52)
-;;               (and p30 (not p30) p03)
-;;               (and p31 (not s13) p13)
-;;               (and p32 (not s23) p23)
-;;               (and (not s33) p33)
-;;               (and p34 (not s43) p43)
-;;               (and p35 (not s53) p53)
-;;               (and p40 (not p40) p04)
-;;               (and p41 (not s14) p14)
-;;               (and p42 (not s24) p24)
-;;               (and p43 (not s34) p34)
-;;               (and (not s44) p44)
-;;               (and p45 (not s54) p54)
-;;               (and p50 (not p50) p05)
-;;               (and p51 (not s15) p15)
-;;               (and p52 (not s25) p25)
-;;               (and p53 (not s35) p35)
-;;               (and p54 (not s45) p45)
-;;               (and (not s55) p55))
-;;              ))
-
 ;--------
 ; ac_simp
 ;--------
@@ -4375,10 +4409,11 @@
       :rule tautology
       :premises (premise_6))
 
-(assume premise_7 (@cl d d (not (not (not a))) (not (not (not (not a)))) c 
+(assume premise_7 (@cl d d (not (not (not a))) (not (not (not (not a)))) c
                        (not (not (not a)))))
 (step $test_tautology_7
       (@cl true)
       :rule tautology
       :premises (premise_7))
+
 
