@@ -1452,17 +1452,25 @@
 ; return: >
 ;   A boolean indicating if `lhs` can be reduced to `rhs`, using the rules
 ;   in `$ac_simp_rec`.
-(program $check_ac_simp ((formula Bool) (tail Bool :list) 
-                         (lhs Bool) (rhs Bool))
+(program $check_ac_simp ((lhs_lhs Bool) (rhs_lhs Bool :list) (rhs Bool))
 
   :signature (Bool Bool) Bool
 
   (
    (
-    ($check_ac_simp lhs rhs)
+    ($check_ac_simp (or lhs_lhs rhs_lhs) rhs)
 
-     ($eo_is_eq
-      ($normalize_formula_modulo_commutativity ($ac_simp_rec lhs))
+     ($f_list_equal_mod_commut or 
+      ($normalize_formula_modulo_commutativity ($ac_simp_rec (or lhs_lhs rhs_lhs)))
+
+      ($normalize_formula_modulo_commutativity rhs))
+    )
+
+   (
+    ($check_ac_simp (and lhs_lhs rhs_lhs) rhs)
+
+     ($f_list_equal_mod_commut and 
+      ($normalize_formula_modulo_commutativity ($ac_simp_rec (and lhs_lhs rhs_lhs)))
 
       ($normalize_formula_modulo_commutativity rhs))
     )
