@@ -1,5 +1,6 @@
 (include "../theories/theory.eo")
 (include "../programs/arith.eo")
+(include "../programs/logic.eo")
 (include "../programs/programs.eo")
 
 ; Rules that introduce tautologies.
@@ -11,12 +12,15 @@
 ; program: $check_eq_transitive_remaining_equalities
 ; args:
 ; - t2 A: Left-hand side of the next equation that we should look for.
-; - tn A: Right-hand side of the last equation.
-; - assumptions Bool: Clause with the remaining assumptions passed to eq_transitive.
+; - tn A: Right-hand side of the equation of the last disjunct, in the conclusion.
+; - assumptions Bool: Clause with the remaining equations from the conclusion.
 ; return: >
 ;   A boolean indicating if there is a chain of equivalences between terms, beginning
 ;   from `t2`, following the equalities contained into `assumptions`, and reaching
 ;   to term `tn`.
+; note: >
+;  PRE : { `assumptions` is properly ordered: if the last disjunct of the conclusion
+;          is 𝑡1 ≈ 𝑡𝑛, `assumptions` should have the form ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛) }
 (program $check_eq_transitive_remaining_equalities ((A Type) (t2 A) (t3 A)
                                                     (tn_1 A) (tn A) 
                                                     (tail Bool :list))
@@ -43,11 +47,14 @@
 ; - last_equality Bool: >
 ;   Last disjunct present in the conclusion clause passed to `eq_transitive`.
 ;   It must be an equality among arbitrary terms.
-; - assumptions Bool: Clause with the remaining assumptions passed to eq_transitive.
+; - assumptions Bool: Clause with the remaining assumptions passed to `eq_transitive`.
 ; return: >
 ;   A boolean indicating if there is a chain of equivalences between terms, beginning
 ;   from the left-hand side of `last-equality`, following the equalities contained 
 ;   into `assumptions`, and reaching to right-hand side of `last-equality`.
+; note: >
+;  PRE : { `assumptions` is properly ordered: if `last_equality` is of the form
+;          `𝑡1 ≈ 𝑡𝑛`, `assumptions` should have the form ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛) }
 (program $check_eq_transitive_from_first_equality ((A Type) (t1 A) (t2 A) (tn A)
                                                    (tail Bool :list))
 
@@ -68,6 +75,8 @@
 ; return: >
 ;   A boolean indicating if `conclusion` is of the form
 ;   ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛), 𝑡1 ≈ 𝑡𝑛
+; note: >
+;  PRE : { `conclusion` is properly ordered: it has the form ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛), 𝑡1 ≈ 𝑡𝑛}
 (program $check_eq_transitive ((hd Bool) (tail Bool :list))
   :signature (Bool) Bool
   (
@@ -93,8 +102,8 @@
 
 ; rule: eq_transitive
 ; requires: >
-;   For "conclusion" to be of the form:
-;   ¬(𝑡1 ≈𝑡2), … , ¬(𝑡𝑛−1 ≈𝑡𝑛), 𝑡1 ≈𝑡𝑛
+;   For "conclusion" to be exactly of the form:
+;   ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛), 𝑡1 ≈ 𝑡𝑛
 ; conclusion-explicit: >
 ;   Conclusion should be a clause built with @cl, satisfying the described
 ;   side-condition.
@@ -143,7 +152,7 @@
 ; - conclusion Bool: Conclusion clause given to rule cong.
 ; return: >
 ;   A boolean indicating if `conclusion` has the form 
-;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
 ;   function `f`.
 (program $check_eq_congruent ((hd Bool) (tail Bool :list))
   :signature (Bool) Bool
@@ -173,7 +182,7 @@
 ; rule: eq_congruent
 ; requires: >
 ;   For the conclusion to be built with @cl and to have the form:
-;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛)
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛)
 ; conclusion-explicit: A clause built with @cl.
 (declare-rule eq_congruent ((hd Bool) (tail Bool :list))
   :requires ((($check_eq_congruent (@cl hd tail)) true))
@@ -186,33 +195,42 @@
 
 ; program: $check_n_ary_application_eq_congruent_pred
 ; args:
-; - not_p Bool: >
-;   Second-to-last disjunct in the conclusion passed to the eq_congruent_pred rule.
-; - p Bool: Last disjunct in the conclusion passed to the eq_congruent rule.
+; - not_p_app Bool: >
+;   For a conclusion of an instantiation of the rule `eq_congruent_pred`, of the
+;   form ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ⋯ 𝑡𝑛), (p 𝑢1 ⋯ 𝑢𝑛), this parameter should
+;   be the term ¬(p 𝑡1 ⋯ 𝑡𝑛).
+; - p_app Bool: The term (p 𝑢1 ⋯ 𝑢𝑛) in the conclusion of the instantiation of the `eq_congruent_pred` rule.
 ; - assumptions Bool: >
-;    Clause with the assumptions of the form ¬(𝑡i ≈ 𝑢i) present in the conclusion
-;    passed to the rule, but in the reverse order.
+;    Clause with the assumptions of the form ¬(𝑡i ≈ 𝑢i) present in the instantiation
+;    of the rule, but in the reverse order.
 ; return: >
-;    A boolean indicating if `not_p`, `p` and `assumptions` correspond to the proper
-;    application of the eq_congruent_pred rule, for a n-ary predicate.
+;    A boolean indicating if `not_p_app`, `p_app` and `assumptions` correspond to 
+;    a proper instantiation of the `eq_congruent_pred` rule, for a n-ary predicate.
 (program $check_n_ary_application_eq_congruent_pred ((T Type) (U Type) 
-                                                     (p (-> T U Bool)) (p2 (-> T U Bool)) 
-                                                     (t1 T) (t2 T)
+                                                     (p (-> T U Bool)) 
+                                                     (lhs_p (-> T U Bool))
+                                                     (rhs_p (-> T U Bool))
+                                                     (t1 T) (u1 T)
+                                                     (ti T) (ui T)
                                                      (tail Bool :list))
     :signature (Bool Bool Bool) Bool
     (
-     (
-      ($check_n_ary_application_eq_congruent_pred (not (p t1)) (p t2) 
-                                                  (@cl (not (= t1 t2))))
+     (; First part of the (not (p ...)) and (p ...) terms.
+      ($check_n_ary_application_eq_congruent_pred (not (p t1)) (p u1) 
+                                                  (@cl (not (= t1 u1))))
 
       true
       )
 
-     ( ; TODO: ill-typed?
-      ($check_n_ary_application_eq_congruent_pred (not (p t1)) (p2 t2)
-                                                  (@cl (not (= t1 t2)) tail))
+     (; TODO: ill-typed?
+      ; For a conclusion of the form:
+      ; ¬(𝑡1 ≈ 𝑢1), ... ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ... 𝑡𝑛), (p 𝑢1 ... 𝑢𝑛),
+      ; (lhs_p ti) should be the term (p 𝑡1 ... 𝑡i) while (rhs_p ui) should be 
+      ; (p 𝑢1 ... ui ), for some i <= n.
+      ($check_n_ary_application_eq_congruent_pred (not (lhs_p ti)) (rhs_p ui)
+                                                  (@cl (not (= ti ui)) tail))
 
-      ($check_n_ary_application_eq_congruent_pred (not p) p2 tail)
+      ($check_n_ary_application_eq_congruent_pred (not lhs_p) rhs_p tail)
       )
      )
     )
@@ -222,7 +240,7 @@
 ; - conclusion Bool: Conclusion clause given to rule eq_congruent_pred.
 ; return: >
 ;   A boolean indicating if `conclusion` has the form 
-;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ⋯ 𝑡𝑛), (p 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ⋯ 𝑡𝑛), (p 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
 ;   predicate `p`.
 (program $check_eq_congruent_pred ((hd Bool) (tail Bool :list))
   :signature (Bool) Bool
@@ -263,7 +281,7 @@
 ; rule: eq_congruent_pred
 ; requires: >
 ;   For the conclusion to be built with @cl and to have the form:
-;   ¬(𝑡1 ≈ 𝑢1), … ,¬( 𝑡𝑛 ≈ 𝑢𝑛), ¬(P 𝑡1 ⋯ 𝑡𝑛), (P 𝑢1 ⋯ 𝑢𝑛), 
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(P 𝑡1 ⋯ 𝑡𝑛), (P 𝑢1 ⋯ 𝑢𝑛), 
 ;   where 𝑃 is a predicate symbol.
 ; conclusion-explicit: A clause built with @cl satisfying the previous side-condition.
 (declare-rule eq_congruent_pred ((hd Bool) (tail Bool :list))
@@ -312,7 +330,7 @@
 )
 
 ;--------------------
-; Rule 61: equiv_neg1
+; Rule equiv_neg1
 ;--------------------
 
 ; rule: equiv_neg1
@@ -322,7 +340,7 @@
 )
 
 ;--------------------
-; Rule 62: equiv_neg2
+; Rule equiv_neg2
 ;--------------------
 
 ; rule: equiv_neg2
@@ -332,7 +350,7 @@
 )
 
 ;------------------
-; Rule 65: ite_pos1
+; Rule ite_pos1
 ;------------------
 
 ; rule: ite_pos1
@@ -342,7 +360,7 @@
 )
 
 ;------------------
-; Rule 66: ite_pos2
+; Rule ite_pos2
 ;------------------
 
 ; rule: ite_pos2
@@ -429,8 +447,8 @@
 ; - conclusion Bool: Conclusion passed to rule `connective_def`
 ; return: >
 ;   A boolean indicating if `conclusion` has one of the following forms:
-;   - (xor 𝜑1 𝜑2) ≈((¬𝜑1 ∧ 𝜑2) ∨(𝜑1 ∧¬𝜑2))
-;   - (𝜑1 ≈ 𝜑2) ≈ ((𝜑1 →𝜑2) ∧ (𝜑2 →𝜑1))
+;   - (xor 𝜑1 𝜑2) ≈((¬𝜑1 ∧ 𝜑2) ∨(𝜑1 ∧ ¬𝜑2))
+;   - (𝜑1 ≈ 𝜑2) ≈ ((𝜑1 → 𝜑2) ∧ (𝜑2 → 𝜑1))
 ;   - (ite 𝜑1 𝜑2 𝜑3) ≈ ((𝜑1 → 𝜑2) ∧(¬𝜑1 → 𝜑3))
 ;   - (∀𝑥1, … , 𝑥𝑛. 𝜑) ≈ ¬(∃𝑥1, … , 𝑥𝑛. ¬𝜑)
 ;   - (∃𝑥1, … , 𝑥𝑛. 𝜑) ≈ ¬(∀𝑥1, … , 𝑥𝑛. ¬𝜑)
@@ -455,14 +473,14 @@
 )
 
 ;-----------------------
-; Rule 72: and_simplify
+; Rule and_simplify
 ;-----------------------
 
 ; program: $remove_leading_negations
 ; args:
 ; - formula Bool: An arbitrary formula.
 ; return: >
-;   The result from removing leading double negations from `formula`.
+;   The result of removing leading double negations from `formula`.
 (program $remove_leading_negations ((formula Bool))
          :signature (Bool) Bool
          (
@@ -505,145 +523,259 @@
           )
          )
 
-; program: $and_simplify_small_step
+; program: $and_simplify_rec_remove_true
 ; args:
 ; - formula Bool: A formula.
 ; return: >
-;   The result from applying one of the following equivalence-preserving 
-;   transformations:
-;   - ⊤∧⋯∧⊤⇒⊤
-;   - 𝜑1 ∧⋯∧𝜑𝑛 ⇒ 𝜑1 ∧⋯∧𝜑𝑛′ where the right-hand side has all ⊤ literals removed.
-;   - 𝜑1 ∧⋯∧𝜑𝑛⇒𝜑1 ∧⋯∧𝜑𝑛′ where the right-hand side has all repeated literals removed.
-;   - 𝜑1 ∧⋯∧⊥∧⋯∧𝜑𝑛 ⇒ ⊥
-;   - 𝜑1 ∧⋯∧𝜑𝑖∧⋯∧𝜑𝑗∧⋯∧𝜑𝑛 ⇒ ⊥and 𝜑𝑖, 𝜑𝑗 are such that one has the form ¬ 𝜓 
-;     and the other is 𝜓
+;   The result from applying the following equivalence-preserving 
+;   transformation, until a fixed-point is reached:
+;   - 𝜑1 ... ∧ ⊤ ∧ ... ∧ 𝜑n ⇒ 𝜑1 ... ∧ ⊤ ∧ ... ∧ 𝜑n
 ; note: PRE : { $remove_leading_negations_in_conjuncts `formula` = `formula`}
-(program $and_simplify_small_step ((conjunct Bool) (conjuncts Bool :list))
+(program $and_simplify_rec_remove_true ((conjunct Bool) (conjuncts Bool :list))
   :signature (Bool) Bool
   (
    (
-    ($and_simplify_small_step (and true conjuncts))
+    ($and_simplify_rec_remove_true (and true conjuncts))
 
-    conjuncts
+    ($and_simplify_rec_remove_true conjuncts)
     )
 
-   (
-    ($and_simplify_small_step (and false conjuncts))
-
-    false
-    )
-
-   (
-    ($and_simplify_small_step (and (not conjunct) conjuncts))
-
-    (eo::ite ($eo_is_eq conjuncts true)
-
-             (not conjunct)
-
-              ; { not ($eo_is_eq conjuncts true) }
-             (eo::ite ($eo_is_eq conjuncts false)
-
-                      false
-
-                      ; { not ($eo_is_eq conjuncts true) }
-                      (eo::ite ($f_list_contains_elem and (not conjunct) conjuncts)
-
-                               conjuncts
-
-                               ; { not ($f_list_contains_elem and (not conjunct) conjuncts) }
-                               (eo::ite ($f_list_contains_elem and conjunct conjuncts)
-
-                                        ; We have a and (not conjunct) conjunct ... = false
-                                        false
-
-                                        ; { not ($f_list_contains_elem and conjunct conjuncts) }
-                                        (and (not conjunct) conjuncts)))))
-    )
-
-   (
-    ($and_simplify_small_step (and conjunct conjuncts))
+   (; { conjunct != true }
+    ($and_simplify_rec_remove_true (and conjunct conjuncts))
 
     (eo::ite ($eo_is_eq conjuncts true)
 
              conjunct
 
-              ; { not ($eo_is_eq conjuncts true) }
-             (eo::ite ($eo_is_eq conjuncts false)
+             ; { not ($eo_is_eq conjuncts true) }
+             (eo::define
 
-                      false
+              (
+               (conjuncts_no_true ($and_simplify_rec_remove_true conjuncts))
+               )
 
-                      ; { not ($eo_is_eq conjuncts false) }
-                      (eo::ite ($f_list_contains_elem and conjunct conjuncts)
+              (eo::ite ($eo_is_eq conjuncts_no_true true)
 
-                               conjuncts
+                       conjunct
 
-                               ; { not ($f_list_contains_elem and conjunct conjuncts) }
-                               (eo::ite ($f_list_contains_elem and (not conjunct) conjuncts)
-
-                                        ; We have a and (not conjunct) conjunct ... = false
-                                        false
-
-                                        ; { not ($f_list_contains_elem and (not conjunct) conjuncts) }
-                                        (and conjunct conjuncts)))))
+                       ; { not ($eo_is_eq conjuncts_no_true true) }
+                       ($f_list_cons and conjunct conjuncts_no_true))))
     )
 
    ( ; { conjunct != and ... }
-    ($and_simplify_small_step conjunct)
+    ($and_simplify_rec_remove_true conjunct)
 
     conjunct
     )
-
-   
    )
   )
 
-; program: $and_simplify_rec
+; program: $and_simplify_rec_abs_elem
 ; args:
 ; - formula Bool: A formula.
 ; return: >
-;   The result from applying the equivalence-preserving transformations described
-;   in `$and_simplify_small_step` until a fixed point is reached.
+;   The result from applying the following equivalence-preserving 
+;   transformation, until a fixed-point is reached:
+;   - 𝜑1 ∧ ... ∧ ⊥ ∧ ... ∧ 𝜑𝑛 ⇒ ⊥
 ; note: PRE : { $remove_leading_negations_in_conjuncts `formula` = `formula`}
-(program $and_simplify_rec ((conjunct Bool) (conjuncts Bool :list))
+(program $and_simplify_rec_abs_elem ((conjunct Bool) (conjuncts Bool :list))
   :signature (Bool) Bool
   (
    (
-    ($and_simplify_rec (and conjunct conjuncts))
+    ($and_simplify_rec_abs_elem (and false conjuncts))
 
-    (eo::define 
-
-     ((conjuncts_simplified ($and_simplify_rec conjuncts)))
-
-     (eo::ite ($eo_is_eq conjuncts_simplified conjuncts)
-
-              ; We continue reducing, right-to-left.
-              (eo::define 
-
-               ((whole_conjunct_simplified 
-
-                 ($and_simplify_small_step (and conjunct conjuncts))))
-
-               (eo::ite ($eo_is_eq whole_conjunct_simplified 
-                                   (and conjunct conjuncts))
-
-                        ; We reached to a fixed point.
-                        (and conjunct conjuncts)
-
-                        ; { not ($eo_is_eq whole_conjunct_simplified 
-                        ;                  (and conjunct conjuncts)) }
-                        ($and_simplify_rec whole_conjunct_simplified)))
-
-              ; { not ($eo_is_eq conjuncts_simplified conjuncts) }
-              ($and_simplify_rec 
-               ($f_list_cons and conjunct conjuncts_simplified))))
+    false
     )
 
-   ( ; { conjunct != and ...}
-     ($and_simplify_rec conjunct)
+   (
+    ($and_simplify_rec_abs_elem (and conjunct conjuncts))
 
-     conjunct
-     )
+    (eo::define
+
+     (
+      (conjuncts_absorbed ($and_simplify_rec_abs_elem conjuncts))
+      )
+     
+     (eo::ite ($eo_is_eq conjuncts_absorbed false)
+
+              false
+
+              ; { not ($eo_is_eq conjuncts false) }
+              ; { conjuncts_absorbed == conjuncts }
+              (and conjunct conjuncts)))
     )
+
+   (; { conjunct != and ...}
+    ($and_simplify_rec_abs_elem conjunct)
+
+    conjunct
+    )
+   )
+  )
+
+; program: $and_simplify_rec_remove_repeated
+; args:
+; - formula Bool: A formula.
+; return: >
+;   The result from applying the following equivalence-preserving 
+;   transformation, until a fixed-point is reached:
+;   - 𝜑1 ∧ ⋯ ∧ 𝜑𝑛 ⇒ 𝜑1 ∧ ⋯ ∧ 𝜑𝑛′ where the right-hand side a repeated 
+;     literal removed.
+; note: PRE : { $remove_leading_negations_in_conjuncts `formula` = `formula`}
+(program $and_simplify_rec_remove_repeated ((conjunct Bool) (conjuncts Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($and_simplify_rec_remove_repeated (and conjunct conjuncts))
+
+    (eo::ite ($f_list_contains_elem and conjunct conjuncts)
+
+             ($and_simplify_rec_remove_repeated conjuncts)
+
+             ; { not ($f_list_contains_elem and conjunct conjuncts) }
+             ($f_list_cons and conjunct ($and_simplify_rec_remove_repeated conjuncts)))
+    )
+
+   ( ; { conjunct != and ... }
+    ($and_simplify_rec_remove_repeated conjunct)
+
+    conjunct
+    )
+   )
+  )
+
+; program: $and_simplify_rec_exclud_mid
+; args:
+; - formula Bool: A formula.
+; return: >
+;   The result from applying the following equivalence-preserving 
+;   transformation, until a fixed-point is reached::
+;   - 𝜑1 ∧ ⋯ ∧ 𝜑𝑖 ∧ ⋯ ∧ 𝜑𝑗 ∧ ⋯ ∧ 𝜑𝑛 ⇒ ⊥,
+;     where 𝜑𝑖, 𝜑𝑗 are such that one has the form ¬ 𝜓 and the other is 𝜓
+; note: PRE : { $remove_leading_negations_in_conjuncts `formula` = `formula`}
+(program $and_simplify_rec_exclud_mid ((conjunct Bool) (conjuncts Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($and_simplify_rec_exclud_mid (and (not conjunct) conjuncts))
+
+    (eo::ite ($f_list_contains_elem and conjunct conjuncts)
+
+             ; We have a and (not conjunct) conjunct ... = false
+             false
+
+             ; { not ($f_list_contains_elem and conjunct conjuncts) }
+             (eo::define
+
+              (
+               (conjuncts_excl ($and_simplify_rec_exclud_mid conjuncts))
+               )
+
+              (eo::ite ($eo_is_eq conjuncts_excl false)
+
+                       false
+                       
+                       ; {not ($eo_is_eq conjuncts_excl false) }
+                       ; { conjuncts_excl == conjuncts }
+                       (and (not conjunct) conjuncts))))
+    )
+
+   (
+    ($and_simplify_rec_exclud_mid (and conjunct conjuncts))
+
+    (eo::ite ($f_list_contains_elem and (not conjunct) conjuncts)
+
+             ; We have a (and conjunct (not conjunct)) ... = false
+             false
+
+             ; { not ($f_list_contains_elem and (not conjunct) conjuncts) }
+             (eo::define
+
+              (
+               (conjuncts_excl ($and_simplify_rec_exclud_mid conjuncts))
+               )
+
+              (eo::ite ($eo_is_eq conjuncts_excl false)
+
+                       false
+                       
+                       ; {not ($eo_is_eq conjuncts_excl false) }
+                       ; { conjuncts_excl == conjuncts }
+                       (and conjunct conjuncts))))
+    )
+
+   ( ; { conjunct != and ... }
+    ($and_simplify_rec_exclud_mid conjunct)
+
+    conjunct
+    )
+   )
+  )
+
+; program: $check_and_simplify_norm
+; args:
+; - lhs Bool: A formula.
+; - rhs Bool: A formula.
+; return: >
+;   The boolean result from comparing with `rhs` the result of applying the 
+;   equivalence-preserving transformations `$and_simplify_small_step...` over
+;   `lhs`.
+; note: PRE : { $remove_leading_negations_in_conjuncts `lhs` = `lhs`
+;               && $to_non_nil_terminated_f_list and true `rhs` = `rhs` }
+(program $check_and_simplify_norm ((lhs Bool) (rhs Bool))
+  :signature (Bool Bool) Bool
+  (
+   (; First, we try to remove every occurrence of `true`.
+    ($check_and_simplify_norm lhs rhs)
+    
+    (eo::define
+
+     (
+      (lhs_no_true ($and_simplify_rec_remove_true lhs))
+      )
+
+    (eo::ite ($f_list_equal_mod_commut and lhs_no_true rhs)
+
+             true
+
+             ; { not ($f_list_equal_mod_commut and lhs_no_true rhs) }
+             ; We continue with the removal of duplicates.
+             (eo::define
+
+              (
+               (lhs_no_dups ($and_simplify_rec_remove_repeated lhs_no_true))
+               )
+
+              (eo::ite ($f_list_equal_mod_commut and lhs_no_dups rhs)
+
+                       true
+
+                       ; { not ($f_list_equal_mod_commut and lhs_no_dups rhs)}
+                       ; We try by looking for the presence of absorbent element.
+                       (eo::define
+
+                        (
+                         (lhs_absorbed ($and_simplify_rec_abs_elem lhs_no_dups))
+                         )
+
+                        (eo::ite ($f_list_equal_mod_commut and lhs_absorbed rhs)
+
+                                 true
+                                 
+                                 ; { not ($f_list_equal_mod_commut and lhs_absorbed rhs) }
+                                 ; We try by looking for "excluded middle" instances.
+                                 (eo::ite ($f_list_equal_mod_commut and
+                                                                    ($and_simplify_rec_exclud_mid lhs_absorbed)
+                                                                    rhs)
+
+                                          true
+
+                                          ; { not ($f_list_equal_mod_commut and
+                                          ;                          ($and_simplify_rec_exclud_mid lhs_absorbed)
+                                          ;                          rhs) }
+                                          false)))))))
+    )
+   )
   )
 
 ; program: $check_and_simplify
@@ -656,38 +788,23 @@
 ;   `and_simplify`
 ; return: >
 ;   A boolean indicating if `lhs` can be reduced to `rhs` using 
-;   `$and_simplify_rec`.
+;   `$and_simplify_rec_...` transformations.
 (program $check_and_simplify ((lhs Bool) (rhs Bool) (hd Bool) (tl Bool :list))
   :signature (Bool Bool) Bool
   (
    (
-    ($check_and_simplify lhs (and hd tl))
-
-    ($f_list_equal_mod_commut
-     
-     and
-     ; rhs will have an extra true, we add it to the lhs.
-     ($f_list_cons and true 
-                   ($and_simplify_rec ($remove_leading_negations_in_conjuncts lhs)))
-
-               (and hd tl))
-    )
-
-   (
     ($check_and_simplify lhs rhs)
 
-    ($f_list_equal_mod_commut
-     and
-     ($and_simplify_rec ($remove_leading_negations_in_conjuncts lhs))
-     rhs)
+    ($check_and_simplify_norm ($remove_leading_negations_in_conjuncts lhs) 
+                              ($to_non_nil_terminated_f_list and true rhs))
     )
   )
 )
 
-; rule: not_simplify
+; rule: and_simplify
 ; requires: >
 ;   For `lhs` to be reducible to `rhs` following the rules 
-;   in `$and_simplify_rec`.
+;   `$and_simplify_rec...`.
 ; conclusion-explicit: (@cl (= lhs rhs))
 (declare-rule and_simplify ((lhs Bool) (rhs Bool))
   :requires ((($check_and_simplify lhs rhs) true))
@@ -695,7 +812,7 @@
 )
 
 ;-----------------------
-; Rule 73: or_simplify
+; Rule or_simplify
 ;-----------------------
 
 ; program: $remove_leading_negations_in_disjuncts
@@ -921,7 +1038,7 @@
 ; args:
 ; - psi Bool: A formula.
 ; return: >
-;   The result from applying the following equivalence-preserving transformations until
+;   The result of applying the following equivalence-preserving transformations until
 ;   a fixed point is reached:
 ;   - ¬(¬ ᴪ) ⇒ ᴪ
 ;   - ¬⊥ ⇒ ⊤
@@ -995,15 +1112,15 @@
 ; args:
 ; - formula Bool: A formula.
 ; return: >
-;   The result from applying one of the following equivalence-preserving 
+;   The result of applying one of the following equivalence-preserving 
 ;   transformations:
-;   - ¬(𝜑1 →𝜑2) ⇒(𝜑1 ∧¬𝜑2)
-;   - ¬(𝜑1 ∨𝜑2) ⇒(¬𝜑1 ∧¬𝜑2)
-;   - ¬(𝜑1 ∧𝜑2) ⇒(¬𝜑1 ∨¬𝜑2)
-;   - (𝜑1 →(𝜑2 →𝜑3)) ⇒(𝜑1 ∧𝜑2) → 𝜑3
-;   - ((𝜑1 →𝜑2) →𝜑2) ⇒(𝜑1 ∨𝜑2)
-;   - (𝜑1 ∧(𝜑1 →𝜑2)) ⇒(𝜑1 ∧𝜑2)
-;   - ((𝜑1 →𝜑2) ∧𝜑1) ⇒(𝜑1 ∧𝜑2)
+;   - ¬(𝜑1 → 𝜑2) ⇒ (𝜑1 ∧ ¬𝜑2)
+;   - ¬(𝜑1 ∨ 𝜑2) ⇒ (¬𝜑1 ∧ ¬𝜑2)
+;   - ¬(𝜑1 ∧ 𝜑2) ⇒ (¬𝜑1 ∨ ¬𝜑2)
+;   - (𝜑1 → (𝜑2 → 𝜑3)) ⇒ (𝜑1 ∧ 𝜑2) → 𝜑3
+;   - ((𝜑1 → 𝜑2) → 𝜑2) ⇒ (𝜑1 ∨ 𝜑2)
+;   - (𝜑1 ∧ (𝜑1 → 𝜑2)) ⇒ (𝜑1 ∧ 𝜑2)
+;   - ((𝜑1 → 𝜑2) ∧ 𝜑1) ⇒ (𝜑1 ∧ 𝜑2)
 (program $bool_simplify_small_step ((phi1 Bool) (phi2 Bool :list) (phi3 Bool :list))
   :signature (Bool) Bool
   (
@@ -1081,7 +1198,7 @@
 ; args:
 ; - formula Bool: A formula.
 ; return: >
-;   The result from applying the equivalence-preserving transformations described
+;   The result of applying the equivalence-preserving transformations described
 ;   in `$bool_simplify_small_step` until a fixed point is reached.
 (program $bool_simplify_rec ((operator (-> Bool Bool Bool)) (op Bool)
                              (ops Bool :list))
@@ -1128,9 +1245,9 @@
               ; We continue reducing, right-to-left.
               (eo::define 
 
-               ((ops_simplified ($bool_simplify_rec ops)))
+               ((tail_simplified ($bool_simplify_rec ops)))
 
-               (eo::ite ($eo_is_eq ops_simplified ops)
+               (eo::ite ($eo_is_eq tail_simplified ops)
 
                         (eo::define 
 
@@ -1147,8 +1264,8 @@
                                    ($bool_simplify_rec (operator op_simplified 
                                                                  ops))))
 
-                        ; { not ($eo_is_eq ops_simplified ops) }
-                        ($bool_simplify_rec (operator op ops_simplified))))
+                        ; { not ($eo_is_eq tail_simplified ops) }
+                        ($bool_simplify_rec (operator op tail_simplified))))
 
               ; { not ($eo_is_eq whole_op_simplified 
               ;                  (operator op ops)) }
@@ -1195,8 +1312,151 @@
 )
 
 ;-----------------------
-; Rule 78: ac_simp
+; Rule ac_simp
 ;-----------------------
+
+; program: $idempotency_simp
+; args:
+; - formula Bool: An arbitrary boolean formula.
+; return: >
+;   The result from applying a single simplification step by idempotency of
+;   conjunction or disjunctions. Required to properly implement the semantics
+;   of ac_simp over formulas like (or a a), since $f_list_remove_duplicates
+;   does not emulate that behavior.
+(program $idempotency_simp ((hd Bool) (tl Bool :list) (formula Bool))
+         :signature (Bool) Bool
+         (
+          (
+           ($idempotency_simp (or hd tl))
+
+           (eo::ite ($eo_is_eq ($f_list_length or tl) 2)
+
+                    ; Nil-terminated list?
+                    (eo::ite (eo::and ($eo_is_eq ($f_list_index or tl 0) hd)
+                                      ($eo_is_eq ($f_list_index or tl 1) false))
+
+                             hd
+
+                             ; { not (eo::and ($eo_is_eq ($f_list_index or tl 0) hd)
+                             ;                ($eo_is_eq ($f_list_index or tl 1) false)) }
+                             (or hd tl))
+
+                    ; { not ($eo_is_eq ($f_list_length or tl) 2) }
+                    (eo::ite ($eo_is_eq ($f_list_length or tl) 1)
+
+                             ; Non nil-terminated list?
+                             (eo::ite ($eo_is_eq tl hd)
+
+                                      hd
+
+                                        ; { not ($eo_is_eq ($f_list_index or tl 0) hd) }
+                                      (or hd tl))
+
+                             ; {not ($eo_is_eq ($f_list_length and tl) 1) }
+                             (or hd tl)))
+           )
+
+          (
+           ($idempotency_simp (and hd tl))
+
+           (eo::ite ($eo_is_eq ($f_list_length and tl) 2)
+
+                    ; Nil-terminated list?
+                    (eo::ite (eo::and ($eo_is_eq ($f_list_index and tl 0) hd)
+                                      ($eo_is_eq ($f_list_index and tl 1) true))
+
+                             hd
+
+                             ; { not (eo::and ($eo_is_eq ($f_list_index and tl 0) hd)
+                             ;                ($eo_is_eq ($f_list_index and tl 1) true)) }
+                             (and hd tl))
+
+                    ; { not ($eo_is_eq ($f_list_length and tl) 2) }
+                    (eo::ite ($eo_is_eq ($f_list_length and tl) 1)
+
+                             ; Non nil-terminated list?
+                             (eo::ite ($eo_is_eq tl hd)
+
+                                      hd
+
+                                        ; { not ($eo_is_eq ($f_list_index and tl 0) hd) }
+                                      (and hd tl))
+
+                             ; {not ($eo_is_eq ($f_list_length and tl) 1) }
+                             (and hd tl)))
+           )
+
+          (; { formula != or ..., and ... }
+           ($idempotency_simp formula)
+
+           formula
+           )
+          )
+         )
+
+; define: $ac_simp_step
+; args:
+; - op (-> Bool Bool Bool): Logical connective to be considered for the ac step.
+; - nil Bool: Neutral element of `op`.
+; - formula Bool: Boolean formula upon which the ac step should be performed.
+; return: >
+;   A formula obtained from removing duplicates and flattening applications of
+;   `op`, within `formula`.
+(define $ac_simp_step ((op (-> Bool Bool Bool)) (formula Bool))
+        ($f_list_remove_duplicates op ($idempotency_simp ($flat_and_or op formula))))
+
+; program: $ac_simp_rec
+; args:
+; - lhs Bool: >
+;   left-hand side term present in the conclusion passed to `ac_simp`
+; return: >
+;   A flattened version of `lhs`, using `$ac_simp_step` at different nesting
+;   levels, and for every occurrence of `and` and `or`.
+(program $ac_simp_rec ((formula Bool) (tail Bool :list))
+
+  :signature (Bool) Bool
+
+  (
+   (
+    ($ac_simp_rec (and formula tail))
+
+    (eo::define
+     
+     (
+      (formula_ac_simp ($ac_simp_rec formula))
+
+      (tail_ac_simp ($ac_simp_rec tail))
+      )
+
+     ($ac_simp_step and 
+                    ($to_nil_terminated_f_list and true
+                                               ($f_list_cons and formula_ac_simp tail_ac_simp))))
+    )
+
+   (
+    ($ac_simp_rec (or formula tail))
+
+    (eo::define
+     
+     (
+      (formula_ac_simp ($ac_simp_rec formula))
+
+      (tail_ac_simp ($ac_simp_rec tail))
+      )
+
+     ($ac_simp_step or 
+                    ($to_nil_terminated_f_list or false
+                                               ($f_list_cons or formula_ac_simp tail_ac_simp))
+                    ))
+    )
+
+   (; { formula != or ..., and ... }
+    ($ac_simp_rec formula)
+
+    formula
+    )
+   )
+  )
 
 ; program: $check_ac_simp
 ; args:
@@ -1207,39 +1467,19 @@
 ; return: >
 ;   A boolean indicating if `lhs` can be reduced to `rhs`, using the rules
 ;   in `$ac_simp_rec`.
-(program $check_ac_simp ((formula Bool) (formulas Bool :list) (rhs Bool))
+(program $check_ac_simp ((formula Bool) (tail Bool :list) 
+                         (lhs Bool) (rhs Bool))
 
   :signature (Bool Bool) Bool
 
   (
    (
-    ($check_ac_simp (and formula formulas) rhs)
+    ($check_ac_simp lhs rhs)
 
-    (eo::define
-     
-     (
-      (flat_no_dups ($f_list_remove_duplicates 
-                     and 
-                     true
-                     ($flat_and_or and (and formula formulas))))
-      )
+     ($eo_is_eq
+      ($normalize_formula_modulo_commutativity ($ac_simp_rec lhs))
 
-     ($f_list_equal_mod_commut_and_length and flat_no_dups rhs))
-    )
-
-   (
-    ($check_ac_simp (or formula formulas) rhs)
-
-    (eo::define
-     
-     (
-      (flat_no_dups ($f_list_remove_duplicates 
-                     or 
-                     false
-                     ($flat_and_or or (or formula formulas))))
-      )
-
-     ($f_list_equal_mod_commut_and_length or flat_no_dups rhs))
+      ($normalize_formula_modulo_commutativity rhs))
     )
    )
   )
@@ -1915,7 +2155,7 @@
 )
 
 ;-----------------------
-; Rule 88: minus_simplify
+; Rule minus_simplify
 ;-----------------------
 
 ; program: $minus_simplify_small_step
@@ -2057,7 +2297,7 @@
 )
 
 ;-----------------------
-; Rule 88: sum_simplify
+; Rule sum_simplify
 ;-----------------------
 
 ; program: $check_sum_simplify
@@ -2096,7 +2336,7 @@
 
 
 ;-----------------------
-; Rule 90: comp_simplify
+; Rule comp_simplify
 ;-----------------------
 
 ; program: $comp_simplify_small_step
