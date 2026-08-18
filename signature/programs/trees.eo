@@ -42,7 +42,7 @@
 
            0
            )
-         )
+          )
          )
 
 ; program: $binary_tree_remove_elem
@@ -51,10 +51,11 @@
 ; - tree B: Tree built with `f`.
 ; - elem A: Arbitrary element that we want to remove from `tree`.
 ; return: >
-;   The result from removing the first occurrence of `elem` from `tree`, 
-;   traversing `tree` in a pre-order fashion.
+;   The result from removing the first occurrence of `elem` from `tree`, if
+;   present, traversing `tree` in a pre-order fashion.
 (program $binary_tree_remove_elem ((A Type) (B Type) (f (-> A B B))
-                                   (lhs A) (rhs B) (elem A))
+                                   (lhs A) (lhs_lhs A) (rhs_lhs A)
+                                   (rhs B) (lhs_rhs A) (rhs_rhs A) (elem A) (tree A))
          :signature ((-> A B B) B A) B
 
          (
@@ -71,43 +72,45 @@
            )
 
           (; { lhs, rhs != elem }
-           ($binary_tree_remove_elem f (f lhs rhs) elem)
+           ($binary_tree_remove_elem f (f (f lhs_lhs rhs_lhs) (f lhs_rhs rhs_rhs)) elem)
 
-           (eo::ite (eo::gt ($binary_tree_height f lhs) 0)
+           (eo::define 
 
-                    (eo::define 
+            (
+             (lhs_modified ($binary_tree_remove_elem f (f lhs_lhs rhs_lhs) elem))
+             )
 
-                     (
-                      (lhs_modified ($binary_tree_remove_elem f lhs elem))
-                      )
+            (eo::ite (eo::is_eq (f lhs_lhs rhs_lhs) lhs_modified)
 
-                     (eo::ite (eo::is_eq lhs lhs_modified)
-                              
-                              ; We continue with the right branch.
-                              (eo::ite (eo::gt ($binary_tree_height f rhs) 0)
+                     ; We continue with the right branch.
+                     (f (f lhs_lhs rhs_lhs)
+                        ($binary_tree_remove_elem f (f lhs_rhs rhs_rhs) elem))
 
-                                       (f lhs ($binary_tree_remove_elem f rhs elem))
+                     ; { not (eo::is_eq lhs_modified true) }
+                     ; We found `elem`.
+                     (f lhs_modified (f lhs_rhs rhs_rhs))))
+           )
 
-                                       ; { not (eo::gt ($binary_tree_height f rhs) 0) }
-                                       ; The element is not in (f lhs rhs).
-                                       (f lhs rhs))
+          (; { lhs != f ... & lhs != elem }
+           ($binary_tree_remove_elem f (f lhs (f lhs_rhs rhs_rhs)) elem)
 
-                              ; { not (eo::is_eq lhs lhs_modified) }
-                              ; We found elem.
-                              (f lhs_modified rhs)))
+           (f lhs ($binary_tree_remove_elem f (f lhs_rhs rhs_rhs) elem))
+           )
 
-                    ; { not (eo::gt ($binary_tree_height f lhs) 0) }
-                    ; We try with the right branch.
-                    (eo::ite (eo::gt ($binary_tree_height f rhs) 0)
+          (; { rhs != f ... & rhs != elem }
+           ($binary_tree_remove_elem f (f (f lhs_lhs rhs_lhs) rhs) elem)
 
-                             (f lhs ($binary_tree_remove_elem f rhs elem))
+           (f ($binary_tree_remove_elem f (f lhs_lhs rhs_lhs) elem) rhs)
+           )
 
-                             ; { not (eo::gt ($binary_tree_height f rhs) 0) }
-                             ; The element is not in (f lhs rhs).
-                             (f lhs rhs)))
+          (; { tree != f ... }
+           ($binary_tree_remove_elem f tree elem)
+
+           tree
            )
           )
          )
+
 
 ; program: $binary_tree_get_left_most_leaf
 ; args:
