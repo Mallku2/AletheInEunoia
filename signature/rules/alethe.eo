@@ -4321,12 +4321,12 @@
 ; - previous_context Bool: Context of the subproof being closed.
 ; - premises: And-list of the premises passed to the invocation of the rule.
 ; - conclusion Bool: >
-;   The conclusion of the immediate premise of let_elim. When analyzing the list
+;   The conclusion of the immediate premise of let. When analyzing the list
 ;   of premises it will be employed just to recognize and skip the case where
 ;   the premise is the immediate one.
 ; - let_vars_values @VarList: >
 ;   A `@VarList` of `@pair`s of the form `(@pair var value)`, where `var` is
-;   a variable introduced by the let statement of the conclusion of let_elim,
+;   a variable introduced by the let statement of the conclusion of let,
 ;   and value is its assigned value.
 ; return: >
 ;   A boolean value indicating if, for a given pair (@pair xi ti) in `let_vars_values`, 
@@ -4339,7 +4339,7 @@
                                (let_vars_values @VarList :list))
   :signature (Bool Bool Bool @VarList) Bool
   (
-   (; Discarding the conclusion of the immediate premise passed to let_elim.
+   (; Discarding the conclusion of the immediate premise passed to let.
     ($verify_let_premises previous_context (and conclusion premises) conclusion 
                           let_vars_values)
 
@@ -4398,12 +4398,12 @@
    )
   )
 
-; program: check_let_elim
+; program: check_let
 ; args:
 ; - previous_context Bool: Context of the subproof being closed.
-; - current_context Bool: Context of the let_elim step itself.
-; - premises Bool: And-list containing premises passed to rule let_elim.
-; - conclusion Bool: Conclusion given to rule let_elim.
+; - current_context Bool: Context of the let step itself.
+; - premises Bool: And-list containing premises passed to rule let.
+; - conclusion Bool: Conclusion given to rule let.
 ; return: >
 ;    A boolean indicating if the given conclusion has the form
 ;    Γ ⊳ (let 𝑥1 = 𝑡1, … , 𝑥𝑛 = 𝑡𝑛 in 𝑢) ≈ 𝑢′
@@ -4414,18 +4414,19 @@
 ;    𝑗. Γ, 𝑥1 ↦ 𝑠1, … , 𝑥𝑛 ↦ 𝑠𝑛 ⊳ 𝑢 ≈ 𝑢′ (… )
 ;   Note that `previous_context` must correspond to the one of the immediate
 ;   premise j, that is: Γ, 𝑥1 ↦ 𝑠1, … , 𝑥𝑛 ↦ 𝑠𝑛.
-(program $check_let_elim ((previous_context Bool) (current_context Bool)
-                          (premises Bool) 
-                          (let_type Type) (let_def let_type)
-                          (var_defs @VarList) 
-                          (A Type) (lhs A) (rhs A)
-                          (B Type)
-                          (var_values B))
+(program $check_let ((previous_context Bool) (current_context Bool)
+                     (premises Bool) 
+                     (let_type Type) (let_def let_type)
+                     (var_defs @VarList) 
+                     (A Type) (lhs A) (rhs A)
+                     (B Type)
+                     (var_values B))
   :signature (Bool Bool Bool Bool) Bool
   (
    (
-    ($check_let_elim previous_context current_context premises
-                     (@cl (= let_def rhs)))
+    ($check_let previous_context 
+                current_context premises
+                (@cl (= let_def rhs)))
 
     (eo::define
 
@@ -4434,7 +4435,7 @@
       )
 
      (eo::and 
-      ; The conclusion of the immediate premise of let_elim should be of the
+      ; The conclusion of the immediate premise of let should be of the
       ; form (@cl (= ($let_get_body let_def) rhs)).
       ($eo_is_eq ($f_list_last_element and true premises) 
                  conclusion)
@@ -4454,22 +4455,22 @@
    )
   )
 
-; rule: let_elim
+; rule: let
 ; assumption:
 ; - previous_context: Context from the last step of the subproof being closed.
 ; premise-list: And-list of the premises passed to the rule.
 ; args:
-; - current_context: Context of the let_elim step itself.
+; - current_context: Context of the let step itself.
 ; requires: >
 ;    For the given conclusion to be a proper elimination of a let, under the provided
-;    premises and context, as specified by predicate $check_let_elim.
+;    premises and context, as specified by predicate $check_let.
 ; conclusion-explicit: A conclusion satisfying the previous side-condition.
-(declare-rule let_elim ((previous_context Bool) (current_context Bool) (premises Bool) 
-                        (conclusion Bool))
+(declare-rule let ((previous_context Bool) (current_context Bool) (premises Bool) 
+                   (conclusion Bool))
   :assumption previous_context
   :premise-list premises and
   :args (current_context)
-  :requires ((($check_let_elim previous_context current_context premises conclusion) true))
+  :requires ((($check_let previous_context current_context premises conclusion) true))
   :conclusion-explicit conclusion
 )
 
