@@ -4045,7 +4045,7 @@
           :rule bind_let :premises ( premise_1 ) :args ( ctx1 ))
 
 ;---------------------------
-; Rule let_elim and services
+; Rule let and services
 ;---------------------------
 
 ;--------------------------
@@ -4118,7 +4118,7 @@
              true))
 
 ;----------------
-; $check_let_elim
+; $check_let
 ;----------------
 
 (declare-const a Bool)
@@ -4133,9 +4133,9 @@
 (define y () (eo::var "y" Bool))
 (define z () (eo::var "z" Bool))
 
-(step $test_$chek_let_elim_1 true 
+(step $test_$chek_let_1 true 
       :rule $assert_eq 
-      :args (($check_let_elim 
+      :args (($check_let 
               (@ctx (@varlist x)
                     (and (= (@var (@varlist x) x) b)
                          (@ctx @varlist.nil true)))
@@ -4145,9 +4145,9 @@
 
              true))
 
-(step $test_$chek_let_elim_2 true 
+(step $test_$chek_let_2 true 
       :rule $assert_eq 
-      :args (($check_let_elim 
+      :args (($check_let 
               (@ctx (@varlist x y)
                     (and (= (@var (@varlist x) x) b)
                          (= (@var (@varlist y) y) f)
@@ -4158,9 +4158,9 @@
 
              true))
 
-(step $test_$chek_let_elim_3 true 
+(step $test_$chek_let_3 true 
       :rule $assert_eq 
-      :args (($check_let_elim 
+      :args (($check_let 
               (@ctx (@varlist x y z)
                     (and (= (@var (@varlist x) x) b)
                          (= (@var (@varlist y) y) f)
@@ -4173,7 +4173,7 @@
              true))
 
 ;---------
-; let_elim
+; let
 ;---------
 
 (declare-const a Bool)
@@ -4197,9 +4197,9 @@
 (assume-push context ctx2)
 (step premise_1 (@cl (= a b)) :rule hole)
 (step premise_2 (@cl (= c d)) :rule hole)
-(step-pop $test_let_elim_1 
+(step-pop $test_let_1 
           (@cl (= (_ (@let ((x Bool)) c) a) d))
-          :rule let_elim :premises ( premise_1 premise_2 ) :args ( ctx1 ))
+          :rule let :premises ( premise_1 premise_2 ) :args ( ctx1 ))
 
 
 ; 2 let variables.
@@ -4213,9 +4213,9 @@
 (step premise_1 (@cl (= a b)) :rule hole)
 (step premise_2 (@cl (= e f)) :rule hole)
 (step premise_3 (@cl (= c d)) :rule hole)
-(step-pop $test_let_elim_2
+(step-pop $test_let_2
           (@cl (= (_ (_ (@let ((x Bool) (y Bool)) c) a) e) d))
-          :rule let_elim :premises ( premise_1 premise_2 premise_3 ) :args ( ctx1 ))
+          :rule let :premises ( premise_1 premise_2 premise_3 ) :args ( ctx1 ))
 
 ; 3 let variables.
 (define ctx1 ( ) true)
@@ -4230,7 +4230,7 @@
 (step premise_2 (@cl (= e f)) :rule hole)
 (step premise_3 (@cl (= g h)) :rule hole)
 (step premise_4 (@cl (= c d)) :rule hole)
-(step-pop $test_let_elim_2
+(step-pop $test_let_2
           (@cl (= (_ (_ (_ (@let ((x Bool) (y Bool) (z Bool)) c) a) e) g) d))
-          :rule let_elim :premises ( premise_1 premise_2 premise_3 premise_4 ) :args ( ctx1 ))
+          :rule let :premises ( premise_1 premise_2 premise_3 premise_4 ) :args ( ctx1 ))
 
