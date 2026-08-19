@@ -4678,13 +4678,13 @@
 ;   A @VarList containing each of the ite constructions present on the left-hand
 ;   side of the conclusion passed to rule `ite_intro`.
 ; - conjuncts Bool: >
-;   and-list of terms of the form "ite 𝜓𝑖 ( 𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" that are part
+;   and-list of terms of the form "ite 𝜓𝑖 (𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" that are part
 ;   of the conjunction in the right-hand side of the conclusion passed to rule 
 ;   `ite_intro`.
 ; return: >
 ;   A boolean indicating if for every ite construction of the form
 ;   "ite 𝜓𝑖 ri 𝑟′𝑖" present on `ites`, there is a corresponding ite
-;   construction of the form "ite 𝜓𝑖 ( 𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" in `conjuncts`.
+;   construction of the form "ite 𝜓𝑖 (𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" in `conjuncts`.
 (program $ite_intro_check_conjuncts ((guard Bool) (if Bool) (else Bool) 
                                      (conjuncts Bool)
                                      (tail @VarList :list))
@@ -4769,7 +4769,7 @@
 ; return: >
 ;   A boolean indicating if for every ite construction of the form
 ;   "ite 𝜓𝑖 ri 𝑟′𝑖" present on `t1`, there is a corresponding ite
-;   construction of the form "ite 𝜓𝑖 ( 𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" in `conjuncts`.
+;   construction of the form "ite 𝜓𝑖 (𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" in `conjuncts`.
 (program $check_ite_intro ((t1 Bool) (t2 Bool) (conjuncts Bool :list))
 
   :signature (Bool Bool Bool) Bool
@@ -4792,8 +4792,10 @@
 ; requires: >
 ;   For every ite construction of the form "ite 𝜓𝑖 ri 𝑟′𝑖" present on `t1`, 
 ;   to be a corresponding ite construction of the form 
-;   "ite 𝜓𝑖 ( 𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" in `conjuncts`.
-; conclusion-explicit: A conclusion of the form (@cl (= t (and t' conjuncts))).
+;   "ite 𝜓𝑖 (𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" in `conjuncts`.
+; conclusion-explicit: >
+;   A conclusion of the form (@cl (= t (and t' conjuncts))), such that it 
+;   satisfies the previous side-condition.
 (declare-rule ite_intro ((t1 Bool) (t2 Bool) (conjuncts Bool :list))
   :requires ((($check_ite_intro t1 t2 conjuncts) true))
   :conclusion-explicit (@cl (= t1 (and t2 conjuncts)))
