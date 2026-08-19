@@ -1567,7 +1567,7 @@
 ; - conclusion Bool: Conclusion given to rule `qnt_rm_unused`.
 ; return: >
 ;   A boolean indicating if `conclusion` has the form:
-;   𝑄𝑥1, … , 𝑥𝑛. 𝜑 ≈ 𝑄 𝑥𝑘1, … , 𝑥𝑘𝑚. 𝜑
+;   𝑄 𝑥1, … , 𝑥𝑛. 𝜑 ≈ 𝑄 𝑥𝑘1, … , 𝑥𝑘𝑚. 𝜑
 ;   Where the list of variables 𝑥𝑘1, … , 𝑥𝑘𝑚 is obtained from the original list
 ;   𝑥1, … , 𝑥n, by removing variables that are already bound in 𝜑.
 (program $check_qnt_rm_unused ((varlist_1 @VarList) (varlist_2 @VarList) (phi Bool))
@@ -1598,10 +1598,10 @@
 ; rule: qnt_rm_unused
 ; requires: >
 ;   For the conclusion to be of the form:
-;   𝑄𝑥1, … , 𝑥𝑛. 𝜑 ≈ 𝑄 𝑥𝑘1, … , 𝑥𝑘𝑚. 𝜑
+;   𝑄 𝑥1, … , 𝑥𝑛. 𝜑 ≈ 𝑄 𝑥𝑘1, … , 𝑥𝑘𝑚. 𝜑
 ;   Where the list of variables 𝑥𝑘1, … , 𝑥𝑘𝑚 is obtained from the original list
 ;   𝑥1, … , 𝑥n, by removing variables that are already bound in 𝜑.
-; conclusion-explicit: A conclusion of the form (@cl (= lhs rhs)).
+; conclusion-explicit: A conclusion of the form (@cl (= lhs rhs)), satisfying the previous side-condition.
 (declare-rule qnt_rm_unused ((lhs Bool) (rhs Bool))
   :requires ((($check_qnt_rm_unused (@cl (= lhs rhs))) true))
   :conclusion-explicit (@cl (= lhs rhs))
