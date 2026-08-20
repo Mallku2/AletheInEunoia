@@ -1809,7 +1809,7 @@
 ;    alpha-conversion) to the right-hand side.
 ; conclusion:
 (declare-rule refl ((context Bool) (t1 Bool) (t2 Bool))
-  :premises (context)
+  :args (context)
   :requires ((($check_refl context (@cl (= t1 t2))) true))
   :conclusion-explicit (@cl (= t1 t2))
 )
