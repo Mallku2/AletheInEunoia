@@ -343,6 +343,39 @@
           )
          )
 
+; program: $f_list_remove_elem_contained_in
+; args:
+; - f (-> A A A): An f-list constructo.
+; - list_to_filter A: An f-list from which we want to remove elements already present in some other given list.
+; - target_list A: An f-list containing elements that we do not want in `list_to_filter`.
+; return: >
+;   A f-list obtained from removing elements from `list_to_filter` also present
+;   in `target_list`. It preserves the nil-terminator.
+; note: Captured as a program to describe a common idiom through the mechanization.
+(program $f_list_remove_elem_contained_in ((A Type) (f (-> A A A)) (hd A) (tl A)
+                                           (target_list A))
+         :signature ((-> A A A) A A) A
+         (
+          (
+           ($f_list_remove_elem_contained_in f (f hd tl) target_list)
+           
+           (eo::ite ($f_list_contains_elem f hd target_list)
+
+                    ($f_list_remove_elem_contained_in f tl target_list)
+
+                    ; { not ($f_list_contains_elem f hd target_list) }
+                    ($f_list_cons f hd ($f_list_remove_elem_contained_in f tl target_list)))
+           )
+
+          (; { hd <> f some_element tail }
+           ($f_list_remove_elem_contained_in f hd target_list)
+           
+           hd
+           )
+          )
+         )
+
+
 ; program: $f_list_last_element
 ; args:
 ; - f (-> A B B): Operator used to build the f-list.

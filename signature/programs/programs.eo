@@ -1309,10 +1309,13 @@
              (fv_bool_body ($fv bool_body))
              )
 
-           ($f_list_filter @varlist @varlist.nil
-                           fv_bool_body
-                           ($varlist_flag_members fv_bool_body
-                                                  vars)))
+            ;; ($f_list_filter @varlist @varlist.nil
+            ;;                 fv_bool_body
+            ;;                 ($varlist_flag_members fv_bool_body
+            ;;                                        vars))
+            ($f_list_remove_elem_contained_in @varlist
+                                              fv_bool_body vars)
+            )
            )
 
           (
@@ -1324,10 +1327,13 @@
              (fv_bool_body ($fv bool_body))
              )
             
-            ($f_list_filter @varlist @varlist.nil
-                            fv_bool_body
-                            ($varlist_flag_members fv_bool_body
-                                                   vars)))
+            ;; ($f_list_filter @varlist @varlist.nil
+            ;;                 fv_bool_body
+            ;;                 ($varlist_flag_members fv_bool_body
+            ;;                                        vars))
+            ($f_list_remove_elem_contained_in @varlist
+                                              fv_bool_body vars)
+            )
            )
 
           (; We consider (@var varlist x) as our representation of variables 
@@ -1359,7 +1365,8 @@
 
              ; We remove duplicated variables.
              ($f_list_filter @varlist @varlist.nil every_fv
-                             ($flag_duplicates @varlist @varlist.nil every_fv))))
+                             ($flag_duplicates @varlist @varlist.nil every_fv)
+                             )))
            )
 
           (
@@ -1626,11 +1633,13 @@
            ; we just use 'x' as the representation of the variable.
            ($substitution_apply (@var (@varlist x) x) substitution)
 
-           (eo::ite ($substitution_contains_substitute substitution x)
+           (@var (@varlist x) ($substitution_apply x substitution))
 
-                    ($substitution_apply x substitution)
+           ;; (eo::ite ($substitution_contains_substitute substitution x)
 
-                    (@var (@varlist x) x))
+           ;;          ($substitution_apply x substitution)
+
+           ;;          (@var (@varlist x) x))
            )
 
           (
