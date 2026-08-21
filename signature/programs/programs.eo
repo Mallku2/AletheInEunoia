@@ -1633,13 +1633,11 @@
            ; we just use 'x' as the representation of the variable.
            ($substitution_apply (@var (@varlist x) x) substitution)
 
-           (@var (@varlist x) ($substitution_apply x substitution))
+           (eo::ite ($substitution_contains_substitute substitution x)
 
-           ;; (eo::ite ($substitution_contains_substitute substitution x)
+                    ($substitution_apply x substitution)
 
-           ;;          ($substitution_apply x substitution)
-
-           ;;          (@var (@varlist x) x))
+                    (@var (@varlist x) x))
            )
 
           (
@@ -1680,4 +1678,4 @@
                     x)
            )
           )
-)
+         )
