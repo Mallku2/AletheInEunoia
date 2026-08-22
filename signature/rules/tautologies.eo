@@ -1,0 +1,946 @@
+(include "../theories/theory.eo")
+(include "../programs/arith.eo")
+(include "../programs/programs.eo")
+
+; Rules that introduce tautologies.
+
+;-----------------------
+; Rule 26: eq_transitive
+;-----------------------
+
+; program: $check_eq_transitive_remaining_equalities
+; args:
+; - t2 A: Left-hand side of the next equation that we should look for.
+; - tn A: Right-hand side of the equation of the last disjunct, in the conclusion.
+; - assumptions Bool: Clause with the remaining equations from the conclusion.
+; return: >
+;   A boolean indicating if there is a chain of equivalences between terms, beginning
+;   from `t2`, following the equalities contained into `assumptions`, and reaching
+;   to term `tn`.
+; note: >
+;  PRE : { `assumptions` is properly ordered: if the last disjunct of the conclusion
+;          is 𝑡1 ≈ 𝑡𝑛, `assumptions` should have the form ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛) }
+(program $check_eq_transitive_remaining_equalities ((A Type) (t2 A) (t3 A)
+                                                    (tn_1 A) (tn A) 
+                                                    (tail Bool :list))
+
+         :signature (A A Bool) Bool
+
+         (
+          (; Last case
+           ($check_eq_transitive_remaining_equalities tn_1 tn (@cl (not (= tn_1 tn))))
+
+           true
+           )
+
+          (; Intermediate step.
+           ($check_eq_transitive_remaining_equalities t2 tn (@cl (not (= t2 t3)) tail))
+
+           ($check_eq_transitive_remaining_equalities t3 tn tail)
+           )
+          )
+         )
+
+; program: $check_eq_transitive_from_first_equality
+; args:
+; - last_equality Bool: >
+;   Last disjunct present in the conclusion clause passed to `eq_transitive`.
+;   It must be an equality among arbitrary terms.
+; - assumptions Bool: Clause with the remaining assumptions passed to `eq_transitive`.
+; return: >
+;   A boolean indicating if there is a chain of equivalences between terms, beginning
+;   from the left-hand side of `last-equality`, following the equalities contained 
+;   into `assumptions`, and reaching to right-hand side of `last-equality`.
+; note: >
+;  PRE : { `assumptions` is properly ordered: if `last_equality` is of the form
+;          `𝑡1 ≈ 𝑡𝑛`, `assumptions` should have the form ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛) }
+(program $check_eq_transitive_from_first_equality ((A Type) (t1 A) (t2 A) (tn A)
+                                                   (tail Bool :list))
+
+         :signature (Bool Bool) Bool
+
+         (
+          (; First case
+           ($check_eq_transitive_from_first_equality (= t1 tn) (@cl (not (= t1 t2)) tail))
+
+           ($check_eq_transitive_remaining_equalities t2 tn tail)
+           )
+          )
+         )
+
+; program: $check_trans
+; args:
+; - conclusion Bool: Conclusion given to rule `eq_transitive`. Must be built with @cl.
+; return: >
+;   A boolean indicating if `conclusion` is of the form
+;   ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛), 𝑡1 ≈ 𝑡𝑛
+; note: >
+;  PRE : { `conclusion` is properly ordered: it has the form ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛), 𝑡1 ≈ 𝑡𝑛}
+(program $check_eq_transitive ((hd Bool) (tail Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($check_eq_transitive (@cl hd tail))
+    
+    (eo::define
+
+     (
+      (last_equality ($f_list_last_element @cl false (@cl hd tail)))
+      )
+
+     (eo::define
+      
+      (
+       (assumptions ($f_list_remove_elem @cl (@cl hd tail) last_equality false))
+       )
+
+      ($check_eq_transitive_from_first_equality last_equality assumptions)))
+    )
+   )
+  )
+
+; rule: eq_transitive
+; requires: >
+;   For "conclusion" to be exactly of the form:
+;   ¬(𝑡1 ≈ 𝑡2), … , ¬(𝑡𝑛−1 ≈ 𝑡𝑛), 𝑡1 ≈ 𝑡𝑛
+; conclusion-explicit: >
+;   Conclusion should be a clause built with @cl, satisfying the described
+;   side-condition.
+(declare-rule eq_transitive ((hd Bool) (tail Bool :list))
+  :requires ((($check_eq_transitive (@cl hd tail)) true))
+  :conclusion-explicit (@cl hd tail)
+)
+
+;-----------------------
+; Rule 27: eq_congruent
+;-----------------------
+
+; program: $check_n_ary_application_eq_congruent
+; args:
+; - eq Bool: Last equality in the conclusion passed to the eq_congruent rule.
+; - assumptions Bool: >
+;    Clause with the assumptions of the form ¬(𝑡i ≈ 𝑢i) present in the conclusion
+;    passed to the rule, but in the reverse order.
+; return: >
+;    A boolean indicating if `eq` and `assumptions` correspond to the proper
+;    application of the eq_congruent rule, for a n-ary operator. Note that, in 
+;    this case, we are dealing with the single application of a n-ary operator. No 
+;    associativity is involved.
+(program $check_n_ary_application_eq_congruent ((T Type) (U Type) 
+                                                (f (-> T U U)) (f2 (-> T U U)) 
+                                                (t1 T) (t2 T)
+                                                (tail Bool :list))
+    :signature (Bool Bool) Bool
+    (
+     (
+      ($check_n_ary_application_eq_congruent (= (f t1) (f t2)) (@cl (not (= t1 t2))))
+
+      true
+      )
+
+     ( ; TODO: ill-typed?
+      ($check_n_ary_application_eq_congruent (= (f t1) (f2 t2)) (@cl (not (= t1 t2)) tail))
+
+      ($check_n_ary_application_eq_congruent (= f f2) tail)
+      )
+     )
+    )
+
+; program: $check_eq_congruent
+; args:
+; - conclusion Bool: Conclusion clause given to rule cong.
+; return: >
+;   A boolean indicating if `conclusion` has the form 
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
+;   function `f`.
+(program $check_eq_congruent ((hd Bool) (tail Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($check_eq_congruent (@cl hd tail))
+
+    (eo::define
+
+     (
+      (equality ($f_list_last_element @cl false (@cl hd tail)))
+      )
+     
+     (eo::define
+      
+      (
+       (assumptions ($f_list_remove_elem @cl (@cl hd tail) equality false))
+       )
+
+     ($check_n_ary_application_eq_congruent equality 
+                                            (eo::list_rev @cl assumptions))))
+     )
+    )
+   )
+
+
+; rule: eq_congruent
+; requires: >
+;   For the conclusion to be built with @cl and to have the form:
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), (𝑓 𝑡1 ⋯ 𝑡𝑛) ≈ (𝑓 𝑢1 ⋯ 𝑢𝑛)
+; conclusion-explicit: A clause built with @cl.
+(declare-rule eq_congruent ((hd Bool) (tail Bool :list))
+  :requires ((($check_eq_congruent (@cl hd tail)) true))
+  :conclusion-explicit (@cl hd tail)
+)
+
+;---------------------------
+; Rule 28: eq_congruent_pred
+;---------------------------
+
+; program: $check_n_ary_application_eq_congruent_pred
+; args:
+; - not_p_app Bool: >
+;   For a conclusion of an instantiation of the rule `eq_congruent_pred`, of the
+;   form ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ⋯ 𝑡𝑛), (p 𝑢1 ⋯ 𝑢𝑛), this parameter should
+;   be the term ¬(p 𝑡1 ⋯ 𝑡𝑛).
+; - p_app Bool: The term (p 𝑢1 ⋯ 𝑢𝑛) in the conclusion of the instantiation of the `eq_congruent_pred` rule.
+; - assumptions Bool: >
+;    Clause with the assumptions of the form ¬(𝑡i ≈ 𝑢i) present in the instantiation
+;    of the rule, but in the reverse order.
+; return: >
+;    A boolean indicating if `not_p_app`, `p_app` and `assumptions` correspond to 
+;    a proper instantiation of the `eq_congruent_pred` rule, for a n-ary predicate.
+(program $check_n_ary_application_eq_congruent_pred ((T Type) (U Type) 
+                                                     (p (-> T U Bool)) 
+                                                     (lhs_p (-> T U Bool))
+                                                     (rhs_p (-> T U Bool))
+                                                     (t1 T) (u1 T)
+                                                     (ti T) (ui T)
+                                                     (tail Bool :list))
+    :signature (Bool Bool Bool) Bool
+    (
+     (; First part of the (not (p ...)) and (p ...) terms.
+      ($check_n_ary_application_eq_congruent_pred (not (p t1)) (p u1) 
+                                                  (@cl (not (= t1 u1))))
+
+      true
+      )
+
+     (; TODO: ill-typed?
+      ; For a conclusion of the form:
+      ; ¬(𝑡1 ≈ 𝑢1), ... ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ... 𝑡𝑛), (p 𝑢1 ... 𝑢𝑛),
+      ; (lhs_p ti) should be the term (p 𝑡1 ... 𝑡i) while (rhs_p ui) should be 
+      ; (p 𝑢1 ... ui ), for some i <= n.
+      ($check_n_ary_application_eq_congruent_pred (not (lhs_p ti)) (rhs_p ui)
+                                                  (@cl (not (= ti ui)) tail))
+
+      ($check_n_ary_application_eq_congruent_pred (not lhs_p) rhs_p tail)
+      )
+     )
+    )
+
+; program: $check_eq_congruent_pred
+; args:
+; - conclusion Bool: Conclusion clause given to rule eq_congruent_pred.
+; return: >
+;   A boolean indicating if `conclusion` has the form 
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(p 𝑡1 ⋯ 𝑡𝑛), (p 𝑢1 ⋯ 𝑢𝑛), for some n-ary 
+;   predicate `p`.
+(program $check_eq_congruent_pred ((hd Bool) (tail Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($check_eq_congruent_pred (@cl hd tail))
+
+    (eo::define
+
+     (
+      (predicate_p ($f_list_last_element @cl false (@cl hd tail)))
+      )
+     
+     (eo::define
+      
+      (
+       (remaining_elements ($f_list_remove_elem @cl (@cl hd tail) predicate_p false))
+       )
+
+      (eo::define
+
+       (
+        (predicate_not_p ($f_list_last_element @cl false remaining_elements))
+        )
+       
+       (eo::define
+        
+        (
+         (assumptions ($f_list_remove_elem @cl remaining_elements predicate_not_p false))
+         )
+
+        ($check_n_ary_application_eq_congruent_pred predicate_not_p predicate_p
+                                                    (eo::list_rev @cl assumptions))))
+      )))
+   )
+  )
+
+; rule: eq_congruent_pred
+; requires: >
+;   For the conclusion to be built with @cl and to have the form:
+;   ¬(𝑡1 ≈ 𝑢1), … ,¬(𝑡𝑛 ≈ 𝑢𝑛), ¬(P 𝑡1 ⋯ 𝑡𝑛), (P 𝑢1 ⋯ 𝑢𝑛), 
+;   where 𝑃 is a predicate symbol.
+; conclusion-explicit: A clause built with @cl satisfying the previous side-condition.
+(declare-rule eq_congruent_pred ((hd Bool) (tail Bool :list))
+  :requires ((($check_eq_congruent_pred (@cl hd tail)) true))
+  :conclusion-explicit (@cl hd tail)
+)
+
+;------------------------
+; Rule 71: connective_def
+;------------------------
+
+
+; program: $connective_def
+; args:
+; - formula Bool: An arbitrary formula.
+; return: >
+;   A formula equivalent to `formula`, using the dual operators of those in
+;   `formula`, according to rule `connective_def`.
+; note: >
+;   Doing so is cheaper than writing an Eunoia program that pattern matches
+;   over the conclusion passed to `connective_def`.
+(program $connective_def ((phi1 Bool) (phi2 Bool :list) (phi3 Bool)
+                          (varlist @VarList) (body Bool))
+  :signature (Bool) Bool
+  (
+   (
+    ($connective_def (xor phi1 phi2))
+    
+    ($f_list_cons or 
+                  ($f_list_cons and (not phi1) phi2)
+                  ($f_list_cons and phi1 (not phi2)))
+    )
+
+   (
+    ($connective_def (= phi1 phi2))
+    
+    ($f_list_cons and (=> phi1 phi2) (=> phi2 phi1))
+    )
+
+   (
+    ($connective_def (ite phi1 phi2 phi3))
+    
+    ($f_list_cons and (=> phi1 phi2) (=> (not phi1) phi3))
+    )
+
+   (
+    ($connective_def (forall varlist body))
+
+    (not (exists varlist (not body)))
+    )
+
+   (
+    ($connective_def (exists varlist body))
+
+    (not (forall varlist (not body)))
+    )
+  )
+)
+
+
+; program: $check_connective_def
+; args:
+; - conclusion Bool: Conclusion passed to rule `connective_def`
+; return: >
+;   A boolean indicating if `conclusion` has one of the following forms:
+;   - (xor 𝜑1 𝜑2) ≈((¬𝜑1 ∧ 𝜑2) ∨(𝜑1 ∧ ¬𝜑2))
+;   - (𝜑1 ≈ 𝜑2) ≈ ((𝜑1 → 𝜑2) ∧ (𝜑2 → 𝜑1))
+;   - (ite 𝜑1 𝜑2 𝜑3) ≈ ((𝜑1 → 𝜑2) ∧(¬𝜑1 → 𝜑3))
+;   - (∀𝑥1, … , 𝑥𝑛. 𝜑) ≈ ¬(∃𝑥1, … , 𝑥𝑛. ¬𝜑)
+;   - (∃𝑥1, … , 𝑥𝑛. 𝜑) ≈ ¬(∀𝑥1, … , 𝑥𝑛. ¬𝜑)
+(program $check_connective_def ((lhs Bool) (rhs Bool))
+  :signature (Bool) Bool
+  (
+   (
+    ($check_connective_def (@cl (= lhs rhs)))
+    ;   Doing so is cheaper than writing an Eunoia program that pattern matches
+    ;   over the conclusion passed to `connective_def`.
+    ($eo_is_eq ($connective_def lhs) rhs)
+    )
+  )
+)
+
+; rule: connective_def
+; requires: For the conclusion to satisfy the `$check_connective_def` predicate.
+; conclusion-explicit: A conclusion of the form (@cl (= lhs rhs)).
+(declare-rule connective_def ((lhs Bool) (rhs Bool))
+  :requires ((($check_connective_def (@cl (= lhs rhs))) true))
+  :conclusion-explicit (@cl (= lhs rhs))
+)
+
+
+;-----------------------
+; Rule 73: or_simplify
+;-----------------------
+
+; program: $remove_leading_negations
+; args:
+; - formula Bool: An arbitrary formula.
+; return: >
+;   The result of removing leading double negations from `formula`.
+(program $remove_leading_negations ((formula Bool))
+         :signature (Bool) Bool
+         (
+          (
+           ($remove_leading_negations (not (not formula)))
+
+           ($remove_leading_negations formula)
+           )
+
+          (; { `formula` does not begin with a double negation }
+           ($remove_leading_negations formula)
+
+           formula
+           )
+          )
+         )
+
+; program: $remove_leading_negations_in_disjuncts
+; args:
+; - disjunct Bool: An disjunct built with `or`.
+; return: >
+;   The result of removing leading double negations from each disjunct
+;   in `disjunct`.
+(program $remove_leading_negations_in_disjuncts ((disjunct Bool) (disjuncts Bool :list))
+         :signature (Bool) Bool
+         (
+          (
+           ($remove_leading_negations_in_disjuncts (or disjunct disjuncts))
+
+           ($f_list_cons or 
+                         ($remove_leading_negations disjunct)
+                         ($remove_leading_negations_in_disjuncts disjuncts))
+           )
+
+          (; { `formula` is not a disjunct }
+           ($remove_leading_negations_in_disjuncts false)
+
+           false
+           )
+          )
+         )
+
+; program: $or_simplify_small_step
+; args:
+; - formula Bool: A formula.
+; return: >
+;   The result of applying one of the following equivalence-preserving 
+;   transformations:
+;   - ⊥∨⋯∨⊥ ⇒ ⊥
+;   - 𝜑1 ∨ ⋯ ∨ 𝜑𝑛 ⇒ 𝜑1 ∨ ⋯ ∨ 𝜑𝑛′ where the right-hand side has some ⊥ literal 
+;     removed.
+;   - 𝜑1 ∨ ⋯ ∨ 𝜑𝑛 ⇒ 𝜑1 ∨ ⋯ ∨ 𝜑𝑛′ where the right-hand side has some repeated 
+;     literal removed.
+;   - ⊤ ∨ ⋯ ∨ 𝜑𝑛 ⇒ ⊤
+;   - 𝜑𝑖 ∨ ⋯ ∨ 𝜑𝑗 ∨ ⋯ ∨ 𝜑𝑛 ⇒ ⊤ and 𝜑𝑖 , 𝜑𝑗 are such that one is the
+;     negation of the other formula
+; note: PRE : { $remove_leading_negations_in_disjuncts `formula` = `formula`}
+(program $or_simplify_small_step ((disjunct Bool) (disjuncts Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($or_simplify_small_step (or false disjuncts))
+
+    disjuncts
+    )
+
+   (
+    ($or_simplify_small_step (or true disjuncts))
+
+    true
+    )
+   
+   (
+    ($or_simplify_small_step (or (not disjunct) disjuncts))
+
+    (eo::ite ($eo_is_eq disjuncts false)
+
+             (not disjunct)
+
+              ; { not ($eo_is_eq disjuncts false) }
+             (eo::ite ($eo_is_eq disjuncts true)
+
+                      true
+
+                      ; { not ($eo_is_eq disjuncts true) }
+                      (eo::ite ($f_list_contains_elem or (not disjunct) disjuncts)
+
+                               disjuncts
+
+                               ; { not ($f_list_contains_elem or (not disjunct) disjuncts) }
+                               (eo::ite ($f_list_contains_elem or disjunct disjuncts)
+
+                                        ; We have a or (not disjunct) disjunct ... = true
+                                        true
+
+                                        ; { not ($f_list_contains_elem or disjunct disjuncts) }
+                                        (or (not disjunct) disjuncts)))))
+             )
+
+   ( ; { disjunct != true, false, not ... }
+    ($or_simplify_small_step (or disjunct disjuncts))
+
+    (eo::ite ($eo_is_eq disjuncts false)
+
+             disjunct
+
+             ; { not ($eo_is_eq disjuncts false) }
+             (eo::ite ($eo_is_eq disjuncts true)
+
+                      true
+
+                      ; { not ($eo_is_eq disjuncts true) }
+                      (eo::ite ($f_list_contains_elem or disjunct disjuncts)
+
+                               disjuncts
+
+                               ; { not ($f_list_contains_elem or disjunct disjuncts) }
+                               (eo::ite ($f_list_contains_elem or (not disjunct) disjuncts)
+
+                                        ; We have a or (not disjunct) disjunct ... = true
+                                        true
+
+                                        ; { not ($f_list_contains_elem or (not disjunct) disjuncts) }
+                                        (or disjunct disjuncts)))))
+    )
+
+   ( ; { disjunct != or ... }
+    ($or_simplify_small_step disjunct)
+
+    disjunct
+    )
+  )
+)
+
+; program: $or_simplify_rec
+; args:
+; - formula Bool: A formula.
+; return: >
+;   The result of applying the equivalence-preserving transformations described
+;   in `$or_simplify_small_step` until a fixed point is reached.
+; note: PRE : { $remove_leading_negations_in_disjuncts `formula` = `formula`}
+(program $or_simplify_rec ((disjunct Bool) (disjuncts Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($or_simplify_rec (or disjunct disjuncts))
+
+    (eo::define 
+
+     ((disjuncts_simplified ($or_simplify_rec disjuncts)))
+
+     (eo::ite ($eo_is_eq disjuncts_simplified disjuncts)
+
+              ; We continue reducing, right-to-left.
+              (eo::define 
+
+               ((whole_disjunct_simplified 
+
+                 ($or_simplify_small_step (or disjunct disjuncts))))
+
+               (eo::ite ($eo_is_eq whole_disjunct_simplified 
+                                   (or disjunct disjuncts))
+
+                        ; We reached a fixed point.
+                        (or disjunct disjuncts)
+
+                        ; { not ($eo_is_eq whole_disjunct_simplified 
+                        ;                  (or disjunct disjuncts)) }
+                        ($or_simplify_rec whole_disjunct_simplified)))
+
+              ; { not ($eo_is_eq disjuncts_simplified disjuncts) }
+              ($or_simplify_rec 
+               ($f_list_cons or disjunct disjuncts_simplified))))
+    )
+
+   ( ; { disjunct != or ...}
+     ($or_simplify_rec disjunct)
+
+     disjunct
+     )
+    )
+  )
+
+; program: $check_or_simplify
+; args:
+; - lhs Bool: >
+;   The left-hand side of the equality in the conclusion passed to rule 
+;   `or_simplify`
+; - rhs: >
+;   The right-hand side of the equality in the conclusion passed to rule 
+;   `or_simplify`
+; return: >
+;   A boolean indicating if `lhs` can be reduced to `rhs` using 
+;   `$or_simplify_rec`.
+(program $check_or_simplify ((lhs Bool) (rhs Bool))
+  :signature (Bool Bool) Bool
+  (
+   (
+    ($check_or_simplify lhs rhs)
+
+    ($eo_is_eq ($or_simplify_rec ($remove_leading_negations_in_disjuncts lhs))
+
+               rhs)
+    )
+  )
+)
+
+; rule: or_simplify
+; requires: >
+;   For `lhs` to be reducible to `rhs` following the rules 
+;   in `$or_simplify_rec`.
+; conclusion-explicit: (@cl (= lhs rhs))
+(declare-rule or_simplify ((lhs Bool) (rhs Bool))
+  :requires ((($check_or_simplify lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs))
+)
+
+;-----------------------
+; Rule 74: not_simplify
+;-----------------------
+
+; program: $not_simplify_rec
+; args:
+; - psi Bool: A formula.
+; return: >
+;   The result of applying the following equivalence-preserving transformations until
+;   a fixed point is reached:
+;   - ¬(¬ ᴪ) ⇒ ᴪ
+;   - ¬⊥ ⇒ ⊤
+;   - ¬⊤ ⇒ ⊥
+(program $not_simplify_rec ((psi Bool))
+  :signature (Bool) Bool
+  (
+   (
+    ($not_simplify_rec (not (not psi)))
+
+    ($not_simplify_rec psi)
+    )
+
+   (
+    ($not_simplify_rec (not false))
+
+    true
+    )
+
+   (
+    ($not_simplify_rec (not true))
+
+    false
+    )
+
+   (; { psi does not being with double not, nor has the form (not false), (not true)}
+    ($not_simplify_rec psi)
+
+    psi
+    )
+  )
+)
+
+; program: $check_not_simplify
+; args:
+; - not_phi Bool: >
+;   The left-hand side of the equality in the conclusion passed to rule 
+;   `not_simplify`
+; - psi Bool: >
+;   The right-hand side of the equality in the conclusion passed to rule 
+;   `not_simplify`
+; return: >
+;   A boolean indicating if `not_phi` can be reduced to `psi` using 
+;   `$not_simplify_rec`.
+(program $check_not_simplify ((not_phi Bool) (psi Bool))
+  :signature (Bool Bool) Bool
+  (
+   (
+    ($check_not_simplify not_phi psi) 
+
+    ($eo_is_eq ($not_simplify_rec not_phi) psi)
+    )
+  )
+)
+
+; rule: not_simplify
+; requires: >
+;   For `(not phi)` to be reducible to `psi` following the rules 
+;   in `$not_simplify_rec`.
+; conclusion-explicit: (@cl (= (not phi) psi))
+(declare-rule not_simplify ((phi Bool) (psi Bool))
+  :requires ((($check_not_simplify (not phi) psi) true))
+  :conclusion-explicit (@cl (= (not phi) psi))
+)
+
+;-----------------------
+; Rule 74: bool_simplify
+;-----------------------
+
+; program: $bool_simplify_small_step
+; args:
+; - formula Bool: A formula.
+; return: >
+;   The result of applying one of the following equivalence-preserving 
+;   transformations:
+;   - ¬(𝜑1 → 𝜑2) ⇒ (𝜑1 ∧ ¬𝜑2)
+;   - ¬(𝜑1 ∨ 𝜑2) ⇒ (¬𝜑1 ∧ ¬𝜑2)
+;   - ¬(𝜑1 ∧ 𝜑2) ⇒ (¬𝜑1 ∨ ¬𝜑2)
+;   - (𝜑1 → (𝜑2 → 𝜑3)) ⇒ (𝜑1 ∧ 𝜑2) → 𝜑3
+;   - ((𝜑1 → 𝜑2) → 𝜑2) ⇒ (𝜑1 ∨ 𝜑2)
+;   - (𝜑1 ∧ (𝜑1 → 𝜑2)) ⇒ (𝜑1 ∧ 𝜑2)
+;   - ((𝜑1 → 𝜑2) ∧ 𝜑1) ⇒ (𝜑1 ∧ 𝜑2)
+(program $bool_simplify_small_step ((phi1 Bool) (phi2 Bool :list) (phi3 Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($bool_simplify_small_step (not (=> phi1 phi2)))
+
+    ($f_list_cons and phi1 (not phi2))
+    )
+
+   (
+    ($bool_simplify_small_step (not (or phi1 phi2)))
+
+    ($f_list_cons and (not phi1) (not phi2))
+    )
+
+   (
+    ($bool_simplify_small_step (not (and phi1 phi2)))
+
+    ($f_list_cons or (not phi1) (not phi2))
+    )
+
+   (
+    ($bool_simplify_small_step (=> phi1 (=> phi2 phi3)))
+    
+    (=> ($f_list_cons and phi1 phi2) phi3)
+    )
+
+   (
+    ($bool_simplify_small_step (=> (=> phi1 phi2) phi2))
+
+    ($f_list_cons or phi1 phi2)
+    )
+
+   (
+    ($bool_simplify_small_step (and (=> phi3 phi2) phi3))
+
+    ($f_list_cons and phi3 phi2)
+    )
+
+   (; { phi1 != (=> phi3 phi2) }
+    ($bool_simplify_small_step (and phi1 phi2))
+
+    ; Check which case we are into.
+    (eo::ite ($is_implication phi2)
+
+             (eo::define
+              
+              (
+               (antecedent ($implication_get_antecedent phi2))
+
+               (consequent ($implication_get_consequent phi2))
+               )
+
+              (eo::ite ($eo_is_eq phi1 antecedent)
+
+                       ; Sixth case of bool_simplify.
+                       ($f_list_cons and phi1 consequent)
+
+                       ; { not ($eo_is_eq phi1 antecedent) }
+                       ($f_list_cons and phi1 phi2)))
+
+             ; { not ($is_implication phi2) }
+             ($f_list_cons and phi1 phi2))
+    )
+
+   (
+    ($bool_simplify_small_step phi1)
+
+    phi1
+    )
+  )
+)
+
+; program: $bool_simplify_rec
+; args:
+; - formula Bool: A formula.
+; return: >
+;   The result of applying the equivalence-preserving transformations described
+;   in `$bool_simplify_small_step` until a fixed point is reached.
+(program $bool_simplify_rec ((operator (-> Bool Bool Bool)) (op Bool)
+                             (ops Bool :list))
+  :signature (Bool) Bool
+  (
+   (
+    ($bool_simplify_rec (not op))
+
+    (eo::define 
+
+     ; We reduce top-to-bottom
+     ((whole_exp_simplified ($bool_simplify_small_step (not op))))
+
+     (eo::ite ($eo_is_eq whole_exp_simplified (not op))
+
+              ; We continue reducing the sub-term
+              (eo::define 
+
+               ((op_simplified ($bool_simplify_rec op)))
+
+               (eo::ite ($eo_is_eq op_simplified op)
+
+                        ; We reached a fixed point.
+                        (not op)
+
+                                   
+                         ; { not ($eo_is_eq op_simplified op) }
+                         ($bool_simplify_rec (not op_simplified))))
+
+              ; { not ($eo_is_eq whole_exp_simplified (not op)) }
+              ($bool_simplify_rec whole_exp_simplified)))
+    )
+
+   (
+    ($bool_simplify_rec (operator op ops))
+
+    (eo::define 
+
+     ; We reduce top-to-bottom
+     ((whole_exp_simplified ($bool_simplify_small_step (operator op ops))))
+
+     (eo::ite ($eo_is_eq whole_exp_simplified (operator op ops))
+
+              ; We continue reducing, right-to-left.
+              (eo::define 
+
+               ((tail_simplified ($bool_simplify_rec ops)))
+
+               (eo::ite ($eo_is_eq tail_simplified ops)
+
+                        (eo::define 
+
+                         ((op_simplified ($bool_simplify_rec op)))
+
+                         (eo::ite ($eo_is_eq op_simplified
+                                             op)
+
+                                   ; We reached a fixed point.
+                                   (operator op ops)
+
+                                   
+                                   ; { not ($eo_is_eq op_simplified op) }
+                                   ($bool_simplify_rec (operator op_simplified 
+                                                                 ops))))
+
+                        ; { not ($eo_is_eq tail_simplified ops) }
+                        ($bool_simplify_rec (operator op tail_simplified))))
+
+              ; { not ($eo_is_eq whole_op_simplified 
+              ;                  (operator op ops)) }
+              ($bool_simplify_rec whole_exp_simplified)))
+    )
+   
+
+   ( ; { op != operator ...}
+     ($bool_simplify_rec op)
+
+     op
+     )
+    )
+  )
+
+; program: $check_bool_simplify
+; args:
+; - lhs Bool: The left-hand side of the equality in the conclusion passed to rule  `bool_simplify`
+; - rhs Bool: The right-hand side of the equality in the conclusion passed to rule `bool_simplify`
+; return: >
+;   A boolean indicating if `lhs` can be reduced to `rhs` using 
+;   `$bool_simplify_rec`.
+(program $check_bool_simplify ((lhs Bool) (rhs Bool))
+  :signature (Bool Bool) Bool
+  (
+   (
+    ($check_bool_simplify lhs rhs)
+
+    ($eo_is_eq ($bool_simplify_rec lhs)
+
+               rhs)
+    )
+  )
+)
+
+; rule: bool_simplify
+; requires: >
+;   For `lhs` to be reducible to `rhs` following the rules 
+;   in `$bool_simplify_rec`.
+; conclusion-explicit: (@cl (= lhs rhs))
+(declare-rule bool_simplify ((lhs Bool) (rhs Bool))
+  :requires ((($check_bool_simplify lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs))
+)
+
+
+;-----------------------
+; Rule 86: prod_simplify
+;-----------------------
+
+; program: $check_prod_simplify
+; args:
+; - lhs A: Left-hand side in the conclusion provided to `prod_simplify`. 
+; - rhs A: Right-hand side in the conclusion provided to `prod_simplify`. 
+; return: >
+;   A boolean indicating if `lhs` and `rhs` evaluates to the same value, by 
+;   virtue of just reordering factors and evaluating products, when possible.
+(program $check_prod_simplify ((A Type) (lhs A) (rhs A))
+  :signature (A A) Bool
+  (
+   (
+    ($check_prod_simplify lhs rhs) 
+    
+    (eo::define
+     (; Only reorder and evaluation of the terms is allowed.
+      (lhs_evaluated ($small_step_evaluator_arith_term 
+                      ($assoc_evaluatable_terms
+                       ($reorder_arith_term lhs))))
+
+      ; We fully evaluate `rhs`, so it can be easily compared with `lhs`.
+      (rhs_evaluated ($evaluate_arith_term rhs))
+      )
+
+     (eo::ite (eo::and ($is_evaluatable lhs_evaluated)
+                       ($is_evaluatable rhs_evaluated))
+
+              ($eo_is_eq (eo::to_q lhs_evaluated) (eo::to_q rhs_evaluated))
+              
+              ; { not (eo::and ($is_evaluatable lhs_evaluated)
+              ;       ($is_evaluatable rhs_evaluated)) }
+              ($eo_is_eq lhs_evaluated rhs_evaluated)
+              )
+     )
+    )
+   )
+)
+
+; rule: prod_simplify
+; requires: > 
+;   For the left-hand side of the conclusion to be reduced to the same value
+;   as the right-hand side, only by virtue of reordering factors and evaluating
+;   products. 
+; conclusion: Conclusion must be of the form 𝑡1 × ⋯× 𝑡𝑛 ≈ 𝑢.
+(declare-rule prod_simplify ((A Type) (lhs A) (rhs A))
+  :requires ((($check_prod_simplify lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs))
+)
+
+
+;-----------------------
+; Rule 103: eq_symmetric
+;-----------------------
+
+; rule: eq_symmetric
+; conclusion-explicit: >
+;   Conclusion must have the form (@cl (= (= t1 t2) (= t2 t1))), for terms 
+;   t1 and t2 of arbitrary type.
+(declare-rule eq_symmetric ((A Type) (B Type) (t1 A) (t2 B))
+  :conclusion-explicit (@cl (= (= t1 t2) (= t2 t1)))
+)
