@@ -1,0 +1,982 @@
+(include "../../signature/rules/tautologies.eo")
+(include "../unit_test_services.eo")
+
+
+; Unit tests for rules that introduce tautologies and their helper programs.
+
+;------------------------------------------
+; $check_eq_transitive_remaining_equalities
+;------------------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const U Type)
+(declare-const a U)
+(declare-const b U)
+(declare-const c U)
+(declare-const d U)
+(declare-const e U)
+
+(step $test_$check_eq_transitive_remaining_equalities_1 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive_remaining_equalities
+              a d (@cl (not (= a b)) (not (= b d))))
+
+             true))
+
+(step $test_$check_eq_transitive_remaining_equalities_2 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive_remaining_equalities
+              a d (@cl (not (= a b)) (not (= b c)) (not (= c d))))
+
+             true))
+
+(step $test_$check_eq_transitive_remaining_equalities_3 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive_remaining_equalities
+              a d (@cl (not (= a b)) (not (= b c)) (not (= c d))))
+
+             true))
+
+(step $test_$check_eq_transitive_remaining_equalities_4 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive_remaining_equalities
+              a e (@cl (not (= a b)) (not (= b c)) (not (= c d)) (not (= d e))))
+
+             true))
+
+;------------------------------------------
+; $check_eq_transitive_from_first_equality
+;------------------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const U Type)
+(declare-const a U)
+(declare-const b U)
+(declare-const c U)
+(declare-const d U)
+(declare-const e U)
+
+(step $test_$check_eq_transitive_from_first_equality_1 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive_from_first_equality
+              (= a d) (@cl (not (= a b)) (not (= b d))))
+
+             true))
+
+(step $test_$check_eq_transitive_from_first_equality_2 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive_from_first_equality
+              (= a d) (@cl (not (= a b)) (not (= b c)) (not (= c d))))
+
+             true))
+
+(step $test_$check_eq_transitive_from_first_equality_3 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive_from_first_equality
+              (= a d) (@cl (not (= a b)) (not (= b c)) (not (= c d))))
+
+             true))
+
+(step $test_$check_eq_transitive_from_first_equality_4 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive_from_first_equality
+              (= a e) (@cl (not (= a b)) (not (= b c)) (not (= c d)) (not (= d e))))
+
+             true))
+
+;------------------------------------------
+; $check_eq_transitive
+;------------------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const U Type)
+(declare-const a U)
+(declare-const b U)
+(declare-const c U)
+(declare-const d U)
+(declare-const e U)
+
+(step $test_$check_eq_transitive_1 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive
+              (@cl (not (= a b)) (not (= b d)) (= a d)))
+
+             true))
+
+(step $test_$check_eq_transitive_2 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive
+              (@cl (not (= a b)) (not (= b c)) (not (= c d)) (= a d)))
+
+             true))
+
+(step $test_$check_eq_transitive_3 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive
+              (@cl (not (= a b)) (not (= b c)) (not (= c d)) (= a d)))
+
+             true))
+
+(step $test_$check_eq_transitive_4 true
+      :rule $assert_eq 
+      :args (($check_eq_transitive
+              (@cl (not (= a b)) (not (= b c)) (not (= c d)) (not (= d e))
+                   (= a e) ))
+
+             true))
+
+;------------------------------------------
+; eq_transitive
+;------------------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const U Type)
+(declare-const a U)
+(declare-const b U)
+(declare-const c U)
+(declare-const d U)
+(declare-const e U)
+
+(step $test_eq_transitive_1 
+      (@cl (not (= a b)) (not (= b d)) (= a d))
+      :rule eq_transitive)
+
+(step $test_eq_transitive_2 
+      (@cl (not (= a b)) (not (= b c)) (not (= c d)) (= a d))
+      :rule eq_transitive)
+
+(step $test_eq_transitive_3
+      (@cl (not (= a b)) (not (= b c)) (not (= c d)) (= a d))
+      :rule eq_transitive)
+
+(step $test_eq_transitive_4
+      (@cl (not (= a b)) (not (= b c)) (not (= c d)) (not (= d e))
+                   (= a e))
+      :rule eq_transitive)
+
+
+
+;--------------------------------------
+; $check_n_ary_application_eq_congruent
+;--------------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const U Type)
+(declare-const a U)
+(declare-const b U)
+(declare-const c U)
+(declare-const d U)
+(declare-const e U)
+(declare-const j U)
+(declare-const g (-> U U))
+(declare-const f (-> U U U))
+(declare-const h (-> U U U U))
+
+(step $test_$check_n_ary_application_eq_congruent_1 true 
+      :rule $assert_eq 
+      :args (($check_n_ary_application_eq_congruent (= (g a) (g b))
+                                                    (@cl (not (= a b)))) 
+             true))
+
+(step $test_$check_n_ary_application_eq_congruent_2 true 
+      :rule $assert_eq 
+      :args (($check_n_ary_application_eq_congruent (= (f b c) (f d e))
+                                                    (@cl (not (= c e))
+                                                         (not (= b d)))) 
+             true))
+
+(step $test_$check_n_ary_application_eq_congruent_3 true 
+      :rule $assert_eq 
+      :args (($check_n_ary_application_eq_congruent (= (h a b c) (h d e j))
+              (@cl (not (= c j)) (not (= b e)) (not (= a d)))) 
+             true))
+
+;--------------------
+; $check_eq_congruent
+;--------------------
+; Some constants to build terms, for testing purposes.
+(declare-const U Type)
+(declare-const a U)
+(declare-const b U)
+(declare-const c U)
+(declare-const d U)
+(declare-const e U)
+(declare-const j U)
+(declare-const g (-> U U))
+(declare-const f (-> U U U))
+(declare-const h (-> U U U U))
+
+(step $test_$check_eq_congruent_1 true 
+      :rule $assert_eq 
+      :args (($check_eq_congruent 
+              (@cl (not (= a b))  (= (g a) (g b)))) true))
+
+(step $test_$check_eq_congruent_2 true 
+      :rule $assert_eq 
+      :args (($check_eq_congruent (@cl (not (= b d)) (not (= c e)) (= (f b c) (f d e)))) 
+             true))
+
+(step $test_$check_eq_congruent_3 true 
+      :rule $assert_eq 
+      :args (($check_eq_congruent (@cl (not (= a d)) (not (= b e)) (not (= c j)) 
+                                       (= (h a b c) (h d e j)))) 
+             true))
+
+;--------------------
+; $check_eq_congruent_pred
+;--------------------
+; Some constants to build terms, for testing purposes.
+(declare-const U Type)
+(declare-const a U)
+(declare-const b U)
+(declare-const c U)
+(declare-const d U)
+(declare-const e U)
+(declare-const j U)
+(declare-const g (-> U U))
+(declare-const f (-> U U Bool))
+(declare-const h (-> U U U Bool))
+
+(step $test_$check_eq_congruent_pred_1 true 
+      :rule $assert_eq 
+      :args (($check_eq_congruent_pred 
+              (@cl (not (= a b)) (not (g a)) (g b))) 
+
+             true))
+
+(step $test_$check_eq_congruent_pred_2 true 
+      :rule $assert_eq 
+      :args (($check_eq_congruent_pred (@cl (not (= b d)) (not (= c e)) 
+                                            (not (f b c)) (f d e)))
+             
+             true))
+
+(step $test_$check_eq_congruent_pred_3 true 
+      :rule $assert_eq 
+      :args (($check_eq_congruent_pred (@cl (not (= a d)) (not (= b e)) (not (= c j))
+                                       (not (h a b c)) (h d e j)))
+
+             true))
+
+;--------------------
+; $connective_def
+;--------------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+; First case
+(step $test_$connective_def_1 true 
+      :rule $assert_eq 
+      :args (($connective_def (xor a b)) 
+             
+             ($f_list_cons or 
+                  ($f_list_cons and (not a) b)
+                  ($f_list_cons and a (not b)))))
+
+; Second case
+(step $test_$connective_def_2 true 
+      :rule $assert_eq 
+      :args (($connective_def (= a b)) 
+             
+             ($f_list_cons and (=> a b) (=> b a))))
+
+; Third case
+(step $test_$connective_def_3 true 
+      :rule $assert_eq 
+      :args (($connective_def (ite a b c)) 
+             
+             ($f_list_cons and (=> a b) (=> (not a) c))))
+
+; Fourth case
+(step $test_$connective_def_4 true 
+      :rule $assert_eq 
+      :args (($connective_def (forall @varlist.nil a)) 
+             
+             (not (exists @varlist.nil (not a)))))
+
+; Fifth case
+(step $test_$connective_def_4 true 
+      :rule $assert_eq 
+      :args (($connective_def (exists @varlist.nil (not a))) 
+             
+             (not (forall @varlist.nil (not (not a))))))
+
+;--------------------
+; $check_connective_def
+;--------------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+; First case
+(step $test_$check_connective_def_1 true 
+      :rule $assert_eq 
+      :args (($check_connective_def 
+              (@cl (= (xor a b)
+
+                      ($f_list_cons or 
+                                    ($f_list_cons and (not a) b)
+                                    ($f_list_cons and a (not b))))))
+
+             true))
+
+; Second case
+(step $test_$check_connective_def_2 true 
+      :rule $assert_eq 
+      :args (($check_connective_def (@cl (= (= a b)
+                                            ($f_list_cons and (=> a b) (=> b a)))))
+             
+             true))
+
+; Third case
+(step $test_$check_connective_def_3 true 
+      :rule $assert_eq 
+      :args (($check_connective_def (@cl (= (ite a b c)
+                                            ($f_list_cons and (=> a b) (=> (not a) c)))))
+
+             true))
+
+; Fourth case
+(step $test_$check_connective_def_4 true 
+      :rule $assert_eq 
+      :args (($check_connective_def (@cl (= (forall @varlist.nil a)
+                                            (not (exists @varlist.nil (not a))))))
+             
+             true))
+
+; Fifth case
+(step $test_$check_connective_def_4 true 
+      :rule $assert_eq 
+      :args (($check_connective_def (@cl (= (exists @varlist.nil (not a))
+                                            (not (forall @varlist.nil (not (not a)))))))
+
+             true))
+
+;-------------
+; $or_simplify_rec
+;-------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+; First case of $or_simplify_rec:
+; ⊥∨⋯∨⊥ ⇒ ⊥
+(step $test_$or_simplify_rec_1 true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or false false)) false))
+
+(step $test_$or_simplify_rec_1 true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or false a b false))
+             ($f_list_cons or a b)))
+
+; Second case of $or_simplify_rec:
+; 𝜑1 ∨ ⋯ ∨ 𝜑𝑛 ⇒ 𝜑1 ∨ ⋯ ∨ 𝜑𝑛′ where the right-hand side has every repeated 
+; literal removed.
+(step $test_$or_simplify_rec_2 true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or a a b)) 
+             ($f_list_cons or a b)))
+
+(step $test_$or_simplify_rec_3 true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or a a b c c)) 
+             ($f_list_cons or a ($f_list_cons or b c))))
+
+
+; Third case of $or_simplify_rec:
+; ⊤ ∨ ⋯ ∨ 𝜑𝑛 ⇒ ⊤
+(step $test_$or_simplify_rec_4 true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or a true false)) 
+             true))
+
+(step $test_$or_simplify_rec_4b true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or a true b)) 
+             true))
+
+(step $test_$or_simplify_rec_4c true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or a a false true b)) 
+             true))
+
+; Fourth case of $or_simplify_rec:
+; 𝜑𝑖 ∨ ⋯ ∨ 𝜑𝑗 ∨ ⋯ ∨ 𝜑𝑛 ⇒ ⊤ and 𝜑𝑖 , 𝜑𝑗 are such that one is the
+; negation of the other formula
+(step $test_$or_simplify_rec_5 true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or a (not a)))
+             true))
+
+(step $test_$or_simplify_rec_6 true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or a b false b (not a)))
+             true))
+
+(step $test_$or_simplify_rec_7 true 
+      :rule $assert_eq 
+      :args (($or_simplify_rec (or a b false b (not b)))
+             true))
+
+
+;-------------
+; or_simplify
+;-------------
+
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+
+; First case of or_simplify:
+; ⊥∨⋯∨⊥⇒⊥
+(step $test_$or_simplify_1
+      (@cl (= false false))
+      :rule or_simplify)
+
+(step $test_$or_simplify_2
+      (@cl (= (or false false) false))
+      :rule or_simplify)
+
+(step $test_$or_simplify_3
+      (@cl (= (or false false false) false))
+      :rule or_simplify)
+
+(step $test_$or_simplify_4
+      (@cl (= (or false false false false) false))
+      :rule or_simplify)
+
+; Second case of or_simplify
+; 𝜑1 ∨⋯∨𝜑𝑛 ⇒ 𝜑1 ∨⋯∨ 𝜑𝑛′ where the right-hand side has all ⊥literals removed.
+(step $test_$or_simplify_5
+      (@cl (= (or a false) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_6
+      (@cl (= (or false a) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_7
+      (@cl (= (or false a false) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_8
+      (@cl (= (or false false a false) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_9
+      (@cl (= (or false false false a) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_10
+      (@cl (= (or false a false b) 
+              ($f_list_cons or a b)))
+      :rule or_simplify)
+
+(step $test_$or_simplify_11
+      (@cl (= (or false a b c false) 
+              ($f_list_cons or a ($f_list_cons or b c))))
+      :rule or_simplify)
+
+; Third case of or_simplify
+; 𝜑1 ∨⋯∨𝜑𝑛⇒𝜑1 ∨⋯∨𝜑𝑛′ where the right-hand side has all repeated literals
+; removed
+(step $test_$or_simplify_12
+      (@cl (= (or a a false) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_13
+      (@cl (= (or a false a) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_14
+      (@cl (= (or a false a false) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_15
+      (@cl (= (or false a false a false) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_16
+      (@cl (= (or false a a a) a))
+      :rule or_simplify)
+
+(step $test_$or_simplify_17
+      (@cl (= (or false a b false a b) 
+              ($f_list_cons or a b)))
+      :rule or_simplify)
+
+(step $test_$or_simplify_18
+      (@cl (= (or false a b c c false a) 
+              ($f_list_cons or b ($f_list_cons or c a))))
+      :rule or_simplify)
+
+; Fourth case of or_simplify
+; 𝜑1 ∨⋯∨⊤∨⋯∨𝜑𝑛 ⇒⊤
+(step $test_$or_simplify_19
+      (@cl (= (or a true) true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_20
+      (@cl (= (or a true a) true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_21
+      (@cl (= (or a false a true) true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_22
+      (@cl (= (or false a true a false) true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_23
+      (@cl (= (or false a a true) true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_24
+      (@cl (= (or false a b false true b) 
+              true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_25
+      (@cl (= (or false a b c c true a) 
+              true))
+      :rule or_simplify)
+
+; Fifth case of or_simplify:
+; - 𝜑𝑖 ∨ ⋯ ∨ 𝜑𝑗 ∨ ⋯ ∨ 𝜑𝑛 ⇒ ⊤ and 𝜑𝑖 , 𝜑𝑗 are such that one is the
+;   negation of the other formula
+(step $test_$or_simplify_26
+      (@cl (= (or (not a) a) 
+              true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_27
+      (@cl (= (or a (not a)) 
+              true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_28
+      (@cl (= (or a (not (not (not a))))
+              true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_29
+      (@cl (= (or (not (not a)) (not (not (not a))))
+              true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_30
+      (@cl (= (or (not (not a)) false (not (not (not a))))
+              true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_31
+      (@cl (= (or (not (not (not (not a)))) false (not (not (not a))))
+              true))
+      :rule or_simplify)
+
+(step $test_$or_simplify_32
+      (@cl (= (or (not (not (not (not a)))) false (not (not (not a))) b)
+              true))
+      :rule or_simplify)
+
+;-------------
+; not_simplify
+;-------------
+
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+
+; Removing leading double negations
+(step $test_$not_simplify_1
+      (@cl (= (not (not true)) true))
+      :rule not_simplify)
+
+(step $test_$not_simplify_2
+      (@cl (= (not (not false)) false))
+      :rule not_simplify)
+
+(step $test_$not_simplify_3
+      (@cl (= (not (not a)) a))
+      :rule not_simplify)
+
+(step $test_$not_simplify_4
+      (@cl (= (not (not (not (not false)))) false))
+      :rule not_simplify)
+
+(step $test_$not_simplify_5
+      (@cl (= (not (not (not (not (not a))))) (not a)))
+      :rule not_simplify)
+
+; Negation over constants
+(step $test_$not_simplify_6
+      (@cl (= (not true) false))
+      :rule not_simplify)
+
+(step $test_$not_simplify_7
+      (@cl (= (not false) true))
+      :rule not_simplify)
+
+(step $test_$not_simplify_8
+      (@cl (= (not (not (not (not (not false))))) true))
+      :rule not_simplify)
+
+(step $test_$not_simplify_9
+      (@cl (= (not (not (not (not (not true))))) false))
+      :rule not_simplify)
+
+
+;---------------------
+; $check_prod_simplify
+;---------------------
+
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+
+; Arith terms that can be evaluated
+(step $test_$check_prod_simplify_1 true 
+      :rule $assert_eq 
+      :args (($check_prod_simplify (* 1.0 0.0) 0.0) true))
+
+(step $test_$check_prod_simplify_2 true 
+      :rule $assert_eq 
+      :args (($check_prod_simplify (* 1.0 0.0) (* 0.0 1.0)) true))
+
+(step $test_$check_prod_simplify_3 true 
+      :rule $assert_eq 
+      :args (($check_prod_simplify (* 1.0 2.0 3.0) 6.0) true))
+
+(step $test_$check_prod_simplify_4 true 
+      :rule $assert_eq 
+      :args (($check_prod_simplify (* 1.0 2.0 3.0 4.0) 24.0) true))
+
+; Arith terms that cannot be evaluated
+(step $test_$check_prod_simplify_5 true 
+      :rule $assert_eq 
+      :args (($check_prod_simplify (* 1.0 a) a) true))
+
+(step $test_$check_prod_simplify_6 true 
+      :rule $assert_eq 
+      :args (($check_prod_simplify (* a 0.0) 0.0) true))
+
+(step $test_$check_prod_simplify_7 true 
+      :rule $assert_eq 
+      :args (($check_prod_simplify (* 1.0 a 3.0) 
+                                   ($f_list_cons * 3.0 a)) true))
+
+;---------------------
+; $prod_simplify
+;---------------------
+
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+
+; Arith terms that can be evaluated
+(step $test_$prod_simplify_1 
+      (@cl (= (* 1.0 0.0) 0.0)) 
+      :rule prod_simplify)
+
+(step $test_$prod_simplify_2 
+      (@cl (= (* 1.0 0.0) (* 0.0 1.0))) 
+      :rule prod_simplify)
+
+(step $test_$prod_simplify_3 
+      (@cl (= (* 1.0 2.0 3.0) 6.0)) 
+      :rule prod_simplify)
+
+(step $test_$prod_simplify_4 
+      (@cl (= (* 1.0 2.0 3.0 4.0) 24.0)) 
+      :rule prod_simplify)
+
+;-------------------------
+; $bool_simplify_small_step
+;-------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+
+; First case of $bool_simplify_small_step
+(step $test_$bool_simplify_small_step_1 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not (=> a b)))
+             ($f_list_cons and a (not b))))
+
+; Second case of $bool_simplify_small_step
+(step $test_$bool_simplify_small_step_2 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not ($f_list_cons or a b)))
+             ($f_list_cons and (not a) (not b))))
+
+(step $test_$bool_simplify_small_step_2b true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not ($f_list_cons or a ($f_list_cons or b c))))
+             ($f_list_cons and (not a) (not ($f_list_cons or b c)))))
+
+(step $test_$bool_simplify_small_step_2c true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not ($f_list_cons or a ($f_list_cons or b ($f_list_cons or c d)))))
+             ($f_list_cons and (not a) (not ($f_list_cons or b ($f_list_cons or c d))))))
+
+; Third case of $bool_simplify_small_step
+(step $test_$bool_simplify_small_step_3 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not ($f_list_cons and a b)))
+             ($f_list_cons or (not a) (not b))))
+
+(step $test_$bool_simplify_small_step_3b true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not ($f_list_cons and a ($f_list_cons and b c))))
+             ($f_list_cons or (not a) (not ($f_list_cons and b c)))))
+
+(step $test_$bool_simplify_small_step_3c true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (not ($f_list_cons and ($f_list_cons and a b) ($f_list_cons and c d))))
+             ($f_list_cons or (not ($f_list_cons and a b)) (not ($f_list_cons and c d)))))
+
+; Fourth case of $bool_simplify_small_step
+(step $test_$bool_simplify_small_step_4 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (=> a (=> b c)))
+             (=> ($f_list_cons and a b) c)))
+
+; Fifth case of $bool_simplify_small_step
+(step $test_$bool_simplify_small_step_5 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step (=> (=> a b) b))
+             ($f_list_cons or a b)))
+
+; Sixth case of $bool_simplify_small_step
+(step $test_$bool_simplify_small_step_6 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step ($f_list_cons and a (=> a b)))
+             ($f_list_cons and a b)))
+
+; Seventh case of $bool_simplify_small_step
+(step $test_$bool_simplify_small_step_7 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_small_step ($f_list_cons and (=> a b) a))
+             ($f_list_cons and a b)))
+
+
+
+;-------------------
+; $bool_simplify_rec
+;-------------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+
+; First case of $bool_simplify_rec
+(step $test_$bool_simplify_rec_1 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not (=> a b)))
+             ($f_list_cons and a (not b))))
+
+; Second case of $bool_simplify_rec
+(step $test_$bool_simplify_rec_2 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not ($f_list_cons or a b)))
+             ($f_list_cons and (not a) (not b))))
+
+(step $test_$bool_simplify_rec_2b true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not ($f_list_cons or a ($f_list_cons or b c))))
+             ($f_list_cons and (not a) ($f_list_cons and (not b) (not c)))))
+
+(step $test_$bool_simplify_rec_2c true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not ($f_list_cons or a ($f_list_cons or b ($f_list_cons or c d)))))
+             ($f_list_cons and (not a) ($f_list_cons and (not b) ($f_list_cons and (not c) (not d))))))
+
+; Third case of $bool_simplify_rec
+(step $test_$bool_simplify_rec_3 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not ($f_list_cons and a b)))
+             ($f_list_cons or (not a) (not b))))
+
+(step $test_$bool_simplify_rec_3b true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not ($f_list_cons and a ($f_list_cons and b c))))
+             ($f_list_cons or (not a) ($f_list_cons or (not b) (not c)))))
+
+(step $test_$bool_simplify_rec_3c true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (not ($f_list_cons and a ($f_list_cons and b ($f_list_cons and c d)))))
+             ($f_list_cons or (not a) ($f_list_cons or (not b) ($f_list_cons or (not c) (not d))))))
+
+; Fourth case of $bool_simplify_rec
+(step $test_$bool_simplify_rec_4 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (=> a (=> b c)))
+             (=> ($f_list_cons and a b) c)))
+
+; Fifth case of $bool_simplify_rec
+(step $test_$bool_simplify_rec_5 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec (=> (=> a b) b))
+             ($f_list_cons or a b)))
+
+; Sixth case of $bool_simplify_rec
+(step $test_$bool_simplify_rec_6 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec ($f_list_cons and a (=> a b)))
+             ($f_list_cons and a b)))
+
+; Seventh case of $bool_simplify_rec
+(step $test_$bool_simplify_rec_7 true 
+      :rule $assert_eq 
+      :args (($bool_simplify_rec ($f_list_cons and (=> a b) a))
+             ($f_list_cons and a b)))
+
+;-------------
+; bool_simplify
+;-------------
+
+; Some constants to build terms, for testing purposes.
+(declare-const a Bool)
+(declare-const b Bool)
+(declare-const c Bool)
+(declare-const d Bool)
+(declare-const e Bool)
+(declare-const p (-> Bool Bool))
+
+; First case
+(step $test_$bool_simplify_1
+      (@cl (= (not (=> a b)) ($f_list_cons and a (not b))))
+      :rule bool_simplify)
+
+; Second case
+(step $test_$bool_simplify_2
+      (@cl (= (not ($f_list_cons or a b)) ($f_list_cons and (not a) (not b))))
+      :rule bool_simplify)
+
+; Third case
+(step $test_$bool_simplify_3
+      (@cl (= (not ($f_list_cons and a b)) ($f_list_cons or (not a) (not b))))
+      :rule bool_simplify)
+
+(step $test_$bool_simplify_3b
+      (@cl (= (not ($f_list_cons and a ($f_list_cons and b c)))
+              ($f_list_cons or (not a) ($f_list_cons or (not b) (not c)))))
+      :rule bool_simplify)
+
+(step $test_$bool_simplify_3c
+      (@cl (= (not ($f_list_cons and a 
+                                 ($f_list_cons and b ($f_list_cons and c d))))
+              ($f_list_cons or 
+                            (not a) 
+                            ($f_list_cons or 
+                                          (not b) 
+                                          ($f_list_cons or (not c) (not d))))))
+      :rule bool_simplify)
+
+; Fourth case
+(step $test_$bool_simplify_4
+      (@cl (= (=> a (=> b c)) (=> ($f_list_cons and a b) c)))
+      :rule bool_simplify)
+
+; Fifth case
+(step $test_$bool_simplify_5
+      (@cl (= (=> (=> a b) b) ($f_list_cons or a b)))
+      :rule bool_simplify)
+
+; Sixth case
+(step $test_$bool_simplify_6
+      (@cl (= ($f_list_cons and a (=> a b)) ($f_list_cons and a b)))
+      :rule bool_simplify)
+
+(step $test_$bool_simplify_6
+      (@cl (= ($f_list_cons and a (=> a b)) ($f_list_cons and a b)))
+      :rule bool_simplify)
+
+; Seventh case
+(step $test_$bool_simplify_7
+      (@cl (= ($f_list_cons and (=> a b) a) ($f_list_cons and a b)))
+      :rule bool_simplify)
+
+; Misc.
+(step $test_$bool_simplify_misc_1
+      (@cl (= (=> (p a) 
+                 (=> ($f_list_cons or (= a b) e) 
+                    (p c))) 
+
+              (=> ($f_list_cons and (p a) 
+                      ($f_list_cons or (= a b) e)) 
+                 (p c))))
+      :rule bool_simplify)
+
+
+
+
+;-------------
+; eq_symmetric
+;-------------
+
+; Some constants to build terms, for testing purposes.
+(declare-const a Int)
+(declare-const b Int)
+(declare-const c Real)
+(declare-const d Real)
+(declare-const S Type)
+(declare-const e S)
+(declare-const f S)
+(declare-const g (-> S S))
+
+; Arbitrary arith terms
+(step $test_$eq_symmetric_1
+      (@cl (= (= 1 2) (= 2 1)))
+      :rule eq_symmetric)
+
+(step $test_$eq_symmetric_2
+      (@cl (= (= 1.0 2.0) (= 2.0 1.0)))
+      :rule eq_symmetric)
+
+(step $test_$eq_symmetric_3
+      (@cl (= (= a b) (= b a)))
+      :rule eq_symmetric)
+
+(step $test_$eq_symmetric_4
+      (@cl (= (= (+ a 1) b) (= b (+ a 1))))
+      :rule eq_symmetric)
+
+(step $test_$eq_symmetric_5
+      (@cl (= (= (+ c 1) d) (= d (+ c 1))))
+      :rule eq_symmetric)
+
+; Boolean terms
+
+(step $test_$eq_symmetric_6
+      (@cl (= (= true false) (= false true)))
+      :rule eq_symmetric)
+
+(step $test_$eq_symmetric_7
+      (@cl (= (= (or true true) false) (= false (or true true))))
+      :rule eq_symmetric)
+
+(step $test_$eq_symmetric_8
+      (@cl (= (= (or true true) (and false true)) 
+              (= (and false true) (or true true))))
+      :rule eq_symmetric)
+
+; Arbitrary sorts
+
+(step $test_$eq_symmetric_9
+      (@cl (= (= e f) (= f e)))
+      :rule eq_symmetric)
+
+(step $test_$eq_symmetric_10
+      (@cl (= (= e e) (= e e)))
+      :rule eq_symmetric)
+
+(step $test_$eq_symmetric_11
+      (@cl (= (= (g e) e) (= e (g e))))
+      :rule eq_symmetric)
+
+(step $test_$eq_symmetric_12
+      (@cl (= (= (g e) (g (g f))) (= (g (g f)) (g e))))
+      :rule eq_symmetric)
