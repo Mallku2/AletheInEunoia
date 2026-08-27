@@ -2054,487 +2054,34 @@
   :conclusion-explicit (@cl (= t t))
 )
 
-;-----------------
-; Rule qnt_cnf
-;-----------------
-
-; program: $negative_normal_form
-; args:
-; - formula Bool: A formula to be converted to its NNF.
-; - flag Bool: >
-;   A boolean flag indicating if the formula should is currently under a single 
-;   negation (`flag` = false) or not (`flag` = true). This is useful for 
-;   recursive definition purposes. The NNF of a formula 𝜑 would be the result of
-;   (`$negative_normal_form` 𝜑 true).
-; return: >
-;   The NNF-equivalent formula of `formula` (if `flag` = true) or its negated
-;   equivalent (if `flag` = false).
-(program $negative_normal_form ((phi_1 Bool) (phi_2 Bool) (phi_3 Bool)
-                                (disjunct Bool) (disjuncts Bool :list)
-                                (conjunct Bool) (conjuncts Bool :list)
-                                (varlist @VarList) (body Bool))
-
-         :signature (Bool Bool) Bool
-
-         (
-          (
-           ($negative_normal_form (not phi_1) true)
-
-           ($negative_normal_form phi_1 false)
-           )
-
-          (
-           ($negative_normal_form (not phi_1) false)
-
-           ($negative_normal_form phi_1 true)
-           )
-
-          (
-           ($negative_normal_form (or disjunct disjuncts) true)
-
-           ($f_list_cons or 
-                         ($negative_normal_form disjunct true)
-                         ($negative_normal_form disjuncts true))
-           )
-
-          (
-           ($negative_normal_form (or disjunct disjuncts) false)
-
-           ($f_list_cons and 
-                         ($negative_normal_form disjunct false)
-                         ($negative_normal_form disjuncts false))
-           )
-
-          (
-           ($negative_normal_form (and conjunct conjuncts) true)
-
-           ($f_list_cons and
-                         ($negative_normal_form conjunct true)
-                         ($negative_normal_form conjuncts true))
-           )
-
-          (
-           ($negative_normal_form (and conjunct conjuncts) false)
-
-           ($f_list_cons or
-                         ($negative_normal_form conjunct false)
-                         ($negative_normal_form conjuncts false))
-           )
-
-          (
-           ($negative_normal_form (=> phi_1 phi_2) true)
-
-           ($f_list_cons or
-                         ($negative_normal_form phi_1 false)
-                         ($negative_normal_form phi_2 true))
-           )
-
-          (
-           ($negative_normal_form (=> phi_1 phi_2) false)
-
-           ($f_list_cons and
-                         ($negative_normal_form phi_1 true)
-                         ($negative_normal_form phi_2 false))
-           )
-
-          (
-           ($negative_normal_form (ite phi_1 phi_2 phi_3) true)
-
-           ($f_list_cons and
-                         ($f_list_cons or
-                                       ($negative_normal_form phi_1 false)
-                                       ($negative_normal_form phi_2 true))
-
-                         ($f_list_cons or
-                                       ($negative_normal_form phi_1 true)
-                                       ($negative_normal_form phi_3 true)))
-           )
-
-          (
-           ($negative_normal_form (ite phi_1 phi_2 phi_3) false)
-
-           ($f_list_cons or
-                         ($f_list_cons and
-                                       ($negative_normal_form phi_1 true)
-                                       ($negative_normal_form phi_2 false))
-
-                         ($f_list_cons and
-                                       ($negative_normal_form phi_1 false)
-                                       ($negative_normal_form phi_3 false)))
-           )
-
-          (
-           ($negative_normal_form (forall varlist body) true)
-
-           (forall varlist ($negative_normal_form body true))
-           )
-
-          (
-           ($negative_normal_form (forall varlist body) false)
-
-           (exists varlist ($negative_normal_form body false))
-           )
-
-          (
-           ($negative_normal_form (exists varlist body) true)
-
-           (exists varlist ($negative_normal_form body true))
-           )
-
-          (
-           ($negative_normal_form (exists varlist body) false)
-
-           (forall varlist ($negative_normal_form body false))
-           )
-
-          (; { phi_1 is an atom }
-           ($negative_normal_form phi_1 true)
-
-           phi_1
-           )
-
-          (; { phi_1 is an atom }
-           ($negative_normal_form phi_1 false)
-
-           (not phi_1)
-           )
-          )
-         )
-
-; program: $small_step_prenex_normal_form
-; args:
-; - formula Bool: An arbitrary formula, in NNF.
-; return: >
-;   The result of applying a single step of rewrite towards converting `formula`
-;   into its prenex normal form.
-; note: PRE : { `formula` is in NNF }
-(program $small_step_prenex_normal_form ((formula Bool) (formulas Bool)
-                                         (varlist @VarList) (body Bool)
-                                         (op (-> Bool Bool Bool)))
-
-         :signature (Bool) Bool
-
-         (; NOTE: not abstracting the specific quantifiers to avoid undesired
-          ; matches with other kind of constructions of the form
-          ; (some_function value values)
-          (; NOTE: for this to always hold, the domain of the quantifier 
-           ; should not be empty.
-           ($small_step_prenex_normal_form (op (forall varlist body) formulas))
-
-           (forall varlist (op body formulas))
-           )
-
-          (; NOTE: for this to always hold, the domain of the quantifier 
-           ; should not be empty.
-           ($small_step_prenex_normal_form (op (exists varlist body) formulas))
-
-           (exists varlist (op body formulas))
-           )
-
-          (; NOTE: for this to always hold, the domain of the quantifier 
-           ; should not be empty.
-           ($small_step_prenex_normal_form (op formula (forall varlist body)))
-
-           (forall varlist (op formula body))
-           )
-
-          (; NOTE: for this to always hold, the domain of the quantifier 
-           ; should not be empty.
-           ($small_step_prenex_normal_form (op formula (exists varlist body)))
-
-           (exists varlist (op formula body))
-           )
-
-          (; { formula is an atom, a negated atom or a quantifier}
-           ($small_step_prenex_normal_form formula)
-
-           formula
-           )
-          )
-         )
-
-; program: $prenex_normal_form
-; args:
-; - formula Bool: An arbitrary formula, in NNF.
-; return: >
-;   The prenex normal form of `formula`.
-; note: PRE : { `formula` is in NNF }
-(program $prenex_normal_form ((formula Bool) (other_formulas Bool :list)
-                              (variables @VarList) (body Bool)
-                              (op (-> Bool Bool Bool))
-                              (quantifier (-> @VarList Bool Bool)))
-
-         :signature (Bool) Bool
-
-         (
-          (; NOTE: not abstracting the specific quantifiers to avoid undesired
-           ; matches with other kind of constructions of the form
-           ; (some_function value values)
-           ($prenex_normal_form (forall variables body))
-
-           (eo::define
-            
-            (
-             (prenex_body ($prenex_normal_form body))
-             )
-
-            (eo::ite ($eo_is_eq body prenex_body)
-                     ; Original formula is in prenex form.
-                     (forall variables body)
-
-                     ; { not ($eo_is_eq body prenex_body) }
-                     (forall variables ($prenex_normal_form prenex_body))))
-           )
-
-          (
-           ($prenex_normal_form (exists variables body))
-
-           (eo::define
-            
-            (
-             (prenex_body ($prenex_normal_form body))
-             )
-
-            (eo::ite ($eo_is_eq body prenex_body)
-                     ; Original formula is in prenex form.
-                     (exists variables body)
-
-                     ; { not ($eo_is_eq body prenex_body) }
-                     (exists variables ($prenex_normal_form prenex_body))))
-           )
-
-          (
-           ($prenex_normal_form (op formula other_formulas))
-
-           (eo::define
-            
-            (
-             (prenex_formula ($prenex_normal_form formula))
-
-             (prenex_other_formulas ($prenex_normal_form other_formulas))
-             )
-            
-            (eo::define
-             
-             (
-              (prenex_op_formula ($small_step_prenex_normal_form 
-                                  (op prenex_formula prenex_other_formulas)))
-              )
-
-             (eo::ite ($eo_is_eq (op prenex_formula prenex_other_formulas) 
-                                 prenex_op_formula)
-
-                      ; Original formula is in prenex form.
-                      prenex_op_formula
-
-                      ; { not ($eo_is_eq (op formula other_formulas) 
-                      ;        prenex_op_formula) }
-                      ($prenex_normal_form prenex_op_formula))))
-           )
-
-          (; { formula is an atom or a negated atom }
-           ($prenex_normal_form formula)
-
-           formula
-           )
-          )
-         )
-
-; program: $small_step_conjunctive_normal_form
-; args:
-; - $conjunctive_normal_form nil:
-; return:
-; note: PRE : { `formula` is in NNF and does not contain quantifiers }
-(program $small_step_conjunctive_normal_form ((formula Bool) 
-                                              (disjunct Bool) (disjuncts Bool :list)
-                                              (conjunct Bool) (conjuncts Bool :list)
-                                              (op_or (-> Bool Bool Bool))
-                                              (op_and (-> Bool Bool Bool)))
-
-         :signature (Bool) Bool
-
-         (
-          (; Trying some trick to avoid assoc-nil semantics.
-           ($small_step_conjunctive_normal_form (op_or disjunct (op_and conjunct 
-                                                                        conjuncts)))
-
-           (eo::ite ($eo_is_eq op_or or)
-                    
-                    (eo::ite ($eo_is_eq op_and and)
-                             
-                             (op_and (op_or disjunct conjunct) 
-                                     (op_or disjunct conjuncts))
-
-                             ; { not ($eo_is_eq op_and and) }
-                             ; { op_and == or }
-                             (op_or disjunct (op_and conjunct conjuncts)))
-
-                    ; { not ($eo_is_eq op_or or) }
-                    ; { op_or == and }
-                    (op_or disjunct (op_and conjunct conjuncts)))
-           )
-
-          (; Trying some trick to avoid assoc-nil semantics.
-           ($small_step_conjunctive_normal_form (op_or (op_and conjunct conjuncts)
-                                                       disjuncts))
-
-           (eo::ite ($eo_is_eq op_or or)
-                    
-                    (eo::ite ($eo_is_eq op_and and)
-                             
-                             (op_and (op_or conjunct disjuncts) 
-                                     (op_or conjuncts disjuncts))
-
-                             ; { not ($eo_is_eq op_and and) }
-                             ; { op_and == or }
-                             (op_or (op_and conjunct conjuncts)
-                                    disjuncts))
-
-                    ; { not ($eo_is_eq op_or or) }
-                    ; { op_or == and }
-                    (op_or (op_and conjunct conjuncts)
-                           disjuncts))
-           )
-
-          (; { formula is, either, a variable or a negated variable }
-           ($small_step_conjunctive_normal_form formula)
-           
-           formula
-           )
-          )
-         )
-
-; program: $rec_conjunctive_normal_form
-; args:
-; - $rec_conjunctive_normal_form nil:
-; return:
-; note: PRE : { `formula` is in NNF and does not contain quantifiers }
-(program $rec_conjunctive_normal_form ((formula Bool) (other_formulas Bool :list)
-                                   (op (-> Bool Bool Bool)))
-
-         :signature (Bool) Bool
-
-         (
-          (
-           ($rec_conjunctive_normal_form (op formula other_formulas))
-
-           (eo::define
-            
-            (
-             (conjunctive_formula ($rec_conjunctive_normal_form formula))
-
-             (conjunctive_other_formulas ($rec_conjunctive_normal_form other_formulas))
-             )
-            
-            (eo::define
-             
-             (
-              (conjunctive_op_formula ($small_step_conjunctive_normal_form 
-                                  (op conjunctive_formula conjunctive_other_formulas)))
-              )
-
-             (eo::ite ($eo_is_eq (op conjunctive_formula conjunctive_other_formulas) 
-                                 conjunctive_op_formula)
-
-                      ; We reach to a conjunctive normal form.
-                      conjunctive_op_formula
-
-                      ; { not ($eo_is_eq (op formula other_formulas) 
-                      ;        conjunctive_op_formula) }
-                      ($rec_conjunctive_normal_form conjunctive_op_formula))))
-           )
-
-          (; { formula is a variable or a negated variable }
-           ($rec_conjunctive_normal_form formula)
-
-           formula
-           )
-          )
-         )
-
-; program: $$conjunctive_normal_form
-; args:
-; - formula Bool: An formula in prenex form and NNF.
-; return: >
-;   Returns the CNF of `formula`, preserving its leading quantifiers, it present.
-; note: PRE : { `formula` is in prenex and NNF }
-(program $conjunctive_normal_form ((formula Bool) 
-                                   (varlist @VarList) (body Bool))
-
-         :signature (Bool) Bool
-
-         (
-          (
-           ($conjunctive_normal_form (forall varlist body))
-
-           (forall varlist ($conjunctive_normal_form body))
-           )
-
-          (
-           ($conjunctive_normal_form (exists varlist body))
-
-           (exists varlist ($conjunctive_normal_form body))
-           )
-
-          (; { `formula` does not begin with quantifiers }
-           ($conjunctive_normal_form formula)
-
-           ($flat_and_or and ($rec_conjunctive_normal_form formula))
-           )
-          )
-         )
-
-; program: $check_qnt_cnf
-; args:
-; - xs @VarList: >
-;   The list of variables quantified by the left-hand side disjunct of the conclusion
-;   passed to `qnt_cnf`.
-; - phi Bool: >
-;   The body of the left-hand side quantification of the conclusion
-;   passed to `qnt_cnf`.
-; - xsP @VarList: >
-;   The list of variables quantified by the right-hand side disjunct of the conclusion
-;   passed to `qnt_cnf`.
-; - phiP Bool: >
-;   The body of the right-hand side quantification of the conclusion
-;   passed to `qnt_cnf`.
-; return: >
-;   A boolean indicating if phiP is a clause from the CNF form of phi, and xsP
-;   is contained in xs.
-(program $check_qnt_cnf ((phi Bool) (phiP Bool) (xs @VarList) (xsP @VarList))
-
-  :signature (@VarList Bool @VarList Bool) Bool
-
+;TODO: to preserve previous def
+; 
+; (program $check_qnt_cnf ((phi Bool) (phiP Bool) (xs @VarList) (xsP @VarList))
+;   (@VarList Bool @VarList Bool) Bool
+;   (
+;    (($check_qnt_cnf xs phi xsP phiP) true)
+;   )
+; )
+
+; ;TRUST
+; (declare-rule qnt_cnf ((phi Bool) (phiP Bool) (xs @VarList) (xsP @VarList))
+;   :args ((@cl (or (not (forall xs phi)) (forall xsP phiP))))
+;   :requires ((($check_qnt_cnf xs phi xsP phiP) true))
+;   :conclusion (@cl (or (not (forall xs phi)) (forall xsP phiP)))
+; )
+
+;TODO
+(program $check_qnt_cnf ((conclusion Bool))
+  :signature (Bool) Bool
   (
-   (
-    ($check_qnt_cnf xs phi xsP phiP) 
-
-
-    (eo::and 
-     ; xs is contained in xsP
-     ($f_list_contains_f_list @varlist xs xsP)
-
-     ($f_list_contains_elem and 
-                            phiP 
-                            ($conjunctive_normal_form
-                             ($prenex_normal_form ($negative_normal_form phi true)))))
-    )
-   )
+   (($check_qnt_cnf conclusion) true)
   )
+)
 
-
-; rule: qnt_cnf
-; requires: >
-;   For conclusion to be of the form ¬(∀𝑥1, … , 𝑥𝑛.𝜑) ∨ ∀𝑥𝑘1, … , 𝑥𝑘𝑚.𝜑′, with
-;   𝜑′ a clause from the CNF form of 𝜑, and 𝑥𝑘1, … , 𝑥𝑘𝑚 a permutation of 
-;   𝑥1, … , 𝑥𝑛.
-; conclusion-explicit: >
-;   A conclusion of the form (@cl (or (not (forall xs phi)) (forall xsP phiP))),
-;   satisfying the previous side-condition.
-(declare-rule qnt_cnf ((phi Bool) (phiP Bool) (xs @VarList) (xsP @VarList))
-  :requires ((($check_qnt_cnf xs phi xsP phiP) true))
-  :conclusion-explicit (@cl 
-                        ($f_list_cons or (not (forall xs phi)) (forall xsP phiP)))
+;TRUST
+(declare-rule qnt_cnf ((conclusion Bool))
+  :requires ((($check_qnt_cnf conclusion) true))
+  :conclusion-explicit conclusion
 )
 
 ;-------------
@@ -3267,150 +2814,57 @@
   :conclusion (@cl (= l r))
 )
 
-;------------------
-; Rule onepoint
-;------------------
-
-; program: $flag_non_fixed_variables
-; args:
-; - $flag_non_fixed_variables nil:
-; return:
-(program $flag_non_fixed_variables ((A Type) (var A) (tail @VarList :list)
-                                    (fixed_vars @VarList))
-
-         :signature (@VarList @VarList) @VarList
-
-         (
-          (
-           ($flag_non_fixed_variables (@varlist var tail) fixed_vars)
-
-           (eo::ite ($f_list_contains_elem @varlist var fixed_vars)
-                    ; We should remove the variable.
-                    ($f_list_cons @varlist 
-                                  true
-                                  ($flag_non_fixed_variables tail fixed_vars))
-
-                    ($f_list_cons @varlist 
-                                  false
-                                  ($flag_non_fixed_variables tail fixed_vars)))
-           )
-
-          (
-           ($flag_non_fixed_variables @varlist.nil fixed_vars)
-
-           @varlist.nil
-          )
-         )
-)
-
-; program: $check_onepoint
-; args:
-; - conclusion Bool:
-; return:
-(program $check_onepoint ((old_context Bool) (new_context Bool)
-                          (lhs_vars @VarList) (rhs_vars @VarList)
-                          (lhs_body Bool) (rhs_body Bool)
-                          (quantifier (-> @VarList Bool Bool)))
-
-  :signature (Bool Bool Bool Bool) Bool
+;TODO
+(program $check_onepoint ((conclusion Bool))
+  :signature (Bool) Bool
   (
-   (
-    ($check_onepoint old_context new_context 
-                     (quantifier lhs_vars lhs_body) 
-                     (quantifier rhs_vars rhs_body))
-
-    (eo::and
-     ; rhs_vars is contained in lhs_vars.
-     ($f_list_contains_f_list @varlist rhs_vars lhs_vars)
-
-     ; new_context must be just an extension of old_context.
-     ($context_is_extended new_context old_context)
-
-     ; Every variable in rhs_vars appear fixed in `new_context`.
-     ($context_vars_are_fixed new_context rhs_vars)
-
-     ; The remaining variables should be assigned one "point".
-     ($context_vars_are_defined new_context 
-                                ($f_list_filter @varlist @varlist.nil lhs_vars
-                                                ($flag_non_fixed_variables lhs_vars 
-                                                                           rhs_vars))))
-    )
-   )
+   (($check_onepoint conclusion) true)
   )
+)
+; (program $check_onepoint ((ctx Bool) (T Type) (l T) (r T) (l1 T) (r1 T))
+;   (Bool T T T T) Bool
+;   (
+;    (($check_onepoint ctx l r l1 r1) true)
+;   )
+; )
 
-
-; rule: onepoint
-; implements: TODO?
-; premises:
-; - onepoint nil:
-; args:
-; requires:
-; conclusion:
-(declare-rule onepoint ((old_context Bool) (new_context Bool) (lhs Bool) (rhs Bool)
-                        (quantifier (-> @VarList Bool Bool)) (varlist_1 @VarList)
-                        (varlist_2 @VarList))
-
-  :assumption new_context ; Context of the premise, extends `old_context`
-  :premises ((@cl (= lhs rhs)))
-  ; Context that extends `new_context`, and is the context of the conclusion.
-  :args (old_context)
-  :requires ((($check_onepoint old_context new_context
-                               (quantifier varlist_1 lhs) (quantifier varlist_2 rhs))
-              true))
-  :conclusion-explicit (@cl (= (quantifier varlist_1 lhs)
-                               (quantifier varlist_2 rhs)))
+;TRUST
+(declare-rule onepoint ((ctx Bool) (old_ctx Bool) (T Type) (l T) (r T) (l1 T) (r1 T)
+                        (conclusion Bool))
+  :assumption ctx
+  ; :premises (old_ctx (@cl (= l1 r1)))
+  ; :args ((@cl (= l r)))
+  ; :requires ((($context_is_extended ctx old_ctx) true) (($check_onepoint ctx l r l1 r1) true))
+  :requires ((($check_onepoint conclusion) true))
+  :conclusion-explicit conclusion
 )
 
-;------------------
-; Rule qnt_join
-;------------------
-
-
-; program: $check_qnt_join
-; args:
-; - varlist_1 @VarList: >
-;   List of quantified variables from the first quantification in the left-hand
-;   side of the conclusion passed to qnt_join.
-; - varlist_2 @VarList: >
-;   List of quantified variables from the nested quantification in the left-hand
-;   side of the conclusion passed to qnt_join.
-; - varlist_3 @VarList: >
-;   List of quantified variables from the right-hand side of the conclusion 
-;   passed to qnt_join.
-; return: >
-;   A boolean indicating if variables in `varlist_3` can be obtained by removing
-;   duplicates from varlist_1 ++ varlist_2.
-(program $check_qnt_join ((varlist_1 @VarList) (varlist_2 @VarList) (varlist_3 @VarList))
-  :signature (@VarList @VarList @VarList) Bool
+;TODO
+(program $check_qnt_join ((conclusion Bool))
+  :signature (Bool) Bool
   (
-   (
-    ($check_qnt_join varlist_1 varlist_2 varlist_3)
-
-    ($f_list_equal_mod_commut_and_length 
-     @varlist 
-     varlist_3
-     ($f_list_remove_duplicates @varlist
-                                ($varlist_concat varlist_1 varlist_2)))
-    )
+   (($check_qnt_join conclusion) true)
   )
 )
 
-; rule: qnt_join
-; requires: >
-;  Variables in right-hand side of the conclusion can be obtained by removing
-;  duplicates from the list of quantified variables in the left-hand side.
-; conclusion-explicit: >
-;  A conclusion of the form:
-;  (@cl (= (quanfitication varlist_1 (quantification varlist_2 body))
-;          (quantification varlist_3 body)))
-(declare-rule qnt_join ((varlist_1 @VarList) (varlist_2 @VarList) 
-                        (varlist_3 @VarList) (quantification (-> @VarList Bool Bool))
-                        (body Bool))
+;TRUST
+(declare-rule qnt_join ((conclusion Bool))
+  :requires ((($check_qnt_join conclusion) true))
+  :conclusion-explicit conclusion
+)
 
-  :requires ((($check_qnt_join varlist_1 varlist_2 varlist_3) true))
-  :conclusion-explicit (@cl (= (quantification varlist_1 
-                                               (quantification varlist_2 body))
-                               (quantification varlist_3 body)))
+;TODO
+(program $check_qnt_rm_unused ((conclusion Bool))
+  :signature (Bool) Bool
+  (
+   (($check_qnt_rm_unused conclusion) true)
+  )
+)
+
+;TRUST
+(declare-rule qnt_rm_unused ((conclusion Bool))
+  :requires ((($check_qnt_rm_unused conclusion) true))
+  :conclusion-explicit conclusion
 )
 
 ;TODO
@@ -3848,142 +3302,37 @@
   :conclusion (@cl phi)
 )
 
-;-------------------
-; Rule ite_intro
-;-------------------
-
-; program: $ite_intro_check_conjuncts
-; args:
-; - ites @VarList: >
-;   A @VarList containing each of the ite constructions present on the left-hand
-;   side of the conclusion passed to rule `ite_intro`.
-; - conjuncts Bool: >
-;   and-list of terms of the form "ite 𝜓𝑖 (𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" that are part
-;   of the conjunction in the right-hand side of the conclusion passed to rule 
-;   `ite_intro`.
-; return: >
-;   A boolean indicating if for every ite construction of the form
-;   "ite 𝜓𝑖 ri 𝑟′𝑖" present on `ites`, there is a corresponding ite
-;   construction of the form "ite 𝜓𝑖 (𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" in `conjuncts`.
-(program $ite_intro_check_conjuncts ((guard Bool) (if Bool) (else Bool) 
-                                     (conjuncts Bool)
-                                     (tail @VarList :list))
-
-         :signature (@VarList Bool) Bool
-
-         (
-          (
-           ($ite_intro_check_conjuncts (@varlist (ite guard if else) tail) conjuncts)
-
-           (eo::and (eo::or
-                     ($f_list_contains_elem 
-                     and 
-                     (ite guard (= (ite guard if else) if) (= (ite guard if else) else))
-                     conjuncts)
-
-                     ($f_list_contains_elem 
-                      and 
-                      (ite guard (= if (ite guard if else)) (= else (ite guard if else)))
-                      conjuncts))
-
-                    ($ite_intro_check_conjuncts tail conjuncts))
-           )
-
-          (
-           ($ite_intro_check_conjuncts @varlist.nil conjuncts)
-           
-           true
-           )
-          )
-         )
-
-; program: $get_ite_terms
-; args:
-; - formula Bool: An arbitrary boolean formula.
-; return: A @VarList containing every ite construction present in `formula`.
-(program $get_ite_terms ((guard Bool) (if Bool) (else Bool) (hd Bool) (tail Bool)
-                         (op (-> Bool Bool Bool)))
-
-         :signature (Bool) @VarList
-
-         (
-          (
-           ($get_ite_terms (ite guard if else))
-
-           ($varlist_concat
-            (@varlist (ite guard if else))
-            ($varlist_concat ($get_ite_terms guard)
-                             ($varlist_concat ($get_ite_terms if) 
-                                              ($get_ite_terms else))))
-           )
-
-          (
-           ($get_ite_terms (op hd tail))
-
-           ($varlist_concat ($get_ite_terms hd) ($get_ite_terms tail))
-           )
-
-          (
-           ($get_ite_terms (not hd))
-
-           ($get_ite_terms hd)
-           )
-
-          (
-           ($get_ite_terms hd)
-
-           @varlist.nil
-           )
-          )
-         )
-
-; program: $check_ite_intro
-; args:
-; - t1 Bool: The left-hand side of the conclusion passed to rule `ite_intro`.
-; - t2 Bool: >
-;   The first conjunct from the right-hand side of the conclusion passed to rule 
-;   `ite_intro`.
-; - conjuncts Bool: >
-;   The remaining conjuncts from the right-hand side of the conclusion passed to 
-;   rule `ite_intro`.
-; return: >
-;   A boolean indicating if for every ite construction of the form
-;   "ite 𝜓𝑖 ri 𝑟′𝑖" present on `t1`, there is a corresponding ite
-;   construction of the form "ite 𝜓𝑖 (𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" in `conjuncts`.
-(program $check_ite_intro ((t1 Bool) (t2 Bool) (conjuncts Bool :list))
-
-  :signature (Bool Bool Bool) Bool
+;TODO
+(program $check_ite_intro ((conclusion Bool))
+  :signature (Bool) Bool
   (
-   (; Case t1 = t2 in the ite_intro rule.
-    ($check_ite_intro t1 t1 conjuncts)
-    
-    ($ite_intro_check_conjuncts ($get_ite_terms t1) conjuncts)
-    )
-
-   (; Case t1 = t2 in the ite_intro rule.
-    ($check_ite_intro t1 t2 conjuncts)
-    
-    ($ite_intro_check_conjuncts ($get_ite_terms t1) conjuncts)
-    )
+   (($check_ite_intro conclusion) true)
   )
 )
 
-; rule: ite_intro
-; requires: >
-;   For every ite construction of the form "ite 𝜓𝑖 ri 𝑟′𝑖" present on `t1`, 
-;   to be a corresponding ite construction of the form 
-;   "ite 𝜓𝑖 (𝑠𝑖 ≈ 𝑟𝑖) (𝑠𝑖 ≈ 𝑟′𝑖)" in `conjuncts`.
-; conclusion-explicit: >
-;   A conclusion of the form (@cl (= t (and t' conjuncts))), such that it 
-;   satisfies the previous side-condition.
-(declare-rule ite_intro ((t1 Bool) (t2 Bool) (conjuncts Bool :list))
-  :requires ((($check_ite_intro t1 t2 conjuncts) true))
-  :conclusion-explicit (@cl (= t1 (and t2 conjuncts)))
+;TRUST
+(declare-rule ite_intro ((conclusion Bool))
+  :requires ((($check_ite_intro conclusion) true))
+  :conclusion-explicit conclusion
 )
 
 ;-------------
 ; Table 10: Rules used by cvc5, but not by veriT
 ;-------------
+
+;-------------
+; Rule 101: symm
+;-------------
+
+; rule: symm
+; premises: >
+;   An equality of the form (@cl (= phi psy)), for arbitrary formulas phi and psy.
+; conclusion-explicit: >
+;   The conclusion should have the form (@cl (= psy phi)).
+(declare-rule symm ((phi Bool) (psy Bool))
+  :premises ((@cl (= phi psy)))
+  :conclusion-explicit (@cl (= psy phi))
+)
 
 ;-------------
 ; Rule 34: reordering
