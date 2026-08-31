@@ -2920,6 +2920,21 @@
 )
 
 ;TODO
+(program $check_qnt_simplify ((l Bool) (r Bool))
+  :signature (Bool Bool) Bool
+  (
+   (($check_qnt_simplify l r) true)
+  )
+)
+
+;TRUST
+(declare-rule qnt_simplify ((l Bool) (r Bool))
+  :args ((@cl (= l r)))
+  :requires ((($check_qnt_simplify l r) true))
+  :conclusion (@cl (= l r))
+)
+
+;TODO
 (program $check_onepoint ((conclusion Bool))
   :signature (Bool) Bool
   (
