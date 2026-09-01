@@ -2939,22 +2939,13 @@
   :signature (Bool) Bool
   (
    (($check_onepoint conclusion) true)
+   )
   )
-)
-; (program $check_onepoint ((ctx Bool) (T Type) (l T) (r T) (l1 T) (r1 T))
-;   (Bool T T T T) Bool
-;   (
-;    (($check_onepoint ctx l r l1 r1) true)
-;   )
-; )
-
+ 
 ;TRUST
 (declare-rule onepoint ((ctx Bool) (old_ctx Bool) (T Type) (l T) (r T) (l1 T) (r1 T)
                         (conclusion Bool))
   :assumption ctx
-  ; :premises (old_ctx (@cl (= l1 r1)))
-  ; :args ((@cl (= l r)))
-  ; :requires ((($context_is_extended ctx old_ctx) true) (($check_onepoint ctx l r l1 r1) true))
   :requires ((($check_onepoint conclusion) true))
   :conclusion-explicit conclusion
 )
