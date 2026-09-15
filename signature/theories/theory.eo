@@ -216,3 +216,16 @@
 ; We declaring string literals as inhabitants of the String type.
 (declare-const String Type)
 (declare-consts <string> String)
+
+;-----------
+; Rare rules
+;-----------
+
+; Rare-list constructors as a way to denote lists of elements of arbitrary type.
+; We do not define a proper rare-list type: a rare-list only denotes a sequence
+; of elements of some type whose actual meaning is context-dependent.
+
+; Arbitrary inhabitant of the parameterized type.
+(declare-parameterized-const rare-list-nil ((A Type :implicit)) A)
+
+(declare-parameterized-const rare-list-cons ((A Type :implicit)) (-> A A A))
