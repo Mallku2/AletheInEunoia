@@ -2062,15 +2062,15 @@
 ; args:
 ; - formula Bool: A formula to be converted to its NNF.
 ; - flag Bool: >
-;   A boolean flag indicating if the formula should is currently uner a single 
-;   negation (`flag` = false) or not (`flag` = true). This is usefu for 
+;   A boolean flag indicating if the formula is currently under a single 
+;   negation (`flag` = false) or not (`flag` = true). This is useful for 
 ;   recursive definition purposes. The NNF of a formula 𝜑 would be he result of
 ;   (`$negative_normal_form` 𝜑 true).
 ; return: >
-;   The NNF-equivalent formula of `formula` (if `flag` = true) or is negated
+;   The NNF-equivalent formula of `formula` (if `flag` = true) or its negated
 ;   equivalent (if `flag` = false).
-(program $negative_normal_form ((phi_1 Bool) (phi_2 Bool) (phi_3 Bol)
-                                (disjunct Bool) (disjuncts Bool :lit)
+(program $negative_normal_form ((phi_1 Bool) (phi_2 Bool) (phi_3 Bool)
+                                (disjunct Bool) (disjuncts Bool :list)
                                 (conjunct Bool) (conjuncts Bool :list)
                                 (varlist @VarList) (body Bool))
 
@@ -2215,31 +2215,31 @@
          :signature (Bool) Bool
 
          (; NOTE: not abstracting the specific quantifiers to avoid undesired
-                                        ; matches with other kind of constructions of the form
-                                        ; (some_function value values)
+          ; matches with other kind of constructions of the form
+          ; (some_function value values)
           (; NOTE: for this to always hold, the domain of the quantifier 
-                                        ; should not be empty.
+           ; should not be empty.
            ($small_step_prenex_normal_form (op (forall varlist body) formulas))
 
            (forall varlist (op body formulas))
            )
 
           (; NOTE: for this to always hold, the domain of the quantifier 
-                                        ; should not be empty.
+           ; should not be empty.
            ($small_step_prenex_normal_form (op (exists varlist body) formulas))
 
            (exists varlist (op body formulas))
            )
 
           (; NOTE: for this to always hold, the domain of the quantifier 
-                                        ; should not be empty.
+           ; should not be empty.
            ($small_step_prenex_normal_form (op formula (forall varlist body)))
 
            (forall varlist (op formula body))
            )
 
           (; NOTE: for this to always hold, the domain of the quantifier 
-                                        ; should not be empty.
+           ; should not be empty.
            ($small_step_prenex_normal_form (op formula (exists varlist body)))
 
            (exists varlist (op formula body))
@@ -2268,8 +2268,8 @@
 
          (
           (; NOTE: not abstracting the specific quantifiers to avoid undesired
-                                        ; matches with other kind of constructions of the form
-                                        ; (some_function value values)
+           ; matches with other kind of constructions of the form
+           ; (some_function value values)
            ($prenex_normal_form (forall variables body))
 
            (eo::define
@@ -2279,10 +2279,10 @@
              )
 
             (eo::ite ($eo_is_eq body prenex_body)
-                                        ; Original formula is in prenex form.
+                     ; Original formula is in prenex form.
                      (forall variables body)
 
-                                        ; { not ($eo_is_eq body prenex_body) }
+                     ; { not ($eo_is_eq body prenex_body) }
                      (forall variables ($prenex_normal_form prenex_body))))
            )
 
@@ -2296,10 +2296,10 @@
              )
 
             (eo::ite ($eo_is_eq body prenex_body)
-                                        ; Original formula is in prenex form.
+                     ; Original formula is in prenex form.
                      (exists variables body)
 
-                                        ; { not ($eo_is_eq body prenex_body) }
+                     ; { not ($eo_is_eq body prenex_body) }
                      (exists variables ($prenex_normal_form prenex_body))))
            )
 
@@ -2324,11 +2324,11 @@
              (eo::ite ($eo_is_eq (op prenex_formula prenex_other_formulas) 
                                  prenex_op_formula)
 
-                                        ; Original formula is in prenex form.
+                      ; Original formula is in prenex form.
                       prenex_op_formula
 
-                                        ; { not ($eo_is_eq (op formula other_formulas) 
-                                        ;        prenex_op_formula) }
+                      ; { not ($eo_is_eq (op formula other_formulas) 
+                      ;        prenex_op_formula) }
                       ($prenex_normal_form prenex_op_formula))))
            )
 
@@ -2365,12 +2365,12 @@
                              (op_and (op_or disjunct conjunct) 
                                      (op_or disjunct conjuncts))
 
-                                        ; { not ($eo_is_eq op_and and) }
-                                        ; { op_and == or }
+                             ; { not ($eo_is_eq op_and and) }
+                             ; { op_and == or }
                              (op_or disjunct (op_and conjunct conjuncts)))
 
-                                        ; { not ($eo_is_eq op_or or) }
-                                        ; { op_or == and }
+                    ; { not ($eo_is_eq op_or or) }
+                    ; { op_or == and }
                     (op_or disjunct (op_and conjunct conjuncts)))
            )
 
@@ -2385,13 +2385,13 @@
                              (op_and (op_or conjunct disjuncts) 
                                      (op_or conjuncts disjuncts))
 
-                                        ; { not ($eo_is_eq op_and and) }
-                                        ; { op_and == or }
+                             ; { not ($eo_is_eq op_and and) }
+                             ; { op_and == or }
                              (op_or (op_and conjunct conjuncts)
                                     disjuncts))
 
-                                        ; { not ($eo_is_eq op_or or) }
-                                        ; { op_or == and }
+                    ; { not ($eo_is_eq op_or or) }
+                    ; { op_or == and }
                     (op_or (op_and conjunct conjuncts)
                            disjuncts))
            )
@@ -2436,11 +2436,11 @@
              (eo::ite ($eo_is_eq (op conjunctive_formula conjunctive_other_formulas) 
                                  conjunctive_op_formula)
 
-                                        ; We reach to a conjunctive normal form.
+                      ; We reach to a conjunctive normal form.
                       conjunctive_op_formula
 
-                                        ; { not ($eo_is_eq (op formula other_formulas) 
-                                        ;        conjunctive_op_formula) }
+                      ; { not ($eo_is_eq (op formula other_formulas) 
+                      ;        conjunctive_op_formula) }
                       ($rec_conjunctive_normal_form conjunctive_op_formula))))
            )
 
@@ -2509,7 +2509,7 @@
            ($check_qnt_cnf xs phi xsP phiP) 
 
            (eo::and 
-                                        ; xs is contained in xsP
+            ; xs is contained in xsP
             ($f_list_contains_f_list @varlist xs xsP)
 
             ($f_list_contains_elem and 
