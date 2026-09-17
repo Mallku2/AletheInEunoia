@@ -2416,10 +2416,10 @@
 ; rule: not_equiv2
 ; premises:
 ; - premise Bool: >
-;   A negated equivalence between some propositions phi1 and phi2, n clause form:
+;   A negated equivalence between some propositions phi1 and phi2, in clause form:
 ;   (@cl (not (phi1 = phi2))).
 ; conclusion-explicit: >
-;   The conclusion should be of the form (@cl (not phi1) (not phi2).
+;   The conclusion should be of the form (@cl (not phi1) (not phi2)).
 (declare-rule not_equiv2 ((phi1 Bool) (phi2 Bool))
   :premises ((@cl (not (= phi1 phi2))))
   :conclusion-explicit (@cl (not phi1) (not phi2))
@@ -3392,7 +3392,7 @@
 
 ; rule: not_symm
 ; premises: >
-;   An equality of the form (@cl (not (= phi psy))), for arbitrary ormulas phi 
+;   An equality of the form (@cl (not (= phi psy))), for arbitrary formulas phi 
 ;   and psy.
 ; conclusion-explicit: >
 ;   The conclusion should have the form (@cl (not (= psy phi))).

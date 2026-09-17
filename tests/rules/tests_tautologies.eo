@@ -485,7 +485,7 @@
       :rule ite_neg2)
 
 (step $test_ite_neg2_3
-      (@cl (ite (or a true) (and b false) c) (not (or a true)) (not(and b false)))
+      (@cl (ite (or a true) (and b false) c) (not (or a true)) (not (and b false)))
       :rule ite_neg2)
 
 (step $test_ite_neg2_4
@@ -1223,7 +1223,7 @@
 ;-------------
 ; qnt_simplify
 ;-------------
-; NOTE: it would be interesting to be able to check the cases wherethis rule should
+; NOTE: it would be interesting to be able to check the cases where this rule should
 ;       not apply.
 (step $test_qnt_simplify_1
       (@cl (= (forall @varlist.nil true) true))
