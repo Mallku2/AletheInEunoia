@@ -115,7 +115,7 @@
 ; - f (-> A B B): Operator used to build the f-list.
 ; - list B: An f-list.
 ; return: Quantity of elements of `list`, including the nil terminator.
-(program $f_list_length ((B Type) (f (-> B B B)) (hd B) (tl B :list)
+(program $f_list_length ((B Type) (f (-> B B B)) (hd B) (tl B :list))
 
   :signature ((-> B B B) B) Int
 
@@ -185,14 +185,14 @@
 ; - list_1 B: An f-list.
 ; - list_2 B: An f-list.
 ; return: >
-; A boolean indicating if the operands from list_1 and list2 are the 
+; A boolean indicating if the operands from list_1 and list_2 are the 
 ; same, regardless of the order and possible repetitions.
-(program $f_list_equal_mod_commut_and_length ((A Type) (B Tpe) (f (-> A B B))
-                       (f_list_1 B) (f_list_2 B))
+(program $f_list_equal_mod_commut_and_length ((A Type) (B Type) (f (-> A B B))
+                                              (f_list_1 B) (f_list_2 B))
   :signature ((-> A B B) B B) Bool
   (
    (
-    ($f_list_equal_mod_commut_and_length f f_list_1 f_list_)
+    ($f_list_equal_mod_commut_and_length f f_list_1 f_list_2)
 
     (eo::and ($f_list_contains_f_list f f_list_1 f_list_2)
              ($f_list_contains_f_list f f_list_2 f_list_1))
@@ -395,7 +395,7 @@
 ; - f (-> A A A): Constructor of f-lists, that is righ-assoc-nil.
 ; - nil A: Nil terminator of `f`-lists.
 ; - value A: A single element or `f`-list.
-; return: The injection of `value` into the set of properly `nil`-termiated `f`-lists.
+; return: The injection of `value` into the set of properly `nil`-terminated `f`-lists.
 ; note: >
 ;   Useful to guarantee that a function returns `nil`-terminated `f`-lists, when 
 ;   required. It considers sub-terms such that every sub-`f`-list is also 
