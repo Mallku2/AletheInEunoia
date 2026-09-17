@@ -2064,7 +2064,7 @@
 ; - flag Bool: >
 ;   A boolean flag indicating if the formula is currently under a single 
 ;   negation (`flag` = false) or not (`flag` = true). This is useful for 
-;   recursive definition purposes. The NNF of a formula 𝜑 would be he result of
+;   recursive definition purposes. The NNF of a formula 𝜑 would be the result of
 ;   (`$negative_normal_form` 𝜑 true).
 ; return: >
 ;   The NNF-equivalent formula of `formula` (if `flag` = true) or its negated
@@ -2502,7 +2502,6 @@
 ;   A boolean indicating if phiP is a clause from the CNF form of phi, and xsP
 ;   is contained in xs.
 (program $check_qnt_cnf ((phi Bool) (phiP Bool) (xs @VarList) (xsP @VarList))
-
          :signature (@VarList Bool @VarList Bool) Bool
          (
           (
