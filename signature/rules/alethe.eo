@@ -2226,6 +2226,63 @@
   :conclusion-explicit conclusion
 )
 
+;-----------------
+; Rule shuffle
+;-----------------
+
+; rule: shuffle
+; requires: >
+;   For conclusion to be an implication of the form, either:
+;   - (𝑡1 > 0 ∧ 𝑡2 ⋈ 𝑡3) → 𝑡1 ∗ 𝑡2 ⋈ 𝑡1 ∗ 𝑡3, with ⋈ ∈ {<, >, ≤, ≥, ≈}.
+;   - (𝑡1 > 0 ∧ ¬(𝑡; - lhs A: >
+;   Conclusion provided to the rule. 
+; return: >
+;   A boolean indicating if `conclusion` is equivalent to `premise`, but built 
+;   with @cl.
+(program $check_shuffle ((A Type) (term_l A) (terms_l A :list)
+                         (term_r A) (terms_r A :list))
+
+  :signature (A A) Bool
+  (
+   (
+    ($check_shuffle (+ term_l terms_l) (+ term_r terms_r))
+
+    ($f_list_equal_mod_commut + (+ term_l terms_l) (+ term_r terms_r))
+    )
+
+   (
+    ($check_shuffle (* term_l terms_l) (* term_r terms_r))
+
+    ($f_list_equal_mod_commut * (* term_l terms_l) (* term_r terms_r))
+    )
+
+   (
+    ($check_shuffle (and term_l terms_l) (and term_r terms_r))
+
+    ($f_list_equal_mod_commut and (and term_l terms_l) (and term_r terms_r))
+    )
+
+   (
+    ($check_shuffle (or term_l terms_l) (or term_r terms_r))
+
+    ($f_list_equal_mod_commut or (or term_l terms_l) (or term_r terms_r))
+    )
+  )
+)
+
+; rule: shuffle
+; requires: >
+;   For `lhs` to be equivalent to `rhs` modulo commutativity, for the
+;   operations +, ∗, ∧ and ∨.
+; conclusion-explicit: >
+;   A conclusion of the form (@cl (= lhs rhs)), where `lhs` is equivalent to 
+;   `rhs` according to the previous side-condition.
+(declare-rule shuffle ((A Type) (lhs A) (rhs A))
+:requires ((($check_shuffle lhs rhs) true))
+:conclusion-explicit (@cl (= lhs rhs))
+)
+
+
 ;-------------
 ; Rule 37: not_and
 ;-------------
