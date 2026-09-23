@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../carcara"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../Benchmarks"
+		}
+	],
+	"settings": {}
+}

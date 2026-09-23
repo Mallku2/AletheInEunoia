@@ -1,0 +1,42 @@
+; A :list parameter is represented by an operator-specific term.
+; The same Bool term cannot be the empty list for both and and or.
+
+(declare-const Int Type)
+(declare-consts <numeral> Int)
+(declare-parameterized-const = ((T Type :implicit)) (-> T T Bool))
+(declare-const and (-> Bool Bool Bool) :right-assoc-nil true)
+(declare-const or (-> Bool Bool Bool) :right-assoc-nil false)
+(declare-const p Bool)
+
+; This rule asks one ys to be empty under both operators. Neither nil
+; value can satisfy both checks, so no empty-list step can use this rule.
+(declare-rule shared-empty ((x Bool) (ys Bool :list))
+  :args (x ys)
+  :requires (((eo::list_len and ys) 0)
+             ((eo::list_len or ys) 0))
+  :conclusion (= x x))
+
+; Two distinct parameters can each receive the right nil value.
+(declare-rule separate-empty ((x Bool) (and_ys Bool :list) (or_ys Bool :list))
+  :args (x and_ys or_ys)
+  :requires (((eo::list_len and and_ys) 0)
+             ((eo::list_len or or_ys) 0))
+  :conclusion (= x x))
+
+(step separate-works (= p p) :rule separate-empty :args (p true false))
+(step separate-works-typed (= p p) :rule separate-empty
+  :args (p (eo::nil and Bool) (eo::nil or Bool)))
+
+; Uncomment either step to see the shared-empty rule fail:
+; (step shared-true-fails (= p p) :rule shared-empty :args (p true))
+; (step shared-false-fails (= p p) :rule shared-empty :args (p false))
+
+; Bind one shared term as the empty and-list.
+(define ys_and () true)
+(define ys_and_is_empty_and () (eo::list_len and ys_and) :is_eq 0)
+(define ys_and_is_not_or_list () (eo::is_ok (eo::list_len or ys_and)) :is_eq false)
+
+; The opposite choice makes an empty or-list, but not an and-list.
+(define ys_or () false)
+(define ys_or_is_empty_or () (eo::list_len or ys_or) :is_eq 0)
+(define ys_or_is_not_and_list () (eo::is_ok (eo::list_len and ys_or)) :is_eq false)

@@ -253,7 +253,7 @@
 )
 (declare-rule bool-implies-or-distrib ((y1 Bool) (y2 Bool) (ys1 Bool :list) (z1 Bool))
   :args (y1 y2 ys1 z1)
-  :conclusion-explicit (@cl (= (=> (or y1 y2 ys1) z1) (and (=> y1 z1) (=> (or y2 ys1) z1))))
+  :conclusion (@cl (= (=> (or y1 y2 ys1) z1) (and (=> y1 z1) (=> (eo::list_singleton_elim or (or y2 ys1)) z1))))
 )
 (declare-rule bool-xor-refl ((x1 Bool))
   :args (x1)
