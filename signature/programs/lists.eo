@@ -636,3 +636,37 @@
           )
          )
 
+
+; Convert an assembled sequence into a full f-spine. A is the element type
+; and B the spine type (usually A; eo::List when retaining the carrier).
+; The caller eliminates a singleton only after the entire spine is built.
+(program $normalize_eo_list
+  ((A Type) (B Type) (f (-> A B B)) (x A) (xs eo::List :list))
+  :signature (Type Type (-> A B B) eo::List) B
+  (
+    (($normalize_eo_list A B f eo::List::nil) (eo::nil f B))
+    (($normalize_eo_list A B f (eo::List::cons x xs))
+      (eo::requires (eo::typeof x) A
+        (eo::cons f x ($normalize_eo_list A B f xs))))
+  ))
+
+; Build an and-spine of pairwise comparisons in operand order. Start with
+; row = eo::List::nil; a singleton row holds the current comparison's left
+; operand. No comparison operator is singled out by this program.
+(program $normalize_eo_pairwise
+  ((A Type) (f (-> A A Bool)) (x A) (y A)
+   (xs eo::List :list) (row eo::List))
+  :signature (Type (-> A A Bool) eo::List eo::List) Bool
+  (
+    (($normalize_eo_pairwise A f eo::List::nil row) true)
+    (($normalize_eo_pairwise A f (eo::List::cons x xs) eo::List::nil)
+      (eo::requires (eo::typeof x) A
+        (eo::list_concat and
+          ($normalize_eo_pairwise A f xs (eo::List::cons x))
+          ($normalize_eo_pairwise A f xs eo::List::nil))))
+    (($normalize_eo_pairwise A f (eo::List::cons y xs) (eo::List::cons x))
+      (eo::requires (eo::typeof x) A
+        (eo::requires (eo::typeof y) A
+          (eo::cons and (f x y)
+            ($normalize_eo_pairwise A f xs (eo::List::cons x))))))
+  ))
