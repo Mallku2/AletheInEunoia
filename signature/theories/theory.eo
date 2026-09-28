@@ -226,6 +226,6 @@
 ; of elements of some type whose actual meaning is context-dependent.
 
 ; Arbitrary inhabitant of the parameterized type.
-(declare-parameterized-const rare-list-nil ((A Type :implicit)) A)
+(declare-parameterized-const @rare-list-nil ((A Type :implicit)) A)
 
-(declare-parameterized-const rare-list-cons ((A Type :implicit)) (-> A A A))
+(declare-parameterized-const @rare-list-cons ((A Type :implicit)) (-> A A A))
