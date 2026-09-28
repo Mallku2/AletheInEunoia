@@ -3023,35 +3023,27 @@
 ; Rule 49: and_neg
 ;-------------
 
-; program: check_and_neg
-; args:
-; - conclusion Bool: >
-;   This should be the conclusion to the application of and_neg. It must be
-;   a clause built with @cl.
-; return: >
-;   A boolean indicating if `conclusion` is an instance of excluded middle,
-;   for a proposition of the form phi_1 /\ ... /\ phi_n.
-(program $check_and_neg ((left_disjunct Bool) (right_disjunct Bool :list))
+; Map each operand to its negation, preserving order, duplicates, and nested
+; terms. Only the structural and terminator ends the traversal: an explicit
+; true operand is still mapped to (not true).
+(program $negate_conjuncts ((p Bool) (ps Bool :list))
   :signature (Bool) Bool
   (
-   (
-    ($check_and_neg (@cl left_disjunct right_disjunct))
+    (($negate_conjuncts (eo::nil and Bool))
+      (eo::nil @cl Bool))
 
-    ($cl_equal ($de_morgan_not_and left_disjunct) right_disjunct)
-    )
-  )
-)
+    (($negate_conjuncts (and p ps))
+      (eo::cons @cl (not p) ($negate_conjuncts ps)))
+  ))
 
-; rule: and_neg
-; requires: >
-;   The conclusion should be an instance of excluded middle,
-;   for a proposition of the form phi_1 /\ ... /\ phi_n.
-; conclusion-explicit: >
-;   A conclusion of the form described by the previous side-condition.
-(declare-rule and_neg ((conclusion Bool))
-  :requires ((($check_and_neg conclusion) true))
-  :conclusion-explicit conclusion
-)
+; Carcara supplies the first clause literal as the conjunction argument.
+; Ethos compares the supplied conclusion with the complete computed clause.
+(declare-rule and_neg ((p Bool) (ps Bool :list))
+  :args ((and p ps))
+  :conclusion
+    (eo::cons @cl
+      (and p ps)
+      ($negate_conjuncts (and p ps))))
 
 ;-------------
 ; Rule 50: or_pos
@@ -3327,6 +3319,47 @@
   :requires ((($check_equiv_simplify conclusion) true))
   :conclusion-explicit conclusion
 )
+
+;-------------
+; Rule: aci_simp (Boolean and/or)
+;-------------
+
+; Flatten only applications of op, removing its declared nil value.
+; Return an operand spine: an atom and a unary application have the same
+; representation. Terms headed by other operators remain opaque operands.
+; The caller must ensure that op is algebraically associative and that its
+; declared nil is an identity. The attributes alone specify representation.
+(program $aci_operands
+  ((A Type) (op (-> A A A)) (x A) (xs A :list))
+  :signature (Type (-> A A A) A) A
+  (
+    (($aci_operands A op (op x xs))
+      (eo::list_concat op
+        ($aci_operands A op x)
+        ($aci_operands A op xs)))
+
+    (($aci_operands A op x)
+      (eo::ite (eo::eq x (eo::nil op A))
+        (eo::nil op A)
+        (eo::cons op x (eo::nil op A))))
+  ))
+
+; For an idempotent, commutative operator, compare the flattened operands
+; as sets: remove duplicates, then compare without considering order.
+(define $aci_equal ((op (-> Bool Bool Bool)) (lhs Bool) (rhs Bool))
+  (eo::list_meq op
+    (eo::list_setof op ($aci_operands Bool op lhs))
+    (eo::list_setof op ($aci_operands Bool op rhs))))
+
+; Restrict ACI reasoning to and/or. In particular, associativity attributes
+; do not authorize idempotence for arithmetic operators or xor.
+(define $check_aci_simp ((lhs Bool) (rhs Bool))
+  (eo::or ($aci_equal or lhs rhs)
+          ($aci_equal and lhs rhs)))
+
+(declare-rule aci_simp ((lhs Bool) (rhs Bool))
+  :requires ((($check_aci_simp lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs)))
 
 ;TODO
 (program $check_ac_simp ((l Bool) (r Bool))
@@ -3681,44 +3714,30 @@
 ; Rule 93: distinct_elim
 ;-------------
 
-; program: build_distinct_list
-; args:
-; - list Bool: An and-list of distinct-list elements.
-; return:
-; Returns the reinterpretation of the given and-list of distinct-list elements,
-; as a conjunction of inequalities.
-(program $build_distinct_list ((A Type) (lhs A) (rhs A) (tl Bool :list))
+; Build inequalities only when distinct_elim requests the logical expansion.
+; row is empty initially, or contains the left operand of a comparison row.
+(program $distinct_inequalities
+  ((A Type) (x A) (y A) (xs eo::List :list) (row eo::List))
+  :signature (eo::List eo::List) Bool
+  (
+    (($distinct_inequalities eo::List::nil row) true)
+    (($distinct_inequalities (eo::List::cons x xs) eo::List::nil)
+      (eo::list_concat and
+        ($distinct_inequalities xs (eo::List::cons x))
+        ($distinct_inequalities xs eo::List::nil)))
+    (($distinct_inequalities (eo::List::cons y xs) (eo::List::cons x))
+      (eo::cons and (not (= x y))
+        ($distinct_inequalities xs (eo::List::cons x))))
+  ))
+
+; Ordinary and-lists and unrelated Boolean terms are not distinct applications.
+(program $build_distinct_list ((xs eo::List :list))
   :signature (Bool) Bool
   (
-   (
-    ($build_distinct_list (and (distinct lhs rhs) tl))
-
-    ($f_list_cons and 
-                 (not (= lhs rhs)) 
-                 ($build_distinct_list tl))
-    )
-
-   ; Only one proposition
-   (
-    ($build_distinct_list (distinct lhs rhs)) 
-
-    (not (= lhs rhs))
-    )
-
-   ; Only one proposition
-   (
-    ($build_distinct_list (distinct lhs)) 
-
-    true
-    )
-   
-   (
-    ($build_distinct_list true) 
-
-    true
-    )
-  )
-)
+    (($build_distinct_list (distinct xs))
+      (eo::list_singleton_elim and
+        ($distinct_inequalities xs eo::List::nil)))
+  ))
 
 ; TODO: DELETE THIS IF WE FIND A GENERIC WAY TO IMPLEMENT THIS
 
@@ -3731,7 +3750,8 @@
 ; return: >
 ;   A boolean indicating if ineq appears in `conjunctions`, modulo symmetry of the
 ;   equality within ineq.
-(program $conjunction_contains_ineq ((A Type) (lhs A) (rhs A) (hd Bool) (tl Bool :list))
+(program $conjunction_contains_ineq
+  ((A Type) (lhs A) (rhs A) (hd Bool) (tl Bool :list) (other Bool))
   :signature (Bool Bool) Bool
   (
    (
@@ -3767,10 +3787,13 @@
 
    ; { hd =/= (not (= lhs rhs))}
    (
-    ($conjunction_contains_ineq (not (= lhs rhs)) hd)
+   ($conjunction_contains_ineq (not (= lhs rhs)) hd)
 
     false
     )
+
+   ; Reject a conjunct that is not an inequality.
+   (($conjunction_contains_ineq hd other) false)
   )
 )
 
@@ -3836,23 +3859,17 @@
 ; return:
 ; A Boolean indicating if the given `conclusion` has the shape
 ; (distinct 𝑡1 … 𝑡𝑛) ≈ ⋀ 𝑡𝑖 ≈/≈ 𝑡𝑗.
-(program $check_distinct_elim ((A Type) (hd A) (inequalities Bool) (conjunctions Bool))
+(program $check_distinct_elim
+  ((A Type) (p A) (q A) (r A) (tl eo::List :list)
+   (inequalities Bool) (conjunctions Bool))
   :signature (Bool) Bool
-  (; TODO: assuming that inequalities come first
-   (
-    ($check_distinct_elim (@cl (= inequalities conjunctions)))
-    
-    ($conjunctions_equal ($build_distinct_list inequalities) conjunctions)
-    )
-
-   ; Only one proposition
-   (
-    ($check_distinct_elim (@cl (= (distinct hd) true))) 
-    
-    true
-    )
-  )
-)
+  (
+    ; More than two Boolean operands cannot all be distinct.
+    (($check_distinct_elim (@cl (= (distinct p q r tl) false)))
+      (eo::eq (eo::typeof p) Bool))
+    (($check_distinct_elim (@cl (= inequalities conjunctions)))
+      ($conjunctions_equal ($build_distinct_list inequalities) conjunctions))
+  ))
 
 ; rule: distinct_elim
 ; requires: >
