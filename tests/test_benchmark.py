@@ -91,9 +91,18 @@ class BenchmarkTests(unittest.TestCase):
             "--problem-root", str(self.problems), "--output", str(output),
             "--carcara", str(self.tools / "carcara"), "--ethos", str(self.tools / "ethos"),
             *options,
-        ], capture_output=True, text=True, timeout=15)
+        ], capture_output=True, text=True, timeout=15, cwd=self.root)
         self.assertEqual(completed.returncode, expected, completed.stdout + completed.stderr)
         return json.loads((output / "results.json").read_text()), output
+
+    def test_default_rare_file_is_bundled(self):
+        self.case("a.alethe")
+        report, output = self.run_benchmark()
+        bundled = benchmark.REPO / "big.rare"
+        self.assertEqual(report["config"]["rare_file"], str(bundled))
+        self.assertEqual((output / "rules.rare").read_bytes(), bundled.read_bytes())
+        command = report["results"][0]["translation"]["command"]
+        self.assertEqual(command[command.index("--rare-file") + 1], str(output / "rules.rare"))
 
     def test_nested_paths_and_incomplete_policy(self):
         self.case("nested/a.smt2.alethe")

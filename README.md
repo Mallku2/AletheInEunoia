@@ -17,12 +17,12 @@ python3 benchmark.py --help
 
 python3 benchmark.py ../Benchmarks/QF_UF \
   --problem-root ../cvc5/sample/QF_UF \
-  --rare-file ../Benchmarks/big.rare --rare-profile qf-uf \
+  --rare-profile qf-uf \
   --elaborate --keep-going --output /tmp/eunoia-qfuf-all
 
 python3 benchmark.py ../Benchmarks/QF_UF \
   --problem-root ../cvc5/sample/QF_UF \
-  --rare-file ../Benchmarks/big.rare --rare-profile qf-uf \
+  --rare-profile qf-uf \
   --elaborate --sample 100 --seed 20260929 --workers 10 \
   --output /tmp/eunoia-qfuf
 ```
@@ -32,7 +32,7 @@ python3 benchmark.py ../Benchmarks/QF_UF \
 | File under `--output` | Contents |
 | --- | --- |
 | `results.json` | Selection, verdicts, timings, commands, first failure |
-| `rules.rare` | RARE rules used, when supplied |
+| `rules.rare` | RARE rules used (default source: repository `big.rare`) |
 | `cases/*/proof.eo` | Translated Eunoia proof |
 | `cases/*/translate.log` | Carcara translation diagnostics |
 | `cases/*/ethos.log` | Ethos verdict and statistics |

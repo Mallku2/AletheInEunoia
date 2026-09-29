@@ -77,7 +77,8 @@ def arguments(argv=None):
                         help="comma-separated Carcara passes; default excludes hole discharge")
     parser.add_argument("--elaboration-timeout", type=positive_seconds, default=180,
                         help="Carcara elaboration wall limit in seconds (default: 180)")
-    parser.add_argument("--rare-file", type=Path, help="RARE definitions passed to Carcara")
+    parser.add_argument("--rare-file", type=Path, default=REPO / "big.rare",
+                        help="RARE definitions passed to Carcara (default: bundled big.rare)")
     parser.add_argument("--rare-profile", choices=("all", "qf-uf"), default="all",
                         help="qf-uf prunes big.rare to the tested Boolean/UF subset")
     parser.add_argument("--workers", type=positive_int, default=10,
