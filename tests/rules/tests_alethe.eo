@@ -1816,6 +1816,120 @@
              true))
 
 ;------------------------------------------
+; $check_chain_resolution
+;------------------------------------------
+
+; The deterministic fast path removes every occurrence of each pivot and
+; rejects a chain when either polarity is absent.
+(step $test_$check_chain_resolution_valid true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p q) (@cl (not p) r))
+              (@varlist p true)
+              (@cl q r))
+             true))
+
+(step $test_$check_chain_resolution_reordered_conclusion true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p q) (@cl (not p) r))
+              (@varlist p true)
+              (@cl r q))
+             true))
+
+(step $test_$check_chain_resolution_duplicates true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p p q) (@cl (not p) (not p) r))
+              (@varlist p true)
+              (@cl q r))
+             true))
+
+; The nil terminator is not a clause operand: an actual false literal must
+; survive deduplication, set union, and conclusion comparison.
+(step $test_$chain_unique_clause_false true
+      :rule $assert_eq
+      :args (($chain_unique_clause (@cl false false)) (@cl false)))
+
+(step $test_$chain_cl_union_false true
+      :rule $assert_eq
+      :args (($chain_cl_union (@cl p) (@cl false)) (@cl false p)))
+
+(step $test_$check_chain_resolution_preserves_false true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p false) (@cl (not p) q))
+              (@varlist p true)
+              (@cl false q))
+             true))
+
+(step $test_$check_chain_resolution_cannot_drop_false true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p false) (@cl (not p) q))
+              (@varlist p true)
+              (@cl q))
+             false))
+
+(step $test_$check_chain_resolution_no_false_pivot_from_nil true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p) (@cl (not false) q))
+              (@varlist false true)
+              (@cl p q))
+             false))
+
+(step $test_$check_chain_resolution_empty_conclusion true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p p) (@cl (not p) (not p)))
+              (@varlist p true)
+              @empty_cl)
+             true))
+
+; A removed pivot can be introduced again by a later premise.
+(step $test_$check_chain_resolution_reintroduced_pivot true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p q) (@cl (not p) r) (@cl (not r) p)
+                   (@cl (not p) q))
+              (@varlist p true r true p true)
+              (@cl q q))
+             true))
+
+(step $test_$check_chain_resolution_wrong_polarity true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p q) (@cl (not p) r))
+              (@varlist p false)
+              (@cl q r))
+             false))
+
+(step $test_$check_chain_resolution_missing_negated_pivot true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p q) (@cl p r))
+              (@varlist p true)
+              (@cl q r))
+             false))
+
+(step $test_$check_chain_resolution_wrong_conclusion true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p q) (@cl (not p) r))
+              (@varlist p true)
+              (@cl q))
+             false))
+
+(step $test_$check_chain_resolution_count_mismatch true
+      :rule $assert_eq
+      :args (($check_chain_resolution
+              (and (@cl p q) (@cl (not p) r))
+              (@varlist p true q true)
+              (@cl q r))
+             false))
+
+;------------------------------------------
 ; $check_resolution
 ;------------------------------------------
 
@@ -4233,4 +4347,3 @@
 (step-pop $test_let_2
           (@cl (= (_ (_ (_ (@let ((x Bool) (y Bool) (z Bool)) c) a) e) g) d))
           :rule let :premises ( premise_1 premise_2 premise_3 premise_4 ) :args ( ctx1 ))
-

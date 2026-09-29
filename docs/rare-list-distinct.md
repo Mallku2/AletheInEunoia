@@ -120,9 +120,9 @@ This is a representation mismatch with the existing `:pairwise` declaration,
 not a limitation preventing Eunoia from expressing pairwise semantics. An
 alternative declaration is discussed below.
 
-## The initial fix: normalize an assembled sequence
+## Discarded prototype: normalize an assembled sequence
 
-The initial fix preserved list arguments structurally:
+The initial prototype preserved list arguments structurally:
 
 ```text
 rare-list                 -> eo::List::nil
@@ -147,21 +147,19 @@ conjunction of (distinct operand_i operand_j), for every i < j
 Empty fragments contribute nothing. Duplicate operands remain: removing the
 second `c_4` would destroy the reason this rule concludes `false`.
 
-In that implementation, Carcara dispatched a `distinct` application to
-`$normalize_eo_pairwise`. The
-program accepts a binary comparison operator as a parameter; it does not
-itself match on `distinct`. Ordinary associative applications use the separate
-`$normalize_eo_list` program. Singleton elimination is applied after the full
-result has been assembled.
+In that prototype, Carcara dispatched a `distinct` application to
+`$normalize_eo_pairwise`. The program accepted a binary comparison operator
+as a parameter; it did not itself match on `distinct`. Ordinary associative
+applications used the separate `$normalize_eo_list` program. Singleton
+elimination was applied after the full result had been assembled.
 
 The generated rule computes its conclusion with `:conclusion`, allowing the
 normalizer to construct the term that must match the certificate. It does not
 retain the mechanical `:conclusion-explicit` template shown above.
 
-The two generic programs are defined in
-[`signature/programs/lists.eo`](../signature/programs/lists.eo). The compiler
-and its `Distinct` dispatch are in the Carcara repository at
-`src/translation/eunoia/rare.rs`.
+`$normalize_eo_pairwise` and the corresponding Carcara dispatch were removed
+after adopting native `:arg-list` support. This section records the prototype
+for comparison; it does not describe the current implementation.
 
 **The essential change is to preserve the operand sequence until the enclosing
 application determines how to interpret it.**
@@ -207,6 +205,14 @@ Native `:list` handling assembles the fragments using `eo::list_concat`, so
 the rule body can retain `(distinct xs t ys t zs)`. The result remains a
 `distinct` term over a sequence instead of expanding into a conjunction of
 binary comparisons.
+
+`eo::List::cons` is the sequence constructor, not the concatenation service.
+For example, `(eo::List::cons a b c)` constructs the sequence `[a, b, c]`.
+In a program pattern such as `(eo::List::cons x xs)`, declaring `xs` with
+`:list` binds the remaining sequence, so the pattern decomposes the head from
+the tail. `eo::list_concat` is the separate operation that joins two sequence
+fragments. Eunoia's `:list` splicing can make a `cons` expression look like a
+concatenation at the surface, but the two operations have different roles.
 
 The original example, all-empty fragments, and a nonempty middle fragment
 passed. Removing the repeated operand or changing the expected operand order

@@ -257,6 +257,222 @@
           )
          )
 
+; Convert @cl's internal nil value back to the explicit empty-clause marker.
+; This is needed after generic f-list operations: @cl uses false as its
+; right-associative terminator, while Alethe represents an empty clause with
+; @empty_cl so it cannot be confused with a clause containing false.
+(program $clause_nil_to_empty ((clause Bool))
+  :signature (Bool) Bool
+  (
+   (($clause_nil_to_empty false) @empty_cl)
+   (($clause_nil_to_empty clause) clause)
+   )
+  )
+
+; Check only clause operands. Generic f-list membership also visits the nil
+; terminator, which would report a false literal in every nonempty @cl.
+(program $chain_cl_contains ((clause Bool) (literal Bool) (head Bool)
+                             (tail Bool :list))
+  :signature (Bool Bool) Bool
+  (
+   (($chain_cl_contains (@cl literal tail) literal) true)
+   (($chain_cl_contains (@cl head tail) literal)
+    ($chain_cl_contains tail literal))
+   (($chain_cl_contains clause literal) false)
+   )
+  )
+
+; Compare clause sets without treating the false nil terminator as a literal.
+(program $chain_cl_subset ((left Bool) (right Bool) (head Bool)
+                           (tail Bool :list))
+  :signature (Bool Bool) Bool
+  (
+   (($chain_cl_subset @empty_cl right) true)
+   (($chain_cl_subset false right) true)
+   (($chain_cl_subset (@cl head tail) right)
+    (eo::and ($chain_cl_contains right head) ($chain_cl_subset tail right)))
+   (($chain_cl_subset left right) false)
+   )
+  )
+
+; Add a literal to a duplicate-free clause, preserving uniqueness.  Resolution
+; treats clauses as sets, so the deterministic path does not need to retain
+; repeated literals while constructing its intermediate resolvents.
+(program $chain_cl_add_unique ((clause Bool) (literal Bool))
+  :signature (Bool Bool) Bool
+  (
+   (($chain_cl_add_unique @empty_cl literal) (@cl literal))
+   (($chain_cl_add_unique clause literal)
+    (eo::ite ($chain_cl_contains clause literal)
+             clause
+             (eo::list_concat @cl (@cl literal) clause)))
+   )
+  )
+
+; Union a duplicate-free clause with another duplicate-free clause.  The
+; accumulator remains duplicate-free, which bounds the work of later pivot
+; removals by the number of distinct literals instead of the size of the
+; repeatedly concatenated clause spine.
+(program $chain_cl_union ((left Bool) (head Bool) (tail Bool :list))
+  :signature (Bool Bool) Bool
+  (
+   (($chain_cl_union left @empty_cl) left)
+   (($chain_cl_union left false) left)
+   (($chain_cl_union left (@cl head tail))
+    ($chain_cl_union ($chain_cl_add_unique left head) tail))
+   )
+  )
+
+; Remove repetitions before a clause enters the deterministic accumulator.
+; The explicit empty-clause marker is preserved instead of being confused
+; with @cl's false nil terminator.
+(program $chain_unique_clause ((clause Bool) (head Bool) (tail Bool :list))
+  :signature (Bool) Bool
+  (
+   (($chain_unique_clause @empty_cl) @empty_cl)
+   (($chain_unique_clause false) @empty_cl)
+   (($chain_unique_clause (@cl head tail))
+    ($chain_cl_add_unique ($chain_unique_clause tail) head))
+   ; Preserve a malformed/non-clause tail so the guarded chain rejects it.
+   (($chain_unique_clause clause) clause)
+   )
+  )
+
+; program: $chain_resolve
+; args:
+; - acc Bool: Accumulated resolvent (a normalized clause).
+; - clauses Bool: Remaining normalized clauses (an and-list, or its tail).
+; - pivots @VarList: Remaining (pivot, polarity) pairs.
+; - conclusion Bool: Normalized conclusion clause.
+; return: >
+;   A boolean indicating if `conclusion` is obtained by the deterministic
+;   chain resolution: at each step, `acc` is resolved with the next clause
+;   of `clauses` on the next pivot — the normalized literal
+;   `ite(polarity, pivot, not pivot)` is removed from `acc` and its normalized
+;   negation from the clause, and the set union becomes the new `acc`.
+;   Returns false on any mismatch (absent literals or clause/pivot count
+;   mismatch), so that callers may fall back to the general search-based
+;   resolution checker, which accepts a superset of the resolutions accepted
+;   here.
+; note: >
+;   PRE : { `acc`, `clauses` and `conclusion` are normalized,
+;           and `acc` has no duplicate literals }
+(program $chain_resolve ((acc Bool)
+                         (clause Bool) (clauses Bool :list)
+                         (pivot Bool) (polarity Bool) (pivots @VarList :list)
+                         (normalized_pivot Bool) (normalized_negated_pivot Bool)
+                         (conclusion Bool))
+  :signature (Bool Bool @VarList Bool) Bool
+  (
+   (; All clauses and pivots consumed: the accumulated resolvent must equal
+    ; the conclusion, modulo commutativity and repetitions.
+    ($chain_resolve acc true @varlist.nil conclusion)
+
+    ; Ordered equality is the common case; the quadratic set comparison
+    ; only runs when the literal order differs.
+    (eo::ite (eo::is_eq acc conclusion)
+             true
+             (eo::and ($chain_cl_subset conclusion acc)
+                       ($chain_cl_subset acc conclusion)))
+    )
+
+   (; Next clause is the head of an and-list.
+    ($chain_resolve acc (and clause clauses) (@varlist pivot polarity pivots)
+                    conclusion)
+
+    (eo::define
+     ((normalized_pivot ($remove_double_negation
+                         (eo::ite polarity pivot (not pivot))))
+      (normalized_negated_pivot ($remove_double_negation
+                                 (eo::ite polarity (not pivot) pivot))))
+     (eo::define
+      (
+       (unique_clause ($chain_unique_clause clause))
+       )
+      (eo::ite (eo::and ($chain_cl_contains acc normalized_pivot)
+                        ($chain_cl_contains unique_clause
+                                            normalized_negated_pivot))
+               (eo::define
+                ((acc_without_pivot
+                  ($clause_nil_to_empty
+                   ($f_list_remove_elem @cl acc normalized_pivot false)))
+                 (clause_without_negated_pivot
+                  ($clause_nil_to_empty
+                   ($f_list_remove_elem @cl unique_clause
+                                        normalized_negated_pivot false))))
+                ($chain_resolve ($chain_cl_union acc_without_pivot
+                                                 clause_without_negated_pivot)
+                                clauses pivots conclusion))
+               false)))
+    )
+
+   (; Last clause of the and-list appears as a bare (non-and) element.
+    ($chain_resolve acc clause (@varlist pivot polarity pivots)
+                    conclusion)
+
+    (eo::define
+     ((normalized_pivot ($remove_double_negation
+                         (eo::ite polarity pivot (not pivot))))
+      (normalized_negated_pivot ($remove_double_negation
+                                 (eo::ite polarity (not pivot) pivot))))
+     (eo::define
+      (
+       (unique_clause ($chain_unique_clause clause))
+       )
+      (eo::ite (eo::and ($chain_cl_contains acc normalized_pivot)
+                        ($chain_cl_contains unique_clause
+                                            normalized_negated_pivot))
+               (eo::define
+                ((acc_without_pivot
+                  ($clause_nil_to_empty
+                   ($f_list_remove_elem @cl acc normalized_pivot false)))
+                 (clause_without_negated_pivot
+                  ($clause_nil_to_empty
+                   ($f_list_remove_elem @cl unique_clause
+                                        normalized_negated_pivot false))))
+                ($chain_resolve ($chain_cl_union acc_without_pivot
+                                                 clause_without_negated_pivot)
+                                true pivots conclusion))
+               false)))
+    )
+
+   (; Clauses and pivots do not exhaust together.
+    ($chain_resolve acc clauses pivots conclusion)
+
+    false
+    )
+   )
+  )
+
+; program: $check_chain_resolution
+; args:
+; - clauses Bool: And-list of normalized clauses.
+; - pivots @VarList: A list of (pivot, polarity) pairs.
+; - conclusion Bool: Normalized conclusion clause.
+; return: >
+;   A boolean indicating if `conclusion` is the resolvent of the deterministic
+;   chain resolution over `clauses` and `pivots` (each clause resolved in
+;   order against the accumulated resolvent). Returns false when the chain
+;   interpretation does not apply.
+(program $check_chain_resolution ((clause Bool) (clauses Bool :list)
+                                  (pivots @VarList :list)
+                                  (conclusion Bool))
+  :signature (Bool @VarList Bool) Bool
+  (
+   (; { clauses = and C_1 ... }
+    ($check_chain_resolution (and clause clauses) pivots conclusion)
+
+    ($chain_resolve ($chain_unique_clause clause) clauses pivots conclusion)
+    )
+
+   (; { clauses is a single clause }
+    ($check_chain_resolution clauses pivots conclusion)
+
+    false
+    )
+   )
+  )
+
 ; program: $check_resolution_with_normalized_clauses 
 ; args:
 ; - clauses Bool: >
@@ -428,17 +644,26 @@
     ($check_resolution clauses pivots conclusion)
 
     (eo::define
-     
+
      (
       (normalized_clauses ($normalize_clauses clauses))
       (normalized_conclusion ($normalize_single_clause conclusion))
       )
-     
-    ($check_resolution_with_normalized_clauses normalized_clauses
-                                               true
-                                               true
-                                               pivots 
-                                               normalized_conclusion)
+
+    ; Try the deterministic chain interpretation first (linear in the
+    ; number of clauses); fall back to the general search-based checker,
+    ; which accepts a strict superset of the chain resolutions.
+    (eo::ite ($check_chain_resolution normalized_clauses
+                                      pivots
+                                      normalized_conclusion)
+
+             true
+
+             ($check_resolution_with_normalized_clauses normalized_clauses
+                                                        true
+                                                        true
+                                                        pivots
+                                                        normalized_conclusion))
     )
     )
    )
@@ -1801,7 +2026,7 @@
 ; return: >
 ;   The last element of type T related with lhs, through transitivity, 
 ;   following the equivalences in eqs.
-(program $last_eq_right ((T Type) (t1 T) (t2 T) (eqs Bool))
+(program $last_eq_right ((T Type) (t1 T) (t2 T) (eqs Bool :list))
   :signature (Bool T) Bool
   (
    (; case (@cl (= t1 t2) false)
@@ -2114,6 +2339,48 @@
      )
     )
 
+; program: $check_list_congruence
+; args:
+; - lhs eo::List: List of arguments of the LHS of the conclusion equality.
+; - rhs eo::List: List of arguments of the RHS of the conclusion equality.
+; - premises Bool: Premises given to rule cong, in the same order they were
+;   declared (leftmost argument first).
+; return: >
+;    A boolean indicating if the elements of `lhs` and `rhs` are pairwise equal
+;    modulo `premises`. Used for operators whose arguments are packed in a
+;    single eo::List argument (e.g., distinct via :arg-list), for which the
+;    usual application decomposition cannot reach the individual operands.
+;    As in the n-ary case, premises for reflexive element equalities may be
+;    present or omitted.
+(program $check_list_congruence ((T Type) (x T) (y T)
+                                 (xs eo::List :list) (ys eo::List :list)
+                                 (premises Bool) (tail Bool :list))
+   :signature (eo::List eo::List Bool) Bool
+   (
+    (; The current pair of elements is justified by a premise. Note that the
+     ; premise may itself be reflexive (x = y).
+     ($check_list_congruence (eo::List::cons x xs) (eo::List::cons y ys)
+                             (and (@cl (= x y)) tail))
+
+     ($check_list_congruence xs ys tail)
+     )
+
+    (; The current pair of elements is syntactically equal and no premise
+     ; justifies it: rule cong allows reflexive equalities to be omitted.
+     ($check_list_congruence (eo::List::cons x xs) (eo::List::cons x ys)
+                             premises)
+
+     ($check_list_congruence xs ys premises)
+     )
+
+    (; Both lists are exhausted. Remaining premises, if any, are not needed.
+     ($check_list_congruence eo::List::nil eo::List::nil premises)
+
+     true
+     )
+    )
+   )
+
 ; program: $check_cong
 ; args:
 ; - premises Bool: >
@@ -2122,10 +2389,27 @@
 ; return: >
 ;   A boolean indicating if `conclusion` follows from the and-list of premises
 ;   given.
-(program $check_cong ((T Type) (U Type) (f_lhs (-> T U)) (lhs U) (f_rhs (-> T U)) (rhs U) 
+(program $check_cong ((T Type) (U Type) (V Type) (f_lhs (-> T U)) (lhs U) (f_rhs (-> T U)) (rhs U)
+                      (f_list (-> eo::List V)) (x T) (y T) (xs eo::List :list) (ys eo::List :list)
                       (premises Bool))
   :signature (Bool Bool) Bool
   (
+   (; Operator taking a single eo::List argument (e.g., distinct via
+    ; :arg-list): congruence is elementwise equality of the list contents.
+    ; The premises are not reversed here, since the list is traversed from
+    ; its first element, in the order the premises were declared.
+    ($check_cong premises (@cl (= (f_list (eo::List::cons x xs))
+                                  (f_list (eo::List::cons y ys)))))
+
+    ($check_list_congruence (eo::List::cons x xs) (eo::List::cons y ys) premises)
+    )
+
+   (; Same as above, for two empty argument lists (reflexive).
+    ($check_cong premises (@cl (= (f_list eo::List::nil) (f_list eo::List::nil))))
+
+    true
+    )
+
    (
     ($check_cong premises (@cl (= (f_lhs lhs) (f_rhs rhs))))
 
@@ -5235,4 +5519,100 @@
   :premises (premise)
   :requires ((($check_weakening premise conclusion) true))
   :conclusion-explicit conclusion
+  )
+
+;-------------
+; Rule evaluate
+;-------------
+
+; program: $eval_bool
+; args:
+; - t Bool: Boolean term to evaluate.
+; return: The Boolean value of t (a term that eo::eq can compare).
+; note: >
+;   Evaluation is partial by design: terms that cannot be fully evaluated
+;   to a value leave the program stuck, so any rule application relying on
+;   them is rejected.
+(program $eval_bool ((S Type)
+                     (p Bool) (q Bool) (r Bool) (ps Bool :list)
+                     (x S)
+                     (xb Bool) (yb Bool))
+         :signature (Bool) Bool
+         (
+          (($eval_bool true)  true)
+          (($eval_bool false) false)
+
+          ; Syntactically identical operands: (= x x) is true at any sort,
+          ; even when x is uninterpreted.
+          (($eval_bool (= x x)) true)
+
+          ; and/or are :right-assoc-nil: an n-ary application does not match
+          ; a binary (and p q) pattern; the :list tail captures the
+          ; remaining operands.  => is :right-assoc and xor is :left-assoc,
+          ; so plain binary patterns work for them.
+          (($eval_bool (not p))     (eo::not ($eval_bool p)))
+          (($eval_bool (and p ps))  (eo::and ($eval_bool p) ($eval_bool ps)))
+          (($eval_bool (or p ps))   (eo::or  ($eval_bool p) ($eval_bool ps)))
+          (($eval_bool (=> p q))    (eo::or (eo::not ($eval_bool p)) ($eval_bool q)))
+          (($eval_bool (xor p q))   (eo::xor ($eval_bool p) ($eval_bool q)))
+          (($eval_bool (ite p q r)) (eo::ite ($eval_bool p) ($eval_bool q)
+                                             ($eval_bool r)))
+
+          ; Equality of Boolean operands in a Boolean context.  Non-Boolean
+          ; operands (and the general case) are handled by $eval below.
+          (($eval_bool (= xb yb))
+           (eo::eq ($eval_bool xb) ($eval_bool yb)))
+          )
+         )
+
+; program: $eval_sort
+; args:
+; - T Type: A sort literal (Bool, Int, ...), always (eo::typeof t).
+; - t T: Term to evaluate.
+; return: The value of t.
+; note: >
+;   Sort dispatch table.  The literal Type in the first position pins the
+;   sort of the second; unmatched sorts stay stuck (rejected).  Extend by
+;   adding one clause per sort, e.g.:
+;     (($eval_sort Int  i) ($evaluate_arith_term i))
+;     (($eval_sort Real r) ($evaluate_arith_term r))
+(program $eval_sort ((T Type) (t T) (b Bool))
+         :signature (Type T) T
+         (
+          (($eval_sort Bool b) ($eval_bool b))
+          )
+         )
+
+; program: $eval
+; args:
+; - t T: Term to evaluate.
+; return: The value of t.
+; note: >
+;   Entry point for evaluation.  Equality is matched structurally first so
+;   its operands can be of any sort — each recurses through $eval, hence
+;   through the sort table.  Everything else falls through to sort
+;   dispatch (including pairwise operators such as distinct, which need a
+;   generic pairwise-aware evaluator — deliberately not hardcoded).
+(program $eval ((T Type) (t T) (S Type)
+                (x S) (y S))
+         :signature (T) T
+         (
+          (($eval (= x x)) true)
+          (($eval (= x y))
+           (eo::eq ($eval x) ($eval y)))
+          (($eval t) ($eval_sort (eo::typeof t) t))
+          )
+         )
+
+; rule: evaluate
+; args:
+; - t T: The term to evaluate (the left-hand side of the equality).
+; conclusion: >
+;   A singleton clause holding (= t v), where v is the value computed by
+;   $eval.  The certificate only supplies t; the right-hand side is
+;   normalized in the conclusion.  Unevaluable terms stay stuck and the
+;   application is rejected.
+(declare-rule evaluate ((T Type) (t T))
+  :args (t)
+  :conclusion (@cl (= t ($eval t)))
   )

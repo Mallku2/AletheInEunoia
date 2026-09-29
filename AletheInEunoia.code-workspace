@@ -1,0 +1,13 @@
+{
+    "folders": [
+        {
+            "path": "signature"
+        },
+        {
+            "path": "../carcara"
+        },
+        {
+            "path": "../Benchmarks"
+        }
+    ]
+}

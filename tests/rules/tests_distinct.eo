@@ -76,3 +76,32 @@
   ($check_distinct_elim (@cl (= (distinct a b c) false))) :is_eq false)
 (define reject-bool-two-false ()
   ($check_distinct_elim (@cl (= (distinct p q) false))) :is_eq false)
+
+; Rule cong over distinct: congruence is elementwise on the eo::List argument.
+; Premises justify differing element pairs positionally; reflexive equalities
+; may appear explicitly or be omitted entirely.
+(define cong-distinct-pair ()
+  ($check_list_congruence (eo::List::cons a b) (eo::List::cons c b)
+                          (and (@cl (= a c))))
+  :is_eq true)
+(define cong-distinct-reflexive-tail ()
+  ($check_list_congruence (eo::List::cons a b) (eo::List::cons c b)
+                          (and (@cl (= a c)) (@cl (= b b))))
+  :is_eq true)
+(define cong-distinct-no-premises ()
+  ($check_list_congruence (eo::List::cons a b) (eo::List::cons a b) true)
+  :is_eq true)
+(define cong-distinct-via-rule ()
+  ($check_cong (and (@cl (= a c)))
+               (@cl (= (distinct a b d) (distinct c b d))))
+  :is_eq true)
+
+; End-to-end through the cong rule, mirroring the QF_UF corpus failure where
+; premises covered positions from the first difference onward.
+(assume-push cong-a0 (@cl (= c d)))
+(step cong-distinct
+  (@cl (= (distinct a b c) (distinct a b d)))
+  :rule cong :premises (cong-a0))
+(step-pop cong-pop
+  (@cl (not (= c d)) (= (distinct a b c) (distinct a b d)))
+  :rule subproof :premises (cong-distinct))

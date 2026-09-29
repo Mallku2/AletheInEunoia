@@ -8,18 +8,11 @@
 (declare-const b U)
 (declare-const c U)
 (declare-const d U)
-(declare-const related (-> U U Bool))
 
-; Both programs retain their complete spines. Singleton elimination belongs
-; to the caller, and the pairwise program works with any binary predicate.
+; The normalizer retains the complete spine. Singleton elimination belongs
+; to the caller.
 (define associative-spine ()
   ($normalize_eo_list Bool Bool or (eo::List::cons p)) :is_eq (or p))
-(define pairwise-spine ()
-  ($normalize_eo_pairwise U related (eo::List::cons a b) eo::List::nil)
-  :is_eq (and (related a b)))
-(define pairwise-other-operator ()
-  ($normalize_eo_pairwise U related (eo::List::cons a b c) eo::List::nil)
-  :is_eq (and (related a b) (related a c) (related b c)))
 
 ; Empty lists use the consuming operator's nil; singletons lose only the
 ; outer application. An explicit nil-valued operand is still an operand.
@@ -79,12 +72,6 @@
   :is_eq (eo::List::cons a b a))
 (define bad-carrier ()
   (eo::is_ok ($normalize_eo_list U eo::List eo::List::cons (eo::List::cons a true)))
-  :is_eq false)
-(define bad-singleton ()
-  (eo::is_ok ($normalize_eo_pairwise U related (eo::List::cons true) eo::List::nil))
-  :is_eq false)
-(define bad-pairwise ()
-  (eo::is_ok ($normalize_eo_pairwise U related (eo::List::cons a true) eo::List::nil))
   :is_eq false)
 (define bad-assoc ()
   (eo::is_ok ($normalize_eo_list Bool Bool or (eo::List::cons a)))
