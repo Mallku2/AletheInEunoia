@@ -1,7 +1,9 @@
 # Branch inventory
 
-Snapshot: **2026-09-25**. Repository: [Mallku2/AletheInEunoia](https://github.com/Mallku2/AletheInEunoia).
-Baseline: local and remote `main` at [`f706426`](https://github.com/Mallku2/AletheInEunoia/commit/f70642671d6d861905cad37bbd5c19b4c54225c5).
+Snapshot: **2026-09-29**. Repository: [Mallku2/AletheInEunoia](https://github.com/Mallku2/AletheInEunoia).
+Remote `main` is at [`8f29687`](https://github.com/Mallku2/AletheInEunoia/commit/8f29687c0f3c8b008608bb1f803e340cf7d00bb3).
+The active integration branch is `integration/rare-rules-qf-uf`, based on the
+updated `origin/rules/rare_rules` head `1e833c7`.
 
 This inventory covers **all 60 remote branch heads**, verified with `git ls-remote --heads origin` and refreshed with `git fetch origin`. The only local branch is `main`. `origin/HEAD` is an alias and is not counted. Carcara's branches belong to a separate repository and are outside this inventory.
 
@@ -17,6 +19,9 @@ This inventory covers **all 60 remote branch heads**, verified with `git ls-remo
 
 | Date | Branch / commit | Change |
 | --- | --- | --- |
+| 2026-09-29 | `integration/rare-rules-qf-uf` | New local integration branch based on the refreshed RARE stack. It retains that branch's `and_neg` and ports the structural list normalizers, native variadic `distinct`, Boolean `aci_simp`, and their focused tests. |
+| 2026-09-28 | `rules/rare_rules` · `1e833c7` | Refreshed RARE stack. The latest commit updates `and_intro`; `cc6b1c5` adjusts the RARE-list constructors. This branch already contains the maintained `and_neg`, so the separate computed-conclusion implementation is not carried into the integration branch. |
+| 2026-09-28 | `main` · `8f29687` | Adds the QF_UF audits and tested ACI/distinct changes, together with an alternate computed-conclusion `and_neg`. The non-duplicated changes are being ported onto the refreshed RARE base. |
 | 2026-09-25 | `services/f_list_equal_mod_commut_and_length` · `7c0641b` | Latest comment cleanup, following `80709b4`: rename `$f_list_length` to `$f_list_count_up_to_nil` and update callers/tests. Counting still includes the nil terminator. |
 | 2026-09-24 | `rules/qnt_cnf_from_main` · `40360a8` | Newly discovered remote branch: quantified-CNF rule/helpers and tests, on a base that includes `rules/simple_remaining_rules`. |
 | 2026-09-24 | `main` · `f706426` | Commits the two structural RARE normalizers and `tests/programs/tests_normalize_lists.eo`, following the resolution merge. |
@@ -31,7 +36,7 @@ These are useful starting points for organizing further integration, not promise
 | --- | --- | --- |
 | Resolution | `rules/fixes_resolution_from_main` | Already merged as `90fa27b`. Both resolution branches normalize conclusions as well as premises; the difference from Carcara's stricter explicit-pivot literal preservation remains. |
 | RARE lists | Current `main`; compare `rules/rare_rules` for historical definitions | Current `main` has the structural normalizers. The older RARE branch also contains a large accumulated rule stack. |
-| `and_neg` / `and_intro` | `rules/fixes_and_neg_from_main`; `services/and_intro_from_main` | Review complete rule/helper changes. During the resolution merge, its incoming De Morgan helper alone regressed binary `and_neg`; `main` retained the prior helper. |
+| `and_neg` / `and_intro` | `rules/rare_rules`; compare the narrower `_from_main` branches | The RARE branch now carries both maintained implementations. `integration/rare-rules-qf-uf` uses its native `and_neg`; Carcara therefore emits ordinary argument-free Alethe `and_neg` steps without a translator special case. |
 | AC simplification | `rules/ac_simp_from_main` | The declaration is `ac_simp`; our benchmark failures named `aci_simp`. Name/interface compatibility must be checked before counting this as coverage. |
 | List services / contexts | `services/f_list_equal_mod_commut_and_length`, `services/f_list_zip_from_main`, `services/pairs_from_main` | Coordinate helper names and representations. The pairs branch also changes `refl` to take context as an argument; current `main` takes a premise. |
 | Quantifier CNF | `rules/qnt_cnf_from_main`; compare `_independent` | New port overlaps existing normalization and quantified-rule work; also contains simple-rule ancestry. |
@@ -55,8 +60,9 @@ Arrows mean **ancestor branch head → descendant branch head**, checked from Gi
 
 | Branch | Head · updated | History | Summary and latest work |
 | --- | --- | --- | --- |
-| [main](https://github.com/Mallku2/AletheInEunoia/tree/main) | [`f706426`](https://github.com/Mallku2/AletheInEunoia/commit/f70642671d6d861905cad37bbd5c19b4c54225c5) · 2026-09-24 | Current | Current integration branch. `90fa27b` merged the resolution port; `f706426` committed `$normalize_eo_list`, `$normalize_eo_pairwise`, and their regression file. |
-| [rules/rare_rules](https://github.com/Mallku2/AletheInEunoia/tree/rules/rare_rules) | [`4747fc3`](https://github.com/Mallku2/AletheInEunoia/commit/4747fc3929f88371a00f0806f8213536a7f25964) · 2026-09-15 | 241 / 42 | Older fixed RARE-rule mechanization. Latest change adds RARE-list value constructors in `signature/theories/theory.eo`; earlier changes adapt Rare 2.0 declarations. Compare with the structural normalizers now on `main` before porting. |
+| `integration/rare-rules-qf-uf` | local · based on `1e833c7` · 2026-09-29 | Active | Integration of the updated RARE rule stack with the tested structural list normalizers, native variadic `distinct`, Boolean `aci_simp`, and QF_UF audit material. The duplicate computed-conclusion `and_neg` is omitted. |
+| [main](https://github.com/Mallku2/AletheInEunoia/tree/main) | [`8f29687`](https://github.com/Mallku2/AletheInEunoia/commit/8f29687c0f3c8b008608bb1f803e340cf7d00bb3) · 2026-09-28 | Remote main | Contains the resolution port, structural RARE normalizers, ACI/distinct fixes, audits, and the alternate computed-conclusion `and_neg`. |
+| [rules/rare_rules](https://github.com/Mallku2/AletheInEunoia/tree/rules/rare_rules) | [`1e833c7`](https://github.com/Mallku2/AletheInEunoia/commit/1e833c78fabd97b8e275ae70704cf2cf61bb0c82) · 2026-09-28 | 243 / 44 | Broad RARE-rule mechanization and accumulated rule stack. The latest changes update `and_intro` and adjust the RARE-list constructors. It already contains the maintained `and_neg` implementation and tests. |
 | [performance_tweaks](https://github.com/Mallku2/AletheInEunoia/tree/performance_tweaks) | [`f743a3b`](https://github.com/Mallku2/AletheInEunoia/commit/f743a3b259c819d21cfafed1bfcbf136cafe11da) · 2026-08-21 | 248 / 42 | Free-variable and substitution performance work. Latest fix corrects a bug introduced in `$substitution_apply` by the optimization. Carries a large older rule/RARE stack; isolate the performance changes before integration. |
 | [tests](https://github.com/Mallku2/AletheInEunoia/tree/tests) | [`af11ea5`](https://github.com/Mallku2/AletheInEunoia/commit/af11ea5bb5a9c0eea875f7e1071efe43aa0d705b) · 2026-09-23 | 241 / 42 | Older broad testing/integration snapshot. Latest commit is “some testing”; its ancestry includes the older RARE rules and many rule fixes. It is not the current `main` plus only tests. |
 | [backup](https://github.com/Mallku2/AletheInEunoia/tree/backup) | [`4d3de89`](https://github.com/Mallku2/AletheInEunoia/commit/4d3de8959d2ff6e08e4770b1cd4b24216bf5c6e0) · 2026-08-07 | 120 / 86 | Historical snapshot of the older RARE development stack. Latest head merges `fixes_and_simplify_extra` into the RARE branch; includes many earlier rule changes. Use as a reference snapshot. |
@@ -142,6 +148,12 @@ Arrows mean **ancestor branch head → descendant branch head**, checked from Gi
 | [rules/weakening](https://github.com/Mallku2/AletheInEunoia/tree/rules/weakening) | [`e19e49b`](https://github.com/Mallku2/AletheInEunoia/commit/e19e49b0f6629a186ab8cefb662d2a722675b0fb) · 2026-08-19 | 66 / 42 | Weakening rule/tests, on top of the not-and/OR/and-neg stack. A narrower `weakening_from_main` port is available; this original head remains divergent. |
 
 ## Integration notes for current main
+
+- `integration/rare-rules-qf-uf` was created after fetching the 2026-09-28
+  `rules/rare_rules` update. Focused normalizer, ACI, distinct, RARE compilation,
+  and `refl` translation tests pass. Regenerated QF_UF cases 01 and 02 now stop
+  at the known `trans` checker issue; case 08 reaches the missing `evaluate`
+  rule. The RARE branch's own `and_neg` is used throughout.
 
 - Resolution merge: [`90fa27b`](https://github.com/Mallku2/AletheInEunoia/commit/90fa27ba5233f4832b9ee9cf9763003ff9eac283), parents `dd85399` and `1b8dee4`. Conflicts were resolved by preserving current quantified-rule implementations and existing tests, removing a duplicate helper, and retaining the existing De Morgan helper to avoid an `and_neg` regression.
 - Previously verified for that merge: 66 resolution checks, six extracted failing benchmark resolution steps, list/program suites, and Carcara's RARE/`refl` integration checks. This does not certify complete benchmark refutations or all other branches. The full Alethe suite then stopped at the existing missing string-literal type declaration.

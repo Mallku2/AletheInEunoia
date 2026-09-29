@@ -1,0 +1,78 @@
+(include "../../signature/rules/alethe.eo")
+
+(declare-const U Type)
+(declare-const a U)
+(declare-const b U)
+(declare-const c U)
+(declare-const d U)
+(declare-const p Bool)
+(declare-const q Bool)
+
+; Surface applications keep their operand sequence, including Boolean values.
+(define direct-bool () (distinct true true) :type Bool
+  :is_eq (_ distinct (eo::List::cons true true)))
+(define direct-many () (distinct a b c d) :type Bool
+  :is_eq (_ distinct (eo::List::cons a b c d)))
+(define direct-singleton () (distinct a) :type Bool
+  :is_eq (_ distinct (eo::List::cons a)))
+(define direct-empty () (_ distinct eo::List::nil) :type Bool)
+
+; Keep the RARE rule body. Empty and nonempty fragments are spliced natively.
+(declare-rule test-distinct-false
+  ((A Type) (t A) (xs eo::List :list) (ys eo::List :list) (zs eo::List :list))
+  :args (t xs ys zs)
+  :conclusion (@cl (= (distinct xs t ys t zs) false)))
+(step rare-empty (@cl (= (distinct a a) false))
+  :rule test-distinct-false
+  :args (a eo::List::nil eo::List::nil eo::List::nil))
+(step rare-fragments (@cl (= (distinct b c a a d) false))
+  :rule test-distinct-false
+  :args (a (eo::List::cons b c) eo::List::nil (eo::List::cons d)))
+(step rare-middle (@cl (= (distinct b a c d a) false))
+  :rule test-distinct-false
+  :args (a (eo::List::cons b) (eo::List::cons c d) eo::List::nil))
+(step rare-bool (@cl (= (distinct true true) false))
+  :rule test-distinct-false
+  :args (true eo::List::nil eo::List::nil eo::List::nil))
+
+; Type checks belong to the declaration, including ordinary proof formulas.
+(define homogeneous () ($same_sort (eo::List::cons a b c)) :is_eq true)
+(define heterogeneous () ($same_sort (eo::List::cons a true)) :is_eq false)
+(define heterogeneous-tail () ($same_sort (eo::List::cons a b true)) :is_eq false)
+(define reject-mixed-application ()
+  (eo::is_ok (eo::typeof (distinct a true))) :is_eq false)
+(define reject-ill-typed-singleton ()
+  (eo::is_ok (eo::typeof (distinct (+ true 1)))) :is_eq false)
+(define nested () (distinct (distinct a b) (distinct b c)) :type Bool)
+
+; Expansion is needed only by the logical elimination rule.
+(step elim-empty (@cl (= (_ distinct eo::List::nil) true)) :rule distinct_elim)
+(step elim-one (@cl (= (distinct a) true)) :rule distinct_elim)
+(step elim-two (@cl (= (distinct a b) (not (= a b)))) :rule distinct_elim)
+(step elim-symmetric (@cl (= (distinct a b) (not (= b a)))) :rule distinct_elim)
+(step elim-three
+  (@cl (= (distinct a b c) (and (not (= a b)) (not (= a c)) (not (= b c)))))
+  :rule distinct_elim)
+(step elim-four
+  (@cl (= (distinct a b c d)
+    (and (not (= a b)) (not (= a c)) (not (= a d))
+         (not (= b c)) (not (= b d)) (not (= c d)))))
+  :rule distinct_elim)
+(step elim-duplicates
+  (@cl (= (distinct a b a) (and (not (= a b)) (not (= a a)) (not (= b a)))))
+  :rule distinct_elim)
+(step elim-bool-two (@cl (= (distinct true true) (not (= true true)))) :rule distinct_elim)
+(step elim-bool-three (@cl (= (distinct p q true) false)) :rule distinct_elim)
+(step elim-bool-four (@cl (= (distinct p q true false) false)) :rule distinct_elim)
+
+; Invalid elimination conclusions must not pass the checker.
+(define reject-missing-pair ()
+  ($check_distinct_elim (@cl (= (distinct a b c) (and (not (= a b)) (not (= b c))))))
+  :is_eq false)
+(define reject-extra-pair ()
+  ($check_distinct_elim (@cl (= (distinct a b) (and (not (= a b)) (not (= a c))))))
+  :is_eq false)
+(define reject-uninterpreted-false ()
+  ($check_distinct_elim (@cl (= (distinct a b c) false))) :is_eq false)
+(define reject-bool-two-false ()
+  ($check_distinct_elim (@cl (= (distinct p q) false))) :is_eq false)

@@ -1,0 +1,460 @@
+{
+  "date": "2026-09-27",
+  "seed": 20260927,
+  "selection": "Uniform random sample without replacement from UNSAT inputs, excluding the original 50.",
+  "eligible_unsat": 208,
+  "previous_excluded": [
+    "20170829-Rodin/smt249825283571301584.smt2",
+    "2018-Goel-hwbench/QF_UF_counter_v_ab_reg_max.smt2",
+    "NEQ/NEQ033_size5.smt2",
+    "QG-classification/loops6/iso_brn005.smt2",
+    "QG-classification/qg5/dead_dnd002.smt2",
+    "QG-classification/qg6/iso_icl012.smt2",
+    "QG-classification/qg7/iso_brn004.smt2",
+    "SEQ/SEQ038_size7.smt2",
+    "2018-Goel-hwbench/QF_UF_elevator.2.prop1_ab_reg_max.smt2",
+    "NEQ/NEQ027_size8.smt2",
+    "QG-classification/loops6/iso_icl038.smt2",
+    "QG-classification/qg5/iso_icl036.smt2",
+    "QG-classification/qg7/iso_brn023.smt2",
+    "2018-Goel-hwbench/QF_UF_brp.5.prop1_ab_reg_max.smt2",
+    "QG-classification/loops6/iso_brn033.smt2",
+    "QG-classification/qg5/iso_icl005.smt2",
+    "QG-classification/qg7/iso_icl_sk002.smt2",
+    "2018-Goel-hwbench/QF_UF_pouring.2.prop1_ab_reg_max.smt2",
+    "QG-classification/loops6/gensys_icl019.smt2",
+    "QG-classification/qg5/iso_brn223.smt2",
+    "QG-classification/qg7/iso_brn_sk036.smt2",
+    "2018-Goel-hwbench/QF_UF_elevator.3.prop1_ab_reg_max.smt2",
+    "QG-classification/loops6/gensys_icl044.smt2",
+    "QG-classification/qg5/iso_brn1092.smt2",
+    "QG-classification/qg7/iso_icl002.smt2",
+    "2018-Goel-hwbench/QF_UF_lifts.3.prop1_ab_reg_max.smt2",
+    "QG-classification/loops6/iso_brn028.smt2",
+    "QG-classification/qg5/iso_icl221.smt2",
+    "QG-classification/qg7/iso_icl_repgen_sk006.smt2",
+    "2018-Goel-hwbench/QF_UF_pgm_protocol.4.prop6_ab_reg_max.smt2",
+    "QG-classification/loops6/iso_icl082.smt2",
+    "QG-classification/qg5/iso_brn1086.smt2",
+    "2018-Goel-hwbench/QF_UF_resistance.1.prop2_ab_cti_max.smt2",
+    "QG-classification/loops6/iso_icl083.smt2",
+    "QG-classification/qg5/iso_brn507.smt2",
+    "2018-Goel-hwbench/QF_UF_brp2.4.prop2_ab_reg_max.smt2",
+    "QG-classification/loops6/gensys_icl100.smt2",
+    "QG-classification/qg5/iso_icl487.smt2",
+    "2018-Goel-hwbench/QF_UF_brp2.2.prop3_ab_reg_max.smt2",
+    "QG-classification/loops6/gensys_brn089.smt2",
+    "QG-classification/qg5/iso_icl050.smt2",
+    "2018-Goel-hwbench/QF_UF_brp2.3.prop3_ab_reg_max.smt2",
+    "QG-classification/loops6/dead_dnd016.smt2",
+    "QG-classification/qg5/iso_brn1097.smt2",
+    "2018-Goel-hwbench/QF_UF_iprotocol.7.prop1_ab_reg_max.smt2",
+    "QG-classification/loops6/iso_icl071.smt2",
+    "QG-classification/qg5/iso_brn317.smt2",
+    "2018-Goel-hwbench/QF_UF_needham.1.prop4_ab_reg_max.smt2",
+    "QG-classification/loops6/gensys_icl099.smt2",
+    "QG-classification/qg5/iso_icl248.smt2"
+  ],
+  "cases": [
+    {
+      "id": "01",
+      "relative": "QG-classification/qg5/gensys_icl432.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl432.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl432.smt2.alethe",
+      "input_bytes": 47980,
+      "input_sha256": "d9631953dc58c5610e2e357c53bb3ffe708062860e26621c876ebf2150ef5d87"
+    },
+    {
+      "id": "02",
+      "relative": "QG-classification/qg5/iso_icl353.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl353.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl353.smt2.alethe",
+      "input_bytes": 28762,
+      "input_sha256": "26a6e35650f0178668e9d9d864c7118515a05e11ff4625de45cd46ef447207f1"
+    },
+    {
+      "id": "03",
+      "relative": "QG-classification/qg5/gensys_icl896.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl896.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl896.smt2.alethe",
+      "input_bytes": 52271,
+      "input_sha256": "e6078a3f4fb8713e49503da86fd530e6c4b494c1173f80ea828346a0bc33f147"
+    },
+    {
+      "id": "04",
+      "relative": "QG-classification/qg5/gensys_icl1055.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl1055.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl1055.smt2.alethe",
+      "input_bytes": 42204,
+      "input_sha256": "240a10d2abc08b36f58799d034d2f95a3ef876aa9513fde70b46be871429165c"
+    },
+    {
+      "id": "05",
+      "relative": "QG-classification/qg5/gensys_brn869.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_brn869.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_brn869.smt2.alethe",
+      "input_bytes": 47880,
+      "input_sha256": "1bd4d33f26e8a6805aa1bd5f540ba691fdd71c00c2cbcead0928f5ecd39676a5"
+    },
+    {
+      "id": "06",
+      "relative": "QG-classification/qg5/gensys_brn900.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_brn900.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_brn900.smt2.alethe",
+      "input_bytes": 46058,
+      "input_sha256": "32c6db1f1856f2540e2a2f3c8ee1024d5833ecbe3e9f09f130a81d9a93e0c087"
+    },
+    {
+      "id": "07",
+      "relative": "QG-classification/qg5/iso_icl463.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl463.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl463.smt2.alethe",
+      "input_bytes": 32440,
+      "input_sha256": "f2bc304c3581d2447b8f07bf58fda020ace91cc9e2fff2e0a7433a6b13088187"
+    },
+    {
+      "id": "08",
+      "relative": "QG-classification/qg5/iso_brn942.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_brn942.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_brn942.smt2.alethe",
+      "input_bytes": 41066,
+      "input_sha256": "78a45664c4d94d1f09ce18f7573c3a1c1f058e55f8ea4197d0fc4d252821ae00"
+    },
+    {
+      "id": "09",
+      "relative": "QG-classification/qg5/iso_brn1212.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_brn1212.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_brn1212.smt2.alethe",
+      "input_bytes": 27922,
+      "input_sha256": "5ae7fdbbc1768040565a38084b3f9b03fcb72e1f5518ba2591174ad9a77e1811"
+    },
+    {
+      "id": "10",
+      "relative": "QG-classification/qg5/gensys_icl1009.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl1009.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl1009.smt2.alethe",
+      "input_bytes": 37624,
+      "input_sha256": "87c0c10ed70f230cd42e622030a2836b6d8d2c3c5d3ae94be0c2e26d60bfe458"
+    },
+    {
+      "id": "11",
+      "relative": "QG-classification/qg5/gensys_icl891.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl891.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl891.smt2.alethe",
+      "input_bytes": 52433,
+      "input_sha256": "cd51010e87773b69cf6f0204c37a0ecddd81ae0cf348c1bcaf7015835891ee23"
+    },
+    {
+      "id": "12",
+      "relative": "QG-classification/qg5/iso_icl944.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl944.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl944.smt2.alethe",
+      "input_bytes": 51559,
+      "input_sha256": "a85674865f90e2442ade50976300a95e1960d5f2b2c95a59bf7ec8dcc0c6cce6"
+    },
+    {
+      "id": "13",
+      "relative": "QG-classification/qg5/gensys_icl212.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl212.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl212.smt2.alethe",
+      "input_bytes": 36845,
+      "input_sha256": "77886414039cae49869859e5c2ace066ebc6993b604ac99c3ffc89e49048031b"
+    },
+    {
+      "id": "14",
+      "relative": "QG-classification/qg5/iso_icl160.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl160.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl160.smt2.alethe",
+      "input_bytes": 36510,
+      "input_sha256": "723116564e359f262c1d92b8938ff4565867d58e2bd3a22e40a4fd35bb78b6fe"
+    },
+    {
+      "id": "15",
+      "relative": "QG-classification/qg5/gensys_icl815.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl815.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl815.smt2.alethe",
+      "input_bytes": 58996,
+      "input_sha256": "fb1b1e27c5f125a1c0d9bf7d08c2ad4d3870a62308834e186a07684e637e98f7"
+    },
+    {
+      "id": "16",
+      "relative": "QG-classification/qg5/gensys_icl539.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl539.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl539.smt2.alethe",
+      "input_bytes": 62305,
+      "input_sha256": "8c0861320932cf34fda379473a205284a622058b3ebc05dfdd75fe8d0488aadb"
+    },
+    {
+      "id": "17",
+      "relative": "QG-classification/loops6/gensys_icl064.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/loops6/gensys_icl064.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/loops6/gensys_icl064.smt2.alethe",
+      "input_bytes": 103129,
+      "input_sha256": "2da18bd3a0afd3accc64a15c6a1940a9d03cd87ba085814a03200e6abf76f1e5"
+    },
+    {
+      "id": "18",
+      "relative": "QG-classification/qg5/gensys_icl1219.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl1219.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl1219.smt2.alethe",
+      "input_bytes": 40724,
+      "input_sha256": "af18eb7a0c2c08265fe6c034919a7e93970ca924d57979cd16aaa8ece6b6fad9"
+    },
+    {
+      "id": "19",
+      "relative": "QG-classification/qg5/iso_brn1058.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_brn1058.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_brn1058.smt2.alethe",
+      "input_bytes": 26833,
+      "input_sha256": "d8cb0472b2ed6e341327d3023c1e9620cef5d9a5d1488b0e6ceb6d7f4669a75f"
+    },
+    {
+      "id": "20",
+      "relative": "QG-classification/qg5/iso_icl631.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl631.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl631.smt2.alethe",
+      "input_bytes": 62426,
+      "input_sha256": "d0c7c5ac0912e81b6a9f1bc926085002a43f298e6e3dbd9a81d6cad3e2d8e278"
+    },
+    {
+      "id": "21",
+      "relative": "QG-classification/qg5/gensys_icl220.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl220.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl220.smt2.alethe",
+      "input_bytes": 34604,
+      "input_sha256": "01ec56ed2904187c5588e158f1c439b5ce8fb8126b09dbc66869eb2a1a05d817"
+    },
+    {
+      "id": "22",
+      "relative": "QG-classification/qg5/dead_dnd007.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/dead_dnd007.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/dead_dnd007.smt2.alethe",
+      "input_bytes": 36170,
+      "input_sha256": "91724e1512fc3ae406f686ba9dd31a64a5ef248059b6647d9d4b6a24ee6eebe3"
+    },
+    {
+      "id": "23",
+      "relative": "QG-classification/qg5/iso_icl505.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl505.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl505.smt2.alethe",
+      "input_bytes": 33948,
+      "input_sha256": "de5f75089d008deaa088e36c5bc1a7cf24f1c924817fb6847ce55be36a156407"
+    },
+    {
+      "id": "24",
+      "relative": "QG-classification/qg5/gensys_icl1251.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl1251.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl1251.smt2.alethe",
+      "input_bytes": 39815,
+      "input_sha256": "7b5e56b3b265ee07d265003d9d3fd970d92225de511f2dde9f41abcde2321064"
+    },
+    {
+      "id": "25",
+      "relative": "QG-classification/qg5/iso_icl576.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl576.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl576.smt2.alethe",
+      "input_bytes": 49419,
+      "input_sha256": "3a45ad8936d6c9aa0ddafe71d3c18c0193b7dc0278e0b22c81e23f6700c29924"
+    },
+    {
+      "id": "26",
+      "relative": "QG-classification/qg5/gensys_brn526.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_brn526.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_brn526.smt2.alethe",
+      "input_bytes": 46960,
+      "input_sha256": "fca100ef622e50266c9da554d654fb717509090d52e58e96ee2b6cc12df2b048"
+    },
+    {
+      "id": "27",
+      "relative": "QG-classification/qg5/gensys_icl783.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl783.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl783.smt2.alethe",
+      "input_bytes": 54203,
+      "input_sha256": "a05df853eadc9dbea24e6e12213f2e0f87ad5562f9f2d2b2ea93a4300ac58f80"
+    },
+    {
+      "id": "28",
+      "relative": "QG-classification/qg5/gensys_icl249.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl249.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl249.smt2.alethe",
+      "input_bytes": 44336,
+      "input_sha256": "d65e45dfc69bf34764d5b22164cd0150138efbed888055c37815e56c98ebe4df"
+    },
+    {
+      "id": "29",
+      "relative": "QG-classification/qg5/iso_icl112.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl112.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl112.smt2.alethe",
+      "input_bytes": 44008,
+      "input_sha256": "7a447deac2c3307958501683b39bf8fc23f1316a97cbe81a21f947b8b16b9ada"
+    },
+    {
+      "id": "30",
+      "relative": "QG-classification/qg5/gensys_icl1044.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl1044.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl1044.smt2.alethe",
+      "input_bytes": 43072,
+      "input_sha256": "ffeedd3689159ef2fd9108a1824ad4c52d38a8b4763f50065c96aaad98a5d18b"
+    },
+    {
+      "id": "31",
+      "relative": "QG-classification/qg5/iso_icl1097.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl1097.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl1097.smt2.alethe",
+      "input_bytes": 29043,
+      "input_sha256": "cb43b9f834dfec2a58edd737b7c908215500c119c0770cad3c05cd45786e23b2"
+    },
+    {
+      "id": "32",
+      "relative": "QG-classification/qg5/gensys_brn420.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_brn420.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_brn420.smt2.alethe",
+      "input_bytes": 37463,
+      "input_sha256": "c022fe672d083bc2bca45ebfdec8d464bdaf741bc572dc8a8a378c144cc25c1b"
+    },
+    {
+      "id": "33",
+      "relative": "QG-classification/qg5/dead_dnd041.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/dead_dnd041.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/dead_dnd041.smt2.alethe",
+      "input_bytes": 35864,
+      "input_sha256": "f4589b38660a38851ef8bb5dc0894844aeb480ef8a24ac48fb85525b685101fa"
+    },
+    {
+      "id": "34",
+      "relative": "QG-classification/qg5/iso_icl1236.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl1236.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl1236.smt2.alethe",
+      "input_bytes": 29942,
+      "input_sha256": "584a71d3557026002db752cefa84f5796d31c61714e75e67d1681fea9d55a1e7"
+    },
+    {
+      "id": "35",
+      "relative": "QG-classification/qg5/gensys_icl865.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl865.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl865.smt2.alethe",
+      "input_bytes": 55430,
+      "input_sha256": "de46b3f09ea353f37c6181563d7c8ae6af4d1bf3db9cdcac6c4ffb1c75777666"
+    },
+    {
+      "id": "36",
+      "relative": "QG-classification/qg5/dead_dnd031.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/dead_dnd031.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/dead_dnd031.smt2.alethe",
+      "input_bytes": 31130,
+      "input_sha256": "f7bd7fa7a5ce4840587344cb50b4c729e35f6afa0ca10965a71d6419390bdf8d"
+    },
+    {
+      "id": "37",
+      "relative": "QG-classification/qg5/iso_icl653.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl653.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl653.smt2.alethe",
+      "input_bytes": 43751,
+      "input_sha256": "02c985925699b64bd516881051883264319391b7232578bad0ab024e2e8f83cf"
+    },
+    {
+      "id": "38",
+      "relative": "QG-classification/qg5/iso_brn1047.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_brn1047.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_brn1047.smt2.alethe",
+      "input_bytes": 27959,
+      "input_sha256": "777a6349a9f5190d7d515578e57a72027dde0d9d7ad21298aa4d90ad8e1de438"
+    },
+    {
+      "id": "39",
+      "relative": "QG-classification/qg5/gensys_icl238.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl238.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl238.smt2.alethe",
+      "input_bytes": 43693,
+      "input_sha256": "9b560e7acd4a9faf68f903e30cb71a6c12497c4dd21570f8e58621eabb5ea61d"
+    },
+    {
+      "id": "40",
+      "relative": "QG-classification/qg5/iso_icl288.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl288.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl288.smt2.alethe",
+      "input_bytes": 29691,
+      "input_sha256": "ce76bbf26617fd5693ddeb98c73ea52373d6d402560445c38759eff92d5f3b4d"
+    },
+    {
+      "id": "41",
+      "relative": "QG-classification/qg5/gensys_brn425.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_brn425.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_brn425.smt2.alethe",
+      "input_bytes": 43934,
+      "input_sha256": "bf3dd3c094bd1279099f4514ab549eaca6b07ce87d94920dba058d07c4c84d2b"
+    },
+    {
+      "id": "42",
+      "relative": "QG-classification/qg5/iso_icl1265.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl1265.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl1265.smt2.alethe",
+      "input_bytes": 36191,
+      "input_sha256": "e9c01596e276648fd19958c38adb02f45e1b0622fa89a224e1a5353660dd12b0"
+    },
+    {
+      "id": "43",
+      "relative": "QG-classification/qg5/gensys_icl1153.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl1153.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl1153.smt2.alethe",
+      "input_bytes": 46052,
+      "input_sha256": "517c80c1b1b2eb949606337298361f72469e6696fc287e16dc4f3b164eef3165"
+    },
+    {
+      "id": "44",
+      "relative": "QG-classification/qg5/gensys_icl842.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl842.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl842.smt2.alethe",
+      "input_bytes": 41171,
+      "input_sha256": "eb90337698adc1c4630a7f47563037ec59accf55aee43e434fed276ac169ecee"
+    },
+    {
+      "id": "45",
+      "relative": "QG-classification/qg5/gensys_icl1280.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl1280.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl1280.smt2.alethe",
+      "input_bytes": 46457,
+      "input_sha256": "96a32817b04d070d6fef1980355dcc57d367816cf1fa15ece678a47fc48e0179"
+    },
+    {
+      "id": "46",
+      "relative": "QG-classification/qg5/iso_icl599.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl599.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl599.smt2.alethe",
+      "input_bytes": 37966,
+      "input_sha256": "8fef977e0992750a70a48e3ba8ca3a573fab072dd0d6a3c28d0663baa7002f20"
+    },
+    {
+      "id": "47",
+      "relative": "QG-classification/qg5/gensys_icl063.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl063.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl063.smt2.alethe",
+      "input_bytes": 29938,
+      "input_sha256": "3495764a96f2ce0c0a4dc390112042e534022931be36edf3711126dcd53ef42a"
+    },
+    {
+      "id": "48",
+      "relative": "QG-classification/qg5/gensys_icl509.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl509.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl509.smt2.alethe",
+      "input_bytes": 44598,
+      "input_sha256": "0c32e734760eb23b0b7053b0c8e045e1447042ae0af99acd726c61abe0450781"
+    },
+    {
+      "id": "49",
+      "relative": "QG-classification/qg5/iso_icl561.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/iso_icl561.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/iso_icl561.smt2.alethe",
+      "input_bytes": 47257,
+      "input_sha256": "99fad0b516627ed85f44dbbe555c5298579b0646ee1257378098165802c18484"
+    },
+    {
+      "id": "50",
+      "relative": "QG-classification/qg5/gensys_icl825.smt2",
+      "source": "/home/caotic/Workspace/cvc5/sample/QF_UF/QG-classification/qg5/gensys_icl825.smt2",
+      "existing_proof": "/home/caotic/Workspace/Benchmarks/QF_UF/QG-classification/qg5/gensys_icl825.smt2.alethe",
+      "input_bytes": 49704,
+      "input_sha256": "6a1134c40d457e3d2810ddbf802be4904bf03e40d4f2ae107b4513293b1328bf"
+    }
+  ]
+}

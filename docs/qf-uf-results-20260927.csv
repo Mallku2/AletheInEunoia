@@ -1,0 +1,51 @@
+id,input,generation,generation_seconds,translation,translation_seconds,ethos,ethos_seconds,first_error_line,rare_rewrite_steps,rare_list_arguments,isolated_rare,final_empty_clause
+01,QG-classification/qg5/gensys_icl432.smt2,ok,11.026,ok,12.385,rejected rule: and_neg,0.373,206,456,0,ok,True
+02,QG-classification/qg5/iso_icl353.smt2,ok,1.226,ok,1.633,missing Eunoia rule: aci_simp,0.267,89,330,0,ok,True
+03,QG-classification/qg5/gensys_icl896.smt2,ok,13.221,ok,14.542,missing Eunoia rule: aci_simp,0.267,208,393,0,ok,True
+04,QG-classification/qg5/gensys_icl1055.smt2,ok,10.665,ok,10.868,missing Eunoia rule: aci_simp,0.325,256,452,0,ok,True
+05,QG-classification/qg5/gensys_brn869.smt2,ok,40.406,ok,25.615,missing Eunoia rule: aci_simp,0.217,208,566,0,ok,True
+06,QG-classification/qg5/gensys_brn900.smt2,ok,9.992,ok,9.232,missing Eunoia rule: aci_simp,0.2,206,429,0,ok,True
+07,QG-classification/qg5/iso_icl463.smt2,ok,0.72,ok,1.373,missing Eunoia rule: aci_simp,0.217,209,303,0,ok,True
+08,QG-classification/qg5/iso_brn942.smt2,ok,0.818,ok,2.237,rejected rule: and_neg,0.221,89,293,0,ok,True
+09,QG-classification/qg5/iso_brn1212.smt2,ok,1.525,ok,3.378,missing Eunoia rule: aci_simp,0.166,89,388,0,ok,True
+10,QG-classification/qg5/gensys_icl1009.smt2,ok,11.585,ok,8.264,missing Eunoia rule: aci_simp,0.166,204,431,0,ok,True
+11,QG-classification/qg5/gensys_icl891.smt2,ok,3.944,ok,4.285,missing Eunoia rule: aci_simp,0.224,228,350,0,ok,True
+12,QG-classification/qg5/iso_icl944.smt2,ok,1.58,ok,2.715,missing Eunoia rule: aci_simp,0.166,154,353,0,ok,True
+13,QG-classification/qg5/gensys_icl212.smt2,ok,1.837,ok,1.824,rejected rule: and_neg,0.122,207,268,0,ok,True
+14,QG-classification/qg5/iso_icl160.smt2,ok,0.416,ok,1.076,missing Eunoia rule: aci_simp,0.165,194,248,0,ok,True
+15,QG-classification/qg5/gensys_icl815.smt2,ok,23.368,ok,27.323,missing Eunoia rule: aci_simp,0.271,214,558,0,ok,True
+16,QG-classification/qg5/gensys_icl539.smt2,ok,8.713,ok,11.443,missing Eunoia rule: aci_simp,0.267,215,505,0,ok,True
+17,QG-classification/loops6/gensys_icl064.smt2,ok,11.842,ok,18.179,missing Eunoia rule: aci_simp,0.216,416,635,0,ok,True
+18,QG-classification/qg5/gensys_icl1219.smt2,ok,12.281,ok,11.14,rejected rule: and_neg,0.274,247,406,0,ok,True
+19,QG-classification/qg5/iso_brn1058.smt2,ok,0.899,ok,1.982,missing Eunoia rule: aci_simp,0.276,87,297,0,ok,True
+20,QG-classification/qg5/iso_icl631.smt2,ok,1.825,ok,5.861,missing Eunoia rule: aci_simp,0.216,100,382,0,ok,True
+21,QG-classification/qg5/gensys_icl220.smt2,ok,1.125,ok,1.364,missing Eunoia rule: aci_simp,0.216,200,239,0,ok,True
+22,QG-classification/qg5/dead_dnd007.smt2,ok,21.0,ok,13.719,missing Eunoia rule: aci_simp,0.333,131,395,0,ok,True
+23,QG-classification/qg5/iso_icl505.smt2,ok,0.872,ok,2.748,missing Eunoia rule: aci_simp,0.325,158,316,0,ok,True
+24,QG-classification/qg5/gensys_icl1251.smt2,ok,18.198,ok,14.038,rejected rule: and_neg,0.217,209,428,0,ok,True
+25,QG-classification/qg5/iso_icl576.smt2,ok,1.029,ok,2.044,missing Eunoia rule: aci_simp,0.267,155,267,0,ok,True
+26,QG-classification/qg5/gensys_brn526.smt2,ok,25.092,ok,15.203,missing Eunoia rule: aci_simp,0.217,205,462,0,ok,True
+27,QG-classification/qg5/gensys_icl783.smt2,ok,42.26,ok,26.203,missing Eunoia rule: aci_simp,0.166,207,542,0,ok,True
+28,QG-classification/qg5/gensys_icl249.smt2,ok,11.577,ok,8.356,missing Eunoia rule: aci_simp,0.229,205,382,0,ok,True
+29,QG-classification/qg5/iso_icl112.smt2,ok,1.624,ok,4.1,missing Eunoia rule: aci_simp,0.218,94,317,0,ok,True
+30,QG-classification/qg5/gensys_icl1044.smt2,ok,5.807,ok,4.037,missing Eunoia rule: aci_simp,0.217,203,322,0,ok,True
+31,QG-classification/qg5/iso_icl1097.smt2,ok,2.392,ok,6.092,missing Eunoia rule: aci_simp,0.268,193,379,0,ok,True
+32,QG-classification/qg5/gensys_brn420.smt2,ok,24.114,ok,14.139,missing Eunoia rule: aci_simp,0.166,205,476,0,ok,True
+33,QG-classification/qg5/dead_dnd041.smt2,ok,16.507,ok,10.475,missing Eunoia rule: aci_simp,0.217,162,548,0,ok,True
+34,QG-classification/qg5/iso_icl1236.smt2,ok,0.822,ok,1.986,missing Eunoia rule: aci_simp,0.27,89,285,0,ok,True
+35,QG-classification/qg5/gensys_icl865.smt2,ok,10.601,ok,8.851,missing Eunoia rule: aci_simp,0.217,207,476,0,ok,True
+36,QG-classification/qg5/dead_dnd031.smt2,ok,22.114,ok,26.717,missing Eunoia rule: aci_simp,0.324,86,519,0,ok,True
+37,QG-classification/qg5/iso_icl653.smt2,ok,1.221,ok,4.339,rejected rule: and_neg,0.217,91,434,0,ok,True
+38,QG-classification/qg5/iso_brn1047.smt2,ok,0.618,ok,1.722,missing Eunoia rule: aci_simp,0.165,111,350,0,ok,True
+39,QG-classification/qg5/gensys_icl238.smt2,ok,2.48,ok,2.93,missing Eunoia rule: aci_simp,0.165,204,303,0,ok,True
+40,QG-classification/qg5/iso_icl288.smt2,ok,0.617,ok,1.795,missing Eunoia rule: aci_simp,0.165,91,344,0,ok,True
+41,QG-classification/qg5/gensys_brn425.smt2,ok,3.043,ok,3.914,missing Eunoia rule: aci_simp,0.165,224,407,0,ok,True
+42,QG-classification/qg5/iso_icl1265.smt2,ok,0.876,ok,2.085,missing Eunoia rule: aci_simp,0.165,91,262,0,ok,True
+43,QG-classification/qg5/gensys_icl1153.smt2,ok,3.459,ok,3.975,missing Eunoia rule: aci_simp,0.221,224,364,0,ok,True
+44,QG-classification/qg5/gensys_icl842.smt2,ok,4.659,ok,6.294,missing Eunoia rule: aci_simp,0.166,205,457,0,ok,True
+45,QG-classification/qg5/gensys_icl1280.smt2,ok,1.392,ok,1.958,missing Eunoia rule: aci_simp,0.216,204,252,0,ok,True
+46,QG-classification/qg5/iso_icl599.smt2,ok,0.666,ok,3.185,missing Eunoia rule: aci_simp,0.177,156,329,0,ok,True
+47,QG-classification/qg5/gensys_icl063.smt2,ok,2.057,ok,2.493,missing Eunoia rule: aci_simp,0.167,248,292,0,ok,True
+48,QG-classification/qg5/gensys_icl509.smt2,ok,22.968,ok,16.53,missing Eunoia rule: aci_simp,0.165,217,496,0,ok,True
+49,QG-classification/qg5/iso_icl561.smt2,ok,1.529,ok,4.81,missing Eunoia rule: aci_simp,0.216,91,373,0,ok,True
+50,QG-classification/qg5/gensys_icl825.smt2,ok,7.538,ok,7.537,missing Eunoia rule: aci_simp,0.216,209,488,0,ok,True

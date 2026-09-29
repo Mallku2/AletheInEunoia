@@ -1,0 +1,59 @@
+(include "../../signature/rules/alethe.eo")
+
+(declare-const p Bool)
+(declare-const q Bool)
+(declare-const r Bool)
+
+; Associativity, idempotence, commutativity, and identity removal together.
+(step flatten-and-set (@cl (= (or p (or q p) false) (or q p)))
+  :rule aci_simp)
+
+; Atomic and singleton terms must acquire the same operand representation.
+(step unary (@cl (= (or p) p)) :rule aci_simp)
+(step unary-and (@cl (= (and p) p)) :rule aci_simp)
+
+; Removing all identity operands yields the empty spine for that operator.
+(step empty-or (@cl (= (or false false) false)) :rule aci_simp)
+(step empty-and (@cl (= (and true true) true)) :rule aci_simp)
+
+(step idempotence (@cl (= (and p p p) p)) :rule aci_simp)
+(step idempotence-rhs (@cl (= (or p q) (or q p q p))) :rule aci_simp)
+(step identity (@cl (= (or p false) p)) :rule aci_simp)
+(step identity-and (@cl (= (and true p true) p)) :rule aci_simp)
+
+; A differently headed term is an opaque operand, including when it is
+; the only operand left after removing the outer operator's identity.
+(step opaque-operand (@cl (= (or (and p q) false) (and p q))) :rule aci_simp)
+(step reflexivity (@cl (= (not p) (not p))) :rule aci_simp)
+
+; Invalid equalities must be rejected.
+(define reject-different ()
+  ($check_aci_simp (or p q) (or p r)) :is_eq false)
+(define reject-drop ()
+  ($check_aci_simp (or p q) p) :is_eq false)
+(define reject-xor-idempotence ()
+  ($check_aci_simp (xor p p) p) :is_eq false)
+
+; These equalities are valid, but require reasoning beyond normalization of
+; the same outer operator. They are outside this rule's current policy.
+(define reject-inner-reorder ()
+  ($check_aci_simp (or p (and q r)) (or p (and r q))) :is_eq false)
+(define reject-mixed-root-reorder ()
+  ($check_aci_simp (or (and p q) false) (and q p)) :is_eq false)
+(define reject-absorption ()
+  ($check_aci_simp (or p true) true) :is_eq false)
+(define reject-distribution ()
+  ($check_aci_simp (and p (or q r)) (or (and p q) (and p r))) :is_eq false)
+
+; Structural probes: the generic helper uses the declared spine orientation.
+; left_or is used only to test list computations, not as a proof-rule operator.
+(declare-const left_or (-> Bool Bool Bool) :left-assoc-nil false)
+(define left-flatten ()
+  ($aci_operands Bool left_or (left_or p (left_or q r) false))
+  :is_eq (left_or p q r))
+(define right-flatten ()
+  ($aci_operands Bool or (or p (or q r) false))
+  :is_eq (or p q r))
+(define left-set-comparison ()
+  ($aci_equal left_or (left_or p (left_or q p) false) (left_or q p))
+  :is_eq true)
