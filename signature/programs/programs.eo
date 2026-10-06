@@ -514,8 +514,8 @@
 ; args:
 ; - conjunction Bool: A boolean conjunction.
 ; return: >
-;   Applies De Morgan's law over the conjuncts of "ls", returning a new clause
-;   built with @cl.
+;   Applies De Morgan's law over the conjuncts of `conjunction`, returning a new clause
+;   built with `@cl`.
 (program $de_morgan_not_and ((l Bool) (ls Bool :list))
   :signature (Bool) Bool
   (
