@@ -48,7 +48,7 @@
           )
          )
 
-; program: $less_or_equal_strings
+; program: $less_or_equal_atoms
 ; args:
 ; - atom_1 A: An arbitrary variable.
 ; - atom_2 A: An arbitrary variable.
