@@ -305,6 +305,18 @@
    (($chain_cl_add_unique clause literal)
     (eo::ite ($chain_cl_contains clause literal)
              clause
+             ($f_list_cons @cl literal clause)))
+   )
+  )
+
+; Native version of $chain_cl_add_unique, using eo::list_concat.
+(program $chain_cl_add_unique_native ((clause Bool) (literal Bool))
+  :signature (Bool Bool) Bool
+  (
+   (($chain_cl_add_unique_native @empty_cl literal) (@cl literal))
+   (($chain_cl_add_unique_native clause literal)
+    (eo::ite ($chain_cl_contains clause literal)
+             clause
              (eo::list_concat @cl (@cl literal) clause)))
    )
   )
@@ -319,7 +331,7 @@
    (($chain_cl_union left @empty_cl) left)
    (($chain_cl_union left false) left)
    (($chain_cl_union left (@cl head tail))
-    ($chain_cl_union ($chain_cl_add_unique left head) tail))
+    ($chain_cl_union ($chain_cl_add_unique_native left head) tail))
    )
   )
 
@@ -332,7 +344,7 @@
    (($chain_unique_clause @empty_cl) @empty_cl)
    (($chain_unique_clause false) @empty_cl)
    (($chain_unique_clause (@cl head tail))
-    ($chain_cl_add_unique ($chain_unique_clause tail) head))
+    ($chain_cl_add_unique_native ($chain_unique_clause tail) head))
    ; Preserve a malformed/non-clause tail so the guarded chain rejects it.
    (($chain_unique_clause clause) clause)
    )
@@ -2341,6 +2353,46 @@
 
 ; program: $check_list_congruence
 ; args:
+; - lhs T: Rare-list of arguments of the LHS of the conclusion equality.
+; - rhs T: Rare-list of arguments of the RHS of the conclusion equality.
+; - premises Bool: Premises given to rule cong, in the same order they were
+;   declared (leftmost argument first).
+; return: >
+;    A boolean indicating if the elements of `lhs` and `rhs` are pairwise equal
+;    modulo `premises`. Used for operators whose arguments are packed in a
+;    single rare-list argument (e.g., distinct via :arg-list), for which the
+;    usual application decomposition cannot reach the individual operands.
+;    As in the n-ary case, premises for reflexive element equalities may be
+;    present or omitted.
+(program $check_list_congruence ((T Type) (x T) (y T)
+                                 (xs T :list) (ys T :list)
+                                 (premises Bool) (tail Bool :list))
+   :signature (T T Bool) Bool
+   (
+    (; The current pair of elements is justified by a premise.
+     ($check_list_congruence (@rare-list-cons x xs) (@rare-list-cons y ys)
+                             (and (@cl (= x y)) tail))
+
+     ($check_list_congruence xs ys tail)
+     )
+
+    (; Reflexive equalities may be omitted.
+     ($check_list_congruence (@rare-list-cons x xs) (@rare-list-cons x ys)
+                             premises)
+
+     ($check_list_congruence xs ys premises)
+     )
+
+    (; Both lists are exhausted.
+     ($check_list_congruence (@rare-list-nil T) (@rare-list-nil T) premises)
+
+     true
+     )
+    )
+   )
+
+; program: $check_list_congruence_native
+; args:
 ; - lhs eo::List: List of arguments of the LHS of the conclusion equality.
 ; - rhs eo::List: List of arguments of the RHS of the conclusion equality.
 ; - premises Bool: Premises given to rule cong, in the same order they were
@@ -2348,33 +2400,33 @@
 ; return: >
 ;    A boolean indicating if the elements of `lhs` and `rhs` are pairwise equal
 ;    modulo `premises`. Used for operators whose arguments are packed in a
-;    single eo::List argument (e.g., distinct via :arg-list), for which the
+;    single eo::List argument (e.g., distinct_native via :arg-list), for which the
 ;    usual application decomposition cannot reach the individual operands.
 ;    As in the n-ary case, premises for reflexive element equalities may be
 ;    present or omitted.
-(program $check_list_congruence ((T Type) (x T) (y T)
+(program $check_list_congruence_native ((T Type) (x T) (y T)
                                  (xs eo::List :list) (ys eo::List :list)
                                  (premises Bool) (tail Bool :list))
    :signature (eo::List eo::List Bool) Bool
    (
     (; The current pair of elements is justified by a premise. Note that the
      ; premise may itself be reflexive (x = y).
-     ($check_list_congruence (eo::List::cons x xs) (eo::List::cons y ys)
+     ($check_list_congruence_native (eo::List::cons x xs) (eo::List::cons y ys)
                              (and (@cl (= x y)) tail))
 
-     ($check_list_congruence xs ys tail)
+     ($check_list_congruence_native xs ys tail)
      )
 
     (; The current pair of elements is syntactically equal and no premise
      ; justifies it: rule cong allows reflexive equalities to be omitted.
-     ($check_list_congruence (eo::List::cons x xs) (eo::List::cons x ys)
+     ($check_list_congruence_native (eo::List::cons x xs) (eo::List::cons x ys)
                              premises)
 
-     ($check_list_congruence xs ys premises)
+     ($check_list_congruence_native xs ys premises)
      )
 
     (; Both lists are exhausted. Remaining premises, if any, are not needed.
-     ($check_list_congruence eo::List::nil eo::List::nil premises)
+     ($check_list_congruence_native eo::List::nil eo::List::nil premises)
 
      true
      )
@@ -2390,21 +2442,36 @@
 ;   A boolean indicating if `conclusion` follows from the and-list of premises
 ;   given.
 (program $check_cong ((T Type) (U Type) (V Type) (f_lhs (-> T U)) (lhs U) (f_rhs (-> T U)) (rhs U)
-                      (f_list (-> eo::List V)) (x T) (y T) (xs eo::List :list) (ys eo::List :list)
+                      (f_rare (-> T V)) (x T) (y T) (zs T :list) (ws T :list)
+                      (f_list (-> eo::List V)) (xs eo::List :list) (ys eo::List :list)
                       (premises Bool))
   :signature (Bool Bool) Bool
   (
-   (; Operator taking a single eo::List argument (e.g., distinct via
-    ; :arg-list): congruence is elementwise equality of the list contents.
-    ; The premises are not reversed here, since the list is traversed from
-    ; its first element, in the order the premises were declared.
+   (; Operator taking a single rare-list argument (e.g., distinct via
+    ; :arg-list @rare-list-cons): congruence is elementwise equality of the
+    ; list contents. The premises are not reversed here, since the list is
+    ; traversed from its first element, in the order the premises were declared.
+    ($check_cong premises (@cl (= (f_rare (@rare-list-cons x zs))
+                                  (f_rare (@rare-list-cons y ws)))))
+
+    ($check_list_congruence (@rare-list-cons x zs) (@rare-list-cons y ws) premises)
+    )
+
+   (; Same as above, for two empty rare-lists (reflexive).
+    ($check_cong premises (@cl (= (f_rare (@rare-list-nil T)) (f_rare (@rare-list-nil T)))))
+
+    true
+    )
+
+   (; Native version: operator taking a single eo::List argument (e.g.,
+    ; distinct_native via :arg-list eo::List::cons).
     ($check_cong premises (@cl (= (f_list (eo::List::cons x xs))
                                   (f_list (eo::List::cons y ys)))))
 
-    ($check_list_congruence (eo::List::cons x xs) (eo::List::cons y ys) premises)
+    ($check_list_congruence_native (eo::List::cons x xs) (eo::List::cons y ys) premises)
     )
 
-   (; Same as above, for two empty argument lists (reflexive).
+   (; Same as above, for two empty eo::Lists (reflexive).
     ($check_cong premises (@cl (= (f_list eo::List::nil) (f_list eo::List::nil))))
 
     true
@@ -4453,21 +4520,54 @@
 ; Rule: aci_simp (Boolean and/or)
 ;-------------
 
+; Flatten only applications of op, removing its nil value (passed explicitly
+; and removed by matching). Return an operand spine. Terms headed by other
+; operators remain opaque operands. Only right-associative operators.
+(program $aci_operands ((A Type) (op (-> A A A)) (nil A) (x A) (xs A :list))
+  :signature ((-> A A A) A A) A
+  (
+   (($aci_operands op nil (op x xs))
+     ($f_list_concat op nil ($aci_operands op nil x) ($aci_operands op nil xs)))
+   (($aci_operands op nil nil) nil)
+   (($aci_operands op nil x) ($f_list_cons op x nil))
+  ))
+
+; For an idempotent, commutative operator, compare the flattened operands
+; as sets: each side contains the other.
+(define $aci_equal ((op (-> Bool Bool Bool)) (nil Bool) (lhs Bool) (rhs Bool))
+  ($f_list_equal_mod_commut_and_length op
+    ($aci_operands op nil lhs)
+    ($aci_operands op nil rhs)))
+
+; Restrict ACI reasoning to and/or. In particular, associativity attributes
+; do not authorize idempotence for arithmetic operators or xor.
+(define $check_aci_simp ((lhs Bool) (rhs Bool))
+  (eo::or ($aci_equal or false lhs rhs)
+          ($aci_equal and true lhs rhs)))
+
+(declare-rule aci_simp ((lhs Bool) (rhs Bool))
+  :requires ((($check_aci_simp lhs rhs) true))
+  :conclusion-explicit (@cl (= lhs rhs)))
+
+;-------------
+; Rule: aci_simp_native (Boolean and/or, list builtins)
+;-------------
+
 ; Flatten only applications of op, removing its declared nil value.
 ; Return an operand spine: an atom and a unary application have the same
 ; representation. Terms headed by other operators remain opaque operands.
 ; The caller must ensure that op is algebraically associative and that its
 ; declared nil is an identity. The attributes alone specify representation.
-(program $aci_operands
+(program $aci_operands_native
   ((A Type) (op (-> A A A)) (x A) (xs A :list))
   :signature (Type (-> A A A) A) A
   (
-    (($aci_operands A op (op x xs))
+    (($aci_operands_native A op (op x xs))
       (eo::list_concat op
-        ($aci_operands A op x)
-        ($aci_operands A op xs)))
+        ($aci_operands_native A op x)
+        ($aci_operands_native A op xs)))
 
-    (($aci_operands A op x)
+    (($aci_operands_native A op x)
       (eo::ite (eo::eq x (eo::nil op A))
         (eo::nil op A)
         (eo::cons op x (eo::nil op A))))
@@ -4475,19 +4575,19 @@
 
 ; For an idempotent, commutative operator, compare the flattened operands
 ; as sets: remove duplicates, then compare without considering order.
-(define $aci_equal ((op (-> Bool Bool Bool)) (lhs Bool) (rhs Bool))
+(define $aci_equal_native ((op (-> Bool Bool Bool)) (lhs Bool) (rhs Bool))
   (eo::list_meq op
-    (eo::list_setof op ($aci_operands Bool op lhs))
-    (eo::list_setof op ($aci_operands Bool op rhs))))
+    (eo::list_setof op ($aci_operands_native Bool op lhs))
+    (eo::list_setof op ($aci_operands_native Bool op rhs))))
 
 ; Restrict ACI reasoning to and/or. In particular, associativity attributes
 ; do not authorize idempotence for arithmetic operators or xor.
-(define $check_aci_simp ((lhs Bool) (rhs Bool))
-  (eo::or ($aci_equal or lhs rhs)
-          ($aci_equal and lhs rhs)))
+(define $check_aci_simp_native ((lhs Bool) (rhs Bool))
+  (eo::or ($aci_equal_native or lhs rhs)
+          ($aci_equal_native and lhs rhs)))
 
-(declare-rule aci_simp ((lhs Bool) (rhs Bool))
-  :requires ((($check_aci_simp lhs rhs) true))
+(declare-rule aci_simp_native ((lhs Bool) (rhs Bool))
+  :requires ((($check_aci_simp_native lhs rhs) true))
   :conclusion-explicit (@cl (= lhs rhs)))
 
 
@@ -4971,33 +5071,8 @@
 )
 
 ;-------------
-; Rule distinct_elim
+; Rule distinct_elim (rare-list) and distinct_elim_native (eo::List)
 ;-------------
-
-; Build inequalities only when distinct_elim requests the logical expansion.
-; row is empty initially, or contains the left operand of a comparison row.
-(program $distinct_inequalities
-  ((A Type) (x A) (y A) (xs eo::List :list) (row eo::List))
-  :signature (eo::List eo::List) Bool
-  (
-    (($distinct_inequalities eo::List::nil row) true)
-    (($distinct_inequalities (eo::List::cons x xs) eo::List::nil)
-      (eo::list_concat and
-        ($distinct_inequalities xs (eo::List::cons x))
-        ($distinct_inequalities xs eo::List::nil)))
-    (($distinct_inequalities (eo::List::cons y xs) (eo::List::cons x))
-      (eo::cons and (not (= x y))
-        ($distinct_inequalities xs (eo::List::cons x))))
-  ))
-
-; Ordinary and-lists and unrelated Boolean terms are not distinct applications.
-(program $build_distinct_list ((xs eo::List :list))
-  :signature (Bool) Bool
-  (
-    (($build_distinct_list (distinct xs))
-      (eo::list_singleton_elim and
-        ($distinct_inequalities xs eo::List::nil)))
-  ))
 
 ; TODO: DELETE THIS IF WE FIND A GENERIC WAY TO IMPLEMENT THIS
 
@@ -5113,22 +5188,50 @@
   )
 )
 
-; program: check_distinct_elim
+; program: $inequalities_with
+; return: The and-list of (not (= x y)), for each element y of the rare-list ys.
+(program $inequalities_with ((A Type) (x A) (y A) (ys A :list))
+  :signature (A A) Bool
+  (
+   (($inequalities_with x (@rare-list-nil A)) true)
+   (($inequalities_with x (@rare-list-cons y ys))
+     ($f_list_cons and (not (= x y)) ($inequalities_with x ys)))
+  ))
+
+; program: $distinct_inequalities
+; return: The and-list of pairwise inequalities between elements of a rare-list.
+(program $distinct_inequalities ((A Type) (x A) (xs A :list))
+  :signature (A) Bool
+  (
+   (($distinct_inequalities (@rare-list-nil A)) true)
+   (($distinct_inequalities (@rare-list-cons x xs))
+     ($f_list_concat and true ($inequalities_with x xs) ($distinct_inequalities xs)))
+  ))
+
+; Ordinary and-lists and unrelated Boolean terms are not distinct applications.
+(program $build_distinct_list ((A Type) (xs A :list))
+  :signature (Bool) Bool
+  (
+   (($build_distinct_list (distinct xs))
+     ($f_list_singleton_elim and true ($distinct_inequalities xs)))
+  ))
+
+; program: $check_distinct_elim
 ; args:
 ; - conclusion Bool: The conclusion give to the distinct_elim rule.
 ; return:
 ; A Boolean indicating if the given `conclusion` has the shape
 ; (distinct 𝑡1 … 𝑡𝑛) ≈ ⋀ 𝑡𝑖 ≈/≈ 𝑡𝑗.
 (program $check_distinct_elim
-  ((A Type) (p A) (q A) (r A) (tl eo::List :list)
+  ((A Type) (p A) (q A) (r A) (tl A :list)
    (inequalities Bool) (conjunctions Bool))
   :signature (Bool) Bool
   (
-    ; More than two Boolean operands cannot all be distinct.
-    (($check_distinct_elim (@cl (= (distinct p q r tl) false)))
-      (eo::eq (eo::typeof p) Bool))
-    (($check_distinct_elim (@cl (= inequalities conjunctions)))
-      ($conjunctions_equal ($build_distinct_list inequalities) conjunctions))
+   ; More than two Boolean operands cannot all be distinct.
+   (($check_distinct_elim (@cl (= (distinct p q r tl) false)))
+     ($rare_list_of_sort Bool tl))
+   (($check_distinct_elim (@cl (= inequalities conjunctions)))
+     ($conjunctions_equal ($build_distinct_list inequalities) conjunctions))
   ))
 
 ; rule: distinct_elim
@@ -5139,6 +5242,62 @@
 ;   A conclusion satisfying the previous side-condition.
 (declare-rule distinct_elim ((conclusion Bool))
   :requires ((($check_distinct_elim conclusion) true))
+  :conclusion-explicit conclusion
+)
+
+; Native version of distinct_elim, over distinct_native (eo::List).
+
+; Build inequalities only when distinct_elim_native requests the logical expansion.
+; row is empty initially, or contains the left operand of a comparison row.
+(program $distinct_inequalities_native
+  ((A Type) (x A) (y A) (xs eo::List :list) (row eo::List))
+  :signature (eo::List eo::List) Bool
+  (
+    (($distinct_inequalities_native eo::List::nil row) true)
+    (($distinct_inequalities_native (eo::List::cons x xs) eo::List::nil)
+      (eo::list_concat and
+        ($distinct_inequalities_native xs (eo::List::cons x))
+        ($distinct_inequalities_native xs eo::List::nil)))
+    (($distinct_inequalities_native (eo::List::cons y xs) (eo::List::cons x))
+      (eo::cons and (not (= x y))
+        ($distinct_inequalities_native xs (eo::List::cons x))))
+  ))
+
+; Ordinary and-lists and unrelated Boolean terms are not distinct applications.
+(program $build_distinct_list_native ((xs eo::List :list))
+  :signature (Bool) Bool
+  (
+    (($build_distinct_list_native (distinct_native xs))
+      (eo::list_singleton_elim and
+        ($distinct_inequalities_native xs eo::List::nil)))
+  ))
+
+; program: $check_distinct_elim_native
+; args:
+; - conclusion Bool: The conclusion give to the distinct_elim rule.
+; return:
+; A Boolean indicating if the given `conclusion` has the shape
+; (distinct 𝑡1 … 𝑡𝑛) ≈ ⋀ 𝑡𝑖 ≈/≈ 𝑡𝑗.
+(program $check_distinct_elim_native
+  ((A Type) (p A) (q A) (r A) (tl eo::List :list)
+   (inequalities Bool) (conjunctions Bool))
+  :signature (Bool) Bool
+  (
+    ; More than two Boolean operands cannot all be distinct.
+    (($check_distinct_elim_native (@cl (= (distinct_native p q r tl) false)))
+      (eo::eq (eo::typeof p) Bool))
+    (($check_distinct_elim_native (@cl (= inequalities conjunctions)))
+      ($conjunctions_equal ($build_distinct_list_native inequalities) conjunctions))
+  ))
+
+; rule: distinct_elim_native
+; requires: >
+;   Requires for "conclusion" to be of the shape
+;   (distinct 𝑡1 … 𝑡𝑛) ≈ ⋀ 𝑡𝑖 ≈/≈ 𝑡𝑗.
+; conclusion-explicit: >
+;   A conclusion satisfying the previous side-condition.
+(declare-rule distinct_elim_native ((conclusion Bool))
+  :requires ((($check_distinct_elim_native conclusion) true))
   :conclusion-explicit conclusion
 )
 

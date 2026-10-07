@@ -8,100 +8,195 @@
 (declare-const p Bool)
 (declare-const q Bool)
 
+;------------------------------------------------------------
+; Rare-list version: distinct packs its operands in a rare-list
+;------------------------------------------------------------
+
+(define rl-direct-many () (distinct a b c d) :type Bool
+  :is_eq (_ distinct (@rare-list-cons a b c d)))
+(define rl-direct-singleton () (distinct a) :type Bool
+  :is_eq (_ distinct (@rare-list-cons a)))
+(define rl-direct-empty () (_ distinct (@rare-list-nil U)) :type Bool)
+(define rl-reject-mixed-application ()
+  (eo::is_ok (eo::typeof (distinct a true))) :is_eq false)
+(define rl-nested () (distinct (distinct a b) (distinct b c)) :type Bool)
+
+; RARE rule body with list parameters of the operand sort.
+(declare-rule test-distinct-false-rare-list
+  ((A Type) (t A) (xs A :list) (ys A :list) (zs A :list))
+  :args (t xs ys zs)
+  :conclusion (@cl (= (distinct xs t ys t zs) false)))
+(step rl-rare-empty (@cl (= (distinct a a) false))
+  :rule test-distinct-false-rare-list
+  :args (a (@rare-list-nil U) (@rare-list-nil U) (@rare-list-nil U)))
+(step rl-rare-fragments (@cl (= (distinct b c a a d) false))
+  :rule test-distinct-false-rare-list
+  :args (a (@rare-list-cons b c) (@rare-list-nil U) (@rare-list-cons d)))
+(step rl-rare-middle (@cl (= (distinct b a c d a) false))
+  :rule test-distinct-false-rare-list
+  :args (a (@rare-list-cons b) (@rare-list-cons c d) (@rare-list-nil U)))
+(step rl-rare-bool (@cl (= (distinct true true) false))
+  :rule test-distinct-false-rare-list
+  :args (true (@rare-list-nil Bool) (@rare-list-nil Bool) (@rare-list-nil Bool)))
+
+(step rl-elim-empty (@cl (= (_ distinct (@rare-list-nil U)) true)) :rule distinct_elim)
+(step rl-elim-one (@cl (= (distinct a) true)) :rule distinct_elim)
+(step rl-elim-two (@cl (= (distinct a b) (not (= a b)))) :rule distinct_elim)
+(step rl-elim-symmetric (@cl (= (distinct a b) (not (= b a)))) :rule distinct_elim)
+(step rl-elim-three
+  (@cl (= (distinct a b c) (and (not (= a b)) (not (= a c)) (not (= b c)))))
+  :rule distinct_elim)
+(step rl-elim-four
+  (@cl (= (distinct a b c d)
+    (and (not (= a b)) (not (= a c)) (not (= a d))
+         (not (= b c)) (not (= b d)) (not (= c d)))))
+  :rule distinct_elim)
+(step rl-elim-duplicates
+  (@cl (= (distinct a b a) (and (not (= a b)) (not (= a a)) (not (= b a)))))
+  :rule distinct_elim)
+(step rl-elim-bool-two (@cl (= (distinct true true) (not (= true true)))) :rule distinct_elim)
+(step rl-elim-bool-three (@cl (= (distinct p q true) false)) :rule distinct_elim)
+(step rl-elim-bool-four (@cl (= (distinct p q true false) false)) :rule distinct_elim)
+
+(define rl-reject-missing-pair ()
+  ($check_distinct_elim (@cl (= (distinct a b c) (and (not (= a b)) (not (= b c))))))
+  :is_eq false)
+(define rl-reject-extra-pair ()
+  ($check_distinct_elim (@cl (= (distinct a b) (and (not (= a b)) (not (= a c))))))
+  :is_eq false)
+(define rl-reject-uninterpreted-false ()
+  ($check_distinct_elim (@cl (= (distinct a b c) false))) :is_eq false)
+(define rl-reject-bool-two-false ()
+  ($check_distinct_elim (@cl (= (distinct p q) false))) :is_eq false)
+
+; Rule cong over distinct: congruence is elementwise on the rare-list argument.
+(define rl-cong-pair ()
+  ($check_list_congruence (@rare-list-cons a b) (@rare-list-cons c b)
+                          (and (@cl (= a c))))
+  :is_eq true)
+(define rl-cong-reflexive-tail ()
+  ($check_list_congruence (@rare-list-cons a b) (@rare-list-cons c b)
+                          (and (@cl (= a c)) (@cl (= b b))))
+  :is_eq true)
+(define rl-cong-no-premises ()
+  ($check_list_congruence (@rare-list-cons a b) (@rare-list-cons a b) true)
+  :is_eq true)
+(define rl-cong-via-rule ()
+  ($check_cong (and (@cl (= a c)))
+               (@cl (= (distinct a b d) (distinct c b d))))
+  :is_eq true)
+; An unjustified element pair leaves the check unevaluated, as in the native version.
+(define rl-cong-reject ()
+  (eo::is_ok ($check_cong (and (@cl (= a c)))
+                          (@cl (= (distinct a b d) (distinct c d d)))))
+  :is_eq false)
+
+(assume-push rl-cong-a0 (@cl (= c d)))
+(step rl-cong-distinct
+  (@cl (= (distinct a b c) (distinct a b d)))
+  :rule cong :premises (rl-cong-a0))
+(step-pop rl-cong-pop
+  (@cl (not (= c d)) (= (distinct a b c) (distinct a b d)))
+  :rule subproof :premises (rl-cong-distinct))
+
+;------------------------------------------------------------
+; Native version: distinct_native packs its operands in an eo::List
+;------------------------------------------------------------
+
 ; Surface applications keep their operand sequence, including Boolean values.
-(define direct-bool () (distinct true true) :type Bool
-  :is_eq (_ distinct (eo::List::cons true true)))
-(define direct-many () (distinct a b c d) :type Bool
-  :is_eq (_ distinct (eo::List::cons a b c d)))
-(define direct-singleton () (distinct a) :type Bool
-  :is_eq (_ distinct (eo::List::cons a)))
-(define direct-empty () (_ distinct eo::List::nil) :type Bool)
+(define direct-bool () (distinct_native true true) :type Bool
+  :is_eq (_ distinct_native (eo::List::cons true true)))
+(define direct-many () (distinct_native a b c d) :type Bool
+  :is_eq (_ distinct_native (eo::List::cons a b c d)))
+(define direct-singleton () (distinct_native a) :type Bool
+  :is_eq (_ distinct_native (eo::List::cons a)))
+(define direct-empty () (_ distinct_native eo::List::nil) :type Bool)
 
 ; Keep the RARE rule body. Empty and nonempty fragments are spliced natively.
 (declare-rule test-distinct-false
   ((A Type) (t A) (xs eo::List :list) (ys eo::List :list) (zs eo::List :list))
   :args (t xs ys zs)
-  :conclusion (@cl (= (distinct xs t ys t zs) false)))
-(step rare-empty (@cl (= (distinct a a) false))
+  :conclusion (@cl (= (distinct_native xs t ys t zs) false)))
+(step rare-empty (@cl (= (distinct_native a a) false))
   :rule test-distinct-false
   :args (a eo::List::nil eo::List::nil eo::List::nil))
-(step rare-fragments (@cl (= (distinct b c a a d) false))
+(step rare-fragments (@cl (= (distinct_native b c a a d) false))
   :rule test-distinct-false
   :args (a (eo::List::cons b c) eo::List::nil (eo::List::cons d)))
-(step rare-middle (@cl (= (distinct b a c d a) false))
+(step rare-middle (@cl (= (distinct_native b a c d a) false))
   :rule test-distinct-false
   :args (a (eo::List::cons b) (eo::List::cons c d) eo::List::nil))
-(step rare-bool (@cl (= (distinct true true) false))
+(step rare-bool (@cl (= (distinct_native true true) false))
   :rule test-distinct-false
   :args (true eo::List::nil eo::List::nil eo::List::nil))
 
 ; Type checks belong to the declaration, including ordinary proof formulas.
-(define homogeneous () ($same_sort (eo::List::cons a b c)) :is_eq true)
-(define heterogeneous () ($same_sort (eo::List::cons a true)) :is_eq false)
-(define heterogeneous-tail () ($same_sort (eo::List::cons a b true)) :is_eq false)
+(define homogeneous () ($same_sort_native (eo::List::cons a b c)) :is_eq true)
+(define heterogeneous () ($same_sort_native (eo::List::cons a true)) :is_eq false)
+(define heterogeneous-tail () ($same_sort_native (eo::List::cons a b true)) :is_eq false)
 (define reject-mixed-application ()
-  (eo::is_ok (eo::typeof (distinct a true))) :is_eq false)
+  (eo::is_ok (eo::typeof (distinct_native a true))) :is_eq false)
 (define reject-ill-typed-singleton ()
-  (eo::is_ok (eo::typeof (distinct (+ true 1)))) :is_eq false)
-(define nested () (distinct (distinct a b) (distinct b c)) :type Bool)
+  (eo::is_ok (eo::typeof (distinct_native (+ true 1)))) :is_eq false)
+(define nested () (distinct_native (distinct_native a b) (distinct_native b c)) :type Bool)
 
 ; Expansion is needed only by the logical elimination rule.
-(step elim-empty (@cl (= (_ distinct eo::List::nil) true)) :rule distinct_elim)
-(step elim-one (@cl (= (distinct a) true)) :rule distinct_elim)
-(step elim-two (@cl (= (distinct a b) (not (= a b)))) :rule distinct_elim)
-(step elim-symmetric (@cl (= (distinct a b) (not (= b a)))) :rule distinct_elim)
+(step elim-empty (@cl (= (_ distinct_native eo::List::nil) true)) :rule distinct_elim_native)
+(step elim-one (@cl (= (distinct_native a) true)) :rule distinct_elim_native)
+(step elim-two (@cl (= (distinct_native a b) (not (= a b)))) :rule distinct_elim_native)
+(step elim-symmetric (@cl (= (distinct_native a b) (not (= b a)))) :rule distinct_elim_native)
 (step elim-three
-  (@cl (= (distinct a b c) (and (not (= a b)) (not (= a c)) (not (= b c)))))
-  :rule distinct_elim)
+  (@cl (= (distinct_native a b c) (and (not (= a b)) (not (= a c)) (not (= b c)))))
+  :rule distinct_elim_native)
 (step elim-four
-  (@cl (= (distinct a b c d)
+  (@cl (= (distinct_native a b c d)
     (and (not (= a b)) (not (= a c)) (not (= a d))
          (not (= b c)) (not (= b d)) (not (= c d)))))
-  :rule distinct_elim)
+  :rule distinct_elim_native)
 (step elim-duplicates
-  (@cl (= (distinct a b a) (and (not (= a b)) (not (= a a)) (not (= b a)))))
-  :rule distinct_elim)
-(step elim-bool-two (@cl (= (distinct true true) (not (= true true)))) :rule distinct_elim)
-(step elim-bool-three (@cl (= (distinct p q true) false)) :rule distinct_elim)
-(step elim-bool-four (@cl (= (distinct p q true false) false)) :rule distinct_elim)
+  (@cl (= (distinct_native a b a) (and (not (= a b)) (not (= a a)) (not (= b a)))))
+  :rule distinct_elim_native)
+(step elim-bool-two (@cl (= (distinct_native true true) (not (= true true)))) :rule distinct_elim_native)
+(step elim-bool-three (@cl (= (distinct_native p q true) false)) :rule distinct_elim_native)
+(step elim-bool-four (@cl (= (distinct_native p q true false) false)) :rule distinct_elim_native)
 
 ; Invalid elimination conclusions must not pass the checker.
 (define reject-missing-pair ()
-  ($check_distinct_elim (@cl (= (distinct a b c) (and (not (= a b)) (not (= b c))))))
+  ($check_distinct_elim_native (@cl (= (distinct_native a b c) (and (not (= a b)) (not (= b c))))))
   :is_eq false)
 (define reject-extra-pair ()
-  ($check_distinct_elim (@cl (= (distinct a b) (and (not (= a b)) (not (= a c))))))
+  ($check_distinct_elim_native (@cl (= (distinct_native a b) (and (not (= a b)) (not (= a c))))))
   :is_eq false)
 (define reject-uninterpreted-false ()
-  ($check_distinct_elim (@cl (= (distinct a b c) false))) :is_eq false)
+  ($check_distinct_elim_native (@cl (= (distinct_native a b c) false))) :is_eq false)
 (define reject-bool-two-false ()
-  ($check_distinct_elim (@cl (= (distinct p q) false))) :is_eq false)
+  ($check_distinct_elim_native (@cl (= (distinct_native p q) false))) :is_eq false)
 
-; Rule cong over distinct: congruence is elementwise on the eo::List argument.
+; Rule cong over distinct_native: congruence is elementwise on the eo::List argument.
 ; Premises justify differing element pairs positionally; reflexive equalities
 ; may appear explicitly or be omitted entirely.
 (define cong-distinct-pair ()
-  ($check_list_congruence (eo::List::cons a b) (eo::List::cons c b)
+  ($check_list_congruence_native (eo::List::cons a b) (eo::List::cons c b)
                           (and (@cl (= a c))))
   :is_eq true)
 (define cong-distinct-reflexive-tail ()
-  ($check_list_congruence (eo::List::cons a b) (eo::List::cons c b)
+  ($check_list_congruence_native (eo::List::cons a b) (eo::List::cons c b)
                           (and (@cl (= a c)) (@cl (= b b))))
   :is_eq true)
 (define cong-distinct-no-premises ()
-  ($check_list_congruence (eo::List::cons a b) (eo::List::cons a b) true)
+  ($check_list_congruence_native (eo::List::cons a b) (eo::List::cons a b) true)
   :is_eq true)
 (define cong-distinct-via-rule ()
   ($check_cong (and (@cl (= a c)))
-               (@cl (= (distinct a b d) (distinct c b d))))
+               (@cl (= (distinct_native a b d) (distinct_native c b d))))
   :is_eq true)
 
 ; End-to-end through the cong rule, mirroring the QF_UF corpus failure where
 ; premises covered positions from the first difference onward.
 (assume-push cong-a0 (@cl (= c d)))
 (step cong-distinct
-  (@cl (= (distinct a b c) (distinct a b d)))
+  (@cl (= (distinct_native a b c) (distinct_native a b d)))
   :rule cong :premises (cong-a0))
 (step-pop cong-pop
-  (@cl (not (= c d)) (= (distinct a b c) (distinct a b d)))
+  (@cl (not (= c d)) (= (distinct_native a b c) (distinct_native a b d)))
   :rule subproof :premises (cong-distinct))

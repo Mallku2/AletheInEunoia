@@ -397,7 +397,7 @@
 )
 (declare-rule distinct-binary-elim ((@T0 Type) (@T1 Type) (t1 @T0) (s1 @T1))
   :args (t1 s1)
-  :conclusion-explicit (@cl (= (distinct t1 s1) (not (= t1 s1))))
+  :conclusion-explicit (@cl (= (distinct_native t1 s1) (not (= t1 s1))))
 )
 
 (declare-rule arith-mod-over-mod-1 ((c Int) (r Int))
@@ -423,7 +423,7 @@
 
 (declare-rule distinct-false ((@T0 Type) (t @T0) (xs @T0 :list) (ys @T0 :list) (zs @T0 :list))
    :args (t xs ys zs)
-   :conclusion-explicit (@cl (= (distinct xs t ys t zs) false)))
+   :conclusion-explicit (@cl (= (distinct_native xs t ys t zs) false)))
 
 (declare-rule mod-elim ((a Int) (b Int))
   :args (a b)

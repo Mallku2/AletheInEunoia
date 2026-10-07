@@ -17,36 +17,6 @@
                              :chainable and)
 
 
-; all_have_sort
-;   @param A
-;   @param xs
-;   @returns true if all values in xs has the type A
-(program $all_have_sort
-  ((A Type) (x A) (xs eo::List :list))
-  :signature (Type eo::List) Bool
-  (
-    (($all_have_sort A eo::List::nil) true)
-    (($all_have_sort A (eo::List::cons x xs))
-      (eo::and (eo::eq (eo::typeof x) A)
-               ($all_have_sort A xs)))
-  ))
-
-; all_have_sort
-;   @param A
-;   @param xs
-;   @returns true if all list-values in xs has the type A
-(program $same_sort ((A Type) (x A) (xs eo::List :list))
-  :signature (eo::List) Bool
-  (
-    (($same_sort eo::List::nil) true)
-    (($same_sort (eo::List::cons x xs))
-      ($all_have_sort (eo::typeof x) (eo::List::cons x xs)))
-  ))
-
-(declare-parameterized-const distinct ((xs eo::List))
-  (eo::requires ($same_sort xs) true Bool)
-  :arg-list eo::List::cons)
-
 ; ---------------------------
 ;   Int and Real Arithmetic
 ; ---------------------------
@@ -254,7 +224,46 @@
 ; We do not define a proper rare-list type: a rare-list only denotes a sequence
 ; of elements of some type whose actual meaning is context-dependent.
 
-; Arbitrary inhabitant of the parameterized type.
-(declare-parameterized-const @rare-list-nil ((A Type :implicit)) A)
+; Arbitrary inhabitant of the parameterized type. The sort is explicit, so an
+; empty rare-list still records the sort of its (absent) elements.
+(declare-parameterized-const @rare-list-nil ((A Type)) A)
 
-(declare-parameterized-const @rare-list-cons ((A Type :implicit)) (-> A A A))
+(declare-parameterized-const @rare-list-cons ((A Type :implicit)) (-> A A A)
+                             :right-assoc-nil (@rare-list-nil A))
+
+; Rare-list version: operands packed in a homogeneous rare-list, so mixed
+; sorts are rejected by type checking. :list parameters of the operand sort
+; are spliced natively, without expanding pairwise comparisons.
+(declare-parameterized-const distinct ((A Type :implicit) (xs A)) Bool
+  :arg-list @rare-list-cons)
+
+; $all_have_sort_native
+;   @param A
+;   @param xs
+;   @returns true if all values in xs has the type A
+(program $all_have_sort_native
+  ((A Type) (x A) (xs eo::List :list))
+  :signature (Type eo::List) Bool
+  (
+    (($all_have_sort_native A eo::List::nil) true)
+    (($all_have_sort_native A (eo::List::cons x xs))
+      (eo::and (eo::eq (eo::typeof x) A)
+               ($all_have_sort_native A xs)))
+  ))
+
+; $same_sort_native
+;   @param xs
+;   @returns true if all list-values in xs have the same type
+(program $same_sort_native ((A Type) (x A) (xs eo::List :list))
+  :signature (eo::List) Bool
+  (
+    (($same_sort_native eo::List::nil) true)
+    (($same_sort_native (eo::List::cons x xs))
+      ($all_have_sort_native (eo::typeof x) (eo::List::cons x xs)))
+  ))
+
+; Native version of distinct: operands packed in a heterogeneous eo::List,
+; sorts checked by $same_sort_native.
+(declare-parameterized-const distinct_native ((xs eo::List))
+  (eo::requires ($same_sort_native xs) true Bool)
+  :arg-list eo::List::cons)

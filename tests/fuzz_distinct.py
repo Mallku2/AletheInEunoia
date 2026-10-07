@@ -241,15 +241,15 @@ def fuzz(args):
         terms = [term for _, term in tagged]
         same = len({s for s, _ in tagged}) <= 1
         expected = "true" if same else "false"
-        typing.append(f'(define sort_{i} () ($same_sort {eo_list(terms)}) :is_eq {expected})')
-        expr = application("distinct", terms) if terms else "(_ distinct eo::List::nil)"
+        typing.append(f'(define sort_{i} () ($same_sort_native {eo_list(terms)}) :is_eq {expected})')
+        expr = application("distinct_native", terms) if terms else "(_ distinct_native eo::List::nil)"
         typing.append(f'(define type_{i} () (eo::is_ok (eo::typeof {expr})) :is_eq {expected})')
     # Stress the linear sequence representation; do not quadratically expand it.
     for n in [0, 1, 2, 32, 128, 512]:
         terms = ["u0", "u1", "u2"] * (n // 3) + ["u0"] * (n % 3)
-        expr = application("distinct", terms) if terms else "(_ distinct eo::List::nil)"
+        expr = application("distinct_native", terms) if terms else "(_ distinct_native eo::List::nil)"
         typing.append(f'(define long_{n} () {expr} :type Bool '
-                      f':is_eq (_ distinct {eo_list(terms)}))')
+                      f':is_eq (_ distinct_native {eo_list(terms)}))')
     run.positive_batch("sort-and-representation-properties", typing, pipeline=False)
     print(f"Type/representation: {len(typing)} assertions", flush=True)
 

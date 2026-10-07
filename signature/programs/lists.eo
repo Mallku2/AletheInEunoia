@@ -698,18 +698,104 @@
          )
 
 
-; program: $normalize_eo_list
+;-------------
+; Rare-lists
+;-------------
+
+; program: $f_list_singleton_elim
+; args:
+; - f (-> A A A): Operator used to build the f-list.
+; - nil A: Nil element of operator f.
+; - list A: An f-list.
+; return: >
+;   The only element of `list`, if `list` has exactly one element. Otherwise,
+;   `list` itself.
+(program $f_list_singleton_elim ((A Type) (f (-> A A A)) (nil A) (x A) (list A))
+  :signature ((-> A A A) A A) A
+  (
+   (
+    ($f_list_singleton_elim f nil (f x nil))
+
+    x
+    )
+
+   (
+    ($f_list_singleton_elim f nil list)
+
+    list
+    )
+   )
+  )
+
+; program: $normalize_rare_list
+; args:
+; - A Type: Sort of the elements of the rare-list.
+; - f (-> A A A): Operator used to build the resulting f-list.
+; - nil A: Nil element of operator f.
+; - list A: A rare-list, built with @rare-list-cons and @rare-list-nil.
+; return: >
+;   The f-list with the elements of `list`. The empty rare-list becomes `nil`;
+;   singleton elimination is left to the caller.
+; note: >
+;   The rare-list terminator records its sort: matching it against `A` rejects
+;   rare-lists of another sort.
+(program $normalize_rare_list ((A Type) (f (-> A A A)) (nil A) (x A) (xs A :list))
+  :signature (Type (-> A A A) A A) A
+  (
+   (
+    ($normalize_rare_list A f nil (@rare-list-nil A))
+
+    nil
+    )
+
+   (
+    ($normalize_rare_list A f nil (@rare-list-cons x xs))
+
+    ($f_list_cons f x ($normalize_rare_list A f nil xs))
+    )
+   )
+  )
+
+; program: $rare_list_of_sort
+; args:
+; - A Type: A sort.
+; - list T: A rare-list.
+; return: A boolean indicating if `list` is a rare-list of elements of sort `A`.
+(program $rare_list_of_sort ((A Type) (T Type) (x T) (xs T :list) (list T))
+  :signature (Type T) Bool
+  (
+   (
+    ($rare_list_of_sort A (@rare-list-nil A))
+
+    true
+    )
+
+   (
+    ($rare_list_of_sort A (@rare-list-cons x xs))
+
+    ($rare_list_of_sort A xs)
+    )
+
+   (
+    ($rare_list_of_sort A list)
+
+    false
+    )
+   )
+  )
+
+; program: $normalize_eo_list_native
 ; args:
 ; - f (-> A B B): A function constant.
 ; return: >
 ;   The full f-spine assembled from the input sequence. The empty sequence
 ;   uses f's nil value; singleton elimination is left to the caller.
-(program $normalize_eo_list
+(program $normalize_eo_list_native
   ((A Type) (B Type) (f (-> A B B)) (x A) (xs eo::List :list))
   :signature (Type Type (-> A B B) eo::List) B
   (
-    (($normalize_eo_list A B f eo::List::nil) (eo::nil f B))
-    (($normalize_eo_list A B f (eo::List::cons x xs))
+    (($normalize_eo_list_native A B f eo::List::nil) (eo::nil f B))
+    (($normalize_eo_list_native A B f (eo::List::cons x xs))
       (eo::requires (eo::typeof x) A
-        (eo::cons f x ($normalize_eo_list A B f xs))))
+        (eo::cons f x ($normalize_eo_list_native A B f xs))))
   ))
