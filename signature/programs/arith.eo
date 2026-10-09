@@ -1606,6 +1606,78 @@
           )
          )
 
+; program: $fold_binary
+; args:
+; - op (-> A A A): +, * or binary -.
+; - lhs A, rhs A: Operands, already folded.
+; return: (op lhs rhs), evaluated when both operands are numeric literals.
+(program $fold_binary ((A Type) (op (-> A A A)) (lhs A) (rhs A :list))
+         :signature ((-> A A A) A A) A
+         (
+          (
+           ($fold_binary + lhs rhs)
+           (eo::ite (eo::and ($is_numeric_literal lhs) ($is_numeric_literal rhs))
+                    (eo::ite (eo::and (eo::is_z lhs) (eo::is_z rhs))
+                             (eo::add lhs rhs)
+                             (eo::add (eo::to_q lhs) (eo::to_q rhs)))
+                    ($f_list_cons + lhs rhs))
+           )
+          (
+           ($fold_binary * lhs rhs)
+           (eo::ite (eo::and ($is_numeric_literal lhs) ($is_numeric_literal rhs))
+                    (eo::ite (eo::and (eo::is_z lhs) (eo::is_z rhs))
+                             (eo::mul lhs rhs)
+                             (eo::mul (eo::to_q lhs) (eo::to_q rhs)))
+                    ($f_list_cons * lhs rhs))
+           )
+          (
+           ($fold_binary - lhs rhs)
+           (eo::ite (eo::and ($is_numeric_literal lhs) ($is_numeric_literal rhs))
+                    (eo::ite (eo::and (eo::is_z lhs) (eo::is_z rhs))
+                             (eo::add lhs (eo::neg rhs))
+                             (eo::add (eo::to_q lhs) (eo::neg (eo::to_q rhs))))
+                    (- lhs rhs))
+           )
+          )
+         )
+
+; program: $fold_constants
+; args:
+; - term A: An arbitrary arith term.
+; return: >
+;   `term`, with every constant subterm folded into a numeric literal. The
+;   ordering of `$reorder_arith_term` takes any non-literal for a variable, so
+;   constant expressions, like cvc5's (* -1 80) or (+ 0 1), are folded first.
+;   Integer literals stay integers.
+(program $fold_constants ((A Type) (lhs A) (rhs A :list) (term A))
+         :signature (A) A
+         (
+          (
+           ($fold_constants (+ lhs rhs))
+           ($fold_binary + ($fold_constants lhs) ($fold_constants rhs))
+           )
+          (
+           ($fold_constants (* lhs rhs))
+           ($fold_binary * ($fold_constants lhs) ($fold_constants rhs))
+           )
+          (
+           ($fold_constants (- lhs rhs))
+           ($fold_binary - ($fold_constants lhs) ($fold_constants rhs))
+           )
+          (
+           ($fold_constants (- term))
+           (eo::define ((t ($fold_constants term)))
+             (eo::ite ($is_numeric_literal t)
+                      (eo::ite (eo::is_z t) (eo::neg t) (eo::neg (eo::to_q t)))
+                      (- t)))
+           )
+          (
+           ($fold_constants term)
+           term
+           )
+          )
+         )
+
 ; program: $evaluate_arith_term
 ; args:
 ; - term A: An arbitrary arith term.
@@ -1623,7 +1695,7 @@
             ($assoc_evaluatable_terms
              ($reorder_arith_term
               ($normalize_arith_term 
-               ($build_proper_monomials term)))))
+               ($build_proper_monomials ($fold_constants term))))))
           )
           )
          )

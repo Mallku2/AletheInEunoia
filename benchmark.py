@@ -24,6 +24,9 @@ import time
 
 REPO = Path(__file__).resolve().parent
 RULE_NAME = re.compile(r"\(\s*declare-rare-rule\s+([^\s()]+)")
+# RARE rule prefixes kept by each --rare-profile; "all" keeps the whole file.
+QF_UF_RULES = ("bool-", "ite-", "eq-", "distinct-")
+RARE_PROFILES = {"qf-uf": QF_UF_RULES, "qf-lia": QF_UF_RULES + ("arith-",)}
 
 
 def positive_int(value):
@@ -79,8 +82,11 @@ def arguments(argv=None):
                         help="Carcara elaboration wall limit in seconds (default: 180)")
     parser.add_argument("--rare-file", type=Path, default=REPO / "big.rare",
                         help="RARE definitions passed to Carcara (default: bundled big.rare)")
-    parser.add_argument("--rare-profile", choices=("all", "qf-uf"), default="all",
-                        help="qf-uf prunes big.rare to the tested Boolean/UF subset")
+    parser.add_argument("--rare-profile", choices=("all", *RARE_PROFILES), default="all",
+                        help="prune big.rare to the tested Boolean/UF (qf-uf) "
+                             "or Boolean/UF/arithmetic (qf-lia) subset")
+    parser.add_argument("--expand-lets", action=argparse.BooleanOptionalAction, default=True,
+                        help="have Carcara unfold let bindings, in RARE rules too (default: enabled)")
     parser.add_argument("--workers", type=positive_int, default=10,
                         help="concurrent pipelines (default: 10)")
     parser.add_argument("--ethos-workers", type=positive_int, default=1,
@@ -188,14 +194,14 @@ def prepare_rare(args):
     source = args.rare_file.read_text()
     forms = list(top_level_forms(source))
     names = [RULE_NAME.match(form).group(1) for form in forms if RULE_NAME.match(form)]
-    if args.rare_profile == "qf-uf":
+    if args.rare_profile != "all":
         selected = [(RULE_NAME.match(form).group(1), form) for form in forms
                     if RULE_NAME.match(form)]
         selected = [(name, form) for name, form in selected
-                    if name.startswith(("bool-", "ite-", "eq-", "distinct-"))
+                    if name.startswith(RARE_PROFILES[args.rare_profile])
                     and name != "distinct-binary-elim"]
         if not selected:
-            raise ValueError("no QF_UF RARE rules found")
+            raise ValueError(f"no {args.rare_profile} RARE rules found")
         names = [name for name, _ in selected]
         source = "\n".join(form for _, form in selected) + "\n"
     destination = args.output / "rules.rare"
@@ -332,9 +338,10 @@ async def run_case(index, certificate, args, rare_file, ethos_slots, record):
                 counts.update(re.findall(r":rule\s+(rare_rewrite|evaluate|hole)\b", line))
         result["alethe_steps"] = dict(counts)
         proof = certificate
+        parsing = ["--expand-let-bindings"] if args.expand_lets else []
         if args.elaborate:
             result["stage"] = "elaborate"
-            command = [args.carcara, "elaborate"]
+            command = [args.carcara, "elaborate", *parsing]
             if rare_file is not None:
                 command.extend(["--rare-file", str(rare_file)])
             command.extend(["--pipeline", *args.elaboration_pipeline,
@@ -348,7 +355,8 @@ async def run_case(index, certificate, args, rare_file, ethos_slots, record):
             proof = case_dir / "elaborated.alethe"
             elaboration["verdict"] = extract_elaborated_proof(case_dir / "elaborate.stdout", proof)
         result["stage"] = "translate"
-        command = [args.carcara, "translate", "eunoia", "--eunoia-mech", str(args.signature)]
+        command = [args.carcara, "translate", "eunoia", *parsing,
+                   "--eunoia-mech", str(args.signature)]
         if rare_file is not None:
             command.extend(["--rare-file", str(rare_file)])
         command.extend([str(proof), str(problem)])

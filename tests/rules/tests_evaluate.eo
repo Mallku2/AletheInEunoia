@@ -1,0 +1,58 @@
+(include "../../signature/rules/alethe.eo")
+
+; Unit tests for the evaluate rule: (= t v), where v is the value of the
+; constant term t. The right-hand side is computed by $eval and must match the
+; certificate's syntactically.
+
+(declare-const p Bool)
+(declare-const x Int)
+(declare-const r Real)
+
+;------------------
+; Boolean operands
+;------------------
+
+(step $test_evaluate_not (@cl (= (not true) false)) :rule evaluate :args ((not true)))
+(step $test_evaluate_and (@cl (= (and true false true) false)) :rule evaluate :args ((and true false true)))
+(step $test_evaluate_or (@cl (= (or false true) true)) :rule evaluate :args ((or false true)))
+(step $test_evaluate_implies (@cl (= (=> true false) false)) :rule evaluate :args ((=> true false)))
+(step $test_evaluate_xor (@cl (= (xor true true) false)) :rule evaluate :args ((xor true true)))
+(step $test_evaluate_ite (@cl (= (ite false true false) false)) :rule evaluate :args ((ite false true false)))
+(step $test_evaluate_eq_bool (@cl (= (= true (not false)) true)) :rule evaluate :args ((= true (not false))))
+(step $test_evaluate_eq_refl (@cl (= (= p p) true)) :rule evaluate :args ((= p p)))
+
+;---------------------
+; Arithmetic operands
+;---------------------
+; Int results stay Int numerals, as cvc5 prints them.
+
+(step $test_evaluate_add (@cl (= (+ 0 1) 1)) :rule evaluate :args ((+ 0 1)))
+(step $test_evaluate_mul (@cl (= (* -1 80) -80)) :rule evaluate :args ((* -1 80)))
+(step $test_evaluate_sub (@cl (= (- 3 5) -2)) :rule evaluate :args ((- 3 5)))
+(step $test_evaluate_neg (@cl (= (- (- 7)) 7)) :rule evaluate :args ((- (- 7))))
+(step $test_evaluate_sum (@cl (= (+ 4001 -2499 -749 -649) 104)) :rule evaluate :args ((+ 4001 -2499 -749 -649)))
+(step $test_evaluate_nested (@cl (= (+ (* 2 (- 3 1)) (* -1 (+ 1 1))) 2)) :rule evaluate :args ((+ (* 2 (- 3 1)) (* -1 (+ 1 1)))))
+(step $test_evaluate_real (@cl (= (+ 1/2 1/2) 1/1)) :rule evaluate :args ((+ 1/2 1/2)))
+(step $test_evaluate_eq_arith (@cl (= (= (+ 1 1) 2) true)) :rule evaluate :args ((= (+ 1 1) 2)))
+
+; Order relations.
+(step $test_evaluate_lt (@cl (= (< -1 0) true)) :rule evaluate :args ((< -1 0)))
+(step $test_evaluate_leq (@cl (= (<= 1 1) true)) :rule evaluate :args ((<= 1 1)))
+(step $test_evaluate_gt (@cl (= (> 1 2) false)) :rule evaluate :args ((> 1 2)))
+(step $test_evaluate_geq (@cl (= (>= 0 0) true)) :rule evaluate :args ((>= 0 0)))
+(step $test_evaluate_not_leq (@cl (= (not (<= 3 (* 2 1))) true)) :rule evaluate :args ((not (<= 3 (* 2 1)))))
+(step $test_evaluate_mixed (@cl (= (< 1/2 1) true)) :rule evaluate :args ((< 1/2 1)))
+
+;-----------
+; Rejection
+;-----------
+; A term with an uninterpreted operand has no value: $eval stays stuck.
+
+(define $test_evaluate_reject_arith () (eo::is_ok ($eval (+ x 1))) :is_eq false)
+(define $test_evaluate_reject_relation () (eo::is_ok ($eval (< x 1))) :is_eq false)
+(define $test_evaluate_reject_real () (eo::is_ok ($eval (* 2.0 r))) :is_eq false)
+(define $test_evaluate_reject_bool () (eo::is_ok ($eval (and p true))) :is_eq false)
+
+; A wrong value is simply a different term.
+(define $test_evaluate_wrong_value () (eo::is_eq ($eval (+ 0 1)) 2) :is_eq false)
+(define $test_evaluate_wrong_relation () (eo::is_eq ($eval (< 1 0)) true) :is_eq false)

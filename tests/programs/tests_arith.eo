@@ -3898,81 +3898,81 @@
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ 2 3))
-             5/1))
+             5))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ 2 3 1))
-             6/1))
+             6))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ 2 3 1 4))
-             10/1))
+             10))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ 2 3 (+ 1 4)))
-             10/1))
+             10))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ 2 (+ 3 (+ 1 4))))
-             10/1))
+             10))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ (+ (+ 2 3) 1) 4))
-             10/1))
+             10))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term 
               (+ (+ (+ 2 3) 1) (+ (+ 2 3) 1)))
-             12/1))
+             12))
 
 ; Products
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (* 2 3))
-             6/1))
+             6))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (* 2 3 1))
-             6/1))
+             6))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (* 2 3 1 4))
-             24/1))
+             24))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (* 2 3 (* 1 4)))
-             24/1))
+             24))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (* 2 (* 3 (* 1 4))))
-             24/1))
+             24))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (* (* (* 2 3) 1) 4))
-             24/1))
+             24))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (* (* (* 2 3) 1) 
                                       (* (* 2 3) 1)))
-             36/1))
+             36))
 
 ; Subtraction
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (- 1 2))
-             -1/1))
+             -1))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
@@ -3982,7 +3982,7 @@
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (- (- 1 2) (- 1 2)))
-             0/1))
+             0))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
@@ -3994,7 +3994,7 @@
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (- 1))
-             -1/1))
+             -1))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
@@ -4015,37 +4015,37 @@
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ 2 (* 3 4)))
-             14/1))
+             14))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ (* 3 4) 
                                       (* 3 4)))
-             24/1))
+             24))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ (* 3 4) 
                                       (* 3 (* 3 4))))
-             48/1))
+             48))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ (- 3 4) 
                                       (* 3 (* 3 4))))
-             35/1))
+             35))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ (- 3 4) 
                                       (* 3 (- 3 4))))
-             -4/1))
+             -4))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ (- 3 4) 
                                       (* (- 3) (- 3 4))))
-             2/1))
+             2))
 
 ; Terms with uninterpreted subterms
 ; Additions
@@ -4183,7 +4183,7 @@
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
       :args (($evaluate_arith_term (- (- 1 a) (- 1 2)))
-             ($f_list_cons + 2 ($f_list_cons * -1 a))))
+             ($f_list_cons + 2/1 ($f_list_cons * -1 a))))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 
@@ -4232,9 +4232,7 @@
       :rule $assert_eq 
       :args (($evaluate_arith_term (+ (* 3 b) 
                                       (* a (* 3 4))))
-                                        ($f_list_cons + 
-                                                      ($f_list_cons * 3 b)
-                                                      ($f_list_cons * 12/1 a))))
+                                        ($f_list_cons + ($f_list_cons * 3 b) ($f_list_cons * 12 a))))
 
 (step $test_$evaluate_arith_term true 
       :rule $assert_eq 

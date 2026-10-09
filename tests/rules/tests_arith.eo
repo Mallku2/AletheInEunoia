@@ -12,16 +12,41 @@
 (declare-const a Int)
 (declare-const b Real)
 
-; Case >
-(step test true 
-      :rule $assert_eq 
-      :args (($manipulate_inequality (> 
-                                      ($f_list_cons + ($f_list_cons * 1 a) 1)
-                                      ($f_list_cons + ($f_list_cons * 1 b) 2)))
+; Case <, over Int: flipped into >, and strengthened into >= 1
+(step test true
+      :rule $assert_eq
+      :args (($manipulate_inequality (< a 2))
+             (>= (- 2 a) 1)))
 
-             (>= 
-              (- ($f_list_cons * 1 a) ($f_list_cons * 1 b))
-              (- 2 1))))
+; Case <=: flipped into >=
+(step test true
+      :rule $assert_eq
+      :args (($manipulate_inequality (<= b 2.0))
+             (>= (- 2.0 b) 0)))
+
+; Case >, over Real: not strengthened
+(step test true
+      :rule $assert_eq
+      :args (($manipulate_inequality (> b 2.0))
+             (> (- b 2.0) 0)))
+
+; Case >, over mixed Int and Real: the difference is Real, so not strengthened
+(step test true
+      :rule $assert_eq
+      :args (($manipulate_inequality (> (+ a 1) (+ b 2)))
+             (> (- (+ a 1) (+ b 2)) 0)))
+
+; Case >=
+(step test true
+      :rule $assert_eq
+      :args (($manipulate_inequality (>= (+ a 1) (* -1 a)))
+             (>= (- (+ a 1) (* -1 a)) 0)))
+
+; Case =
+(step test true
+      :rule $assert_eq
+      :args (($manipulate_inequality (= a 2))
+             (= (- a 2) 0)))
 
 ;---------------------------------
 ; $add_processed_inequalities
@@ -36,6 +61,252 @@
       :args (($add_processed_inequalities (and (> 1 2)
                                                (> 1 2)))
              (> 2/1 4/1)))
+
+;---------------------------------
+; la_generic
+;---------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const x Int)
+(declare-const y Int)
+(declare-const z Int)
+(declare-const r Real)
+
+; Integer bounds, as cvc5 emits them: negated, x < 1 and x > 0 only
+; contradict once x > 0 is strengthened into x >= 1.
+(step $test_la_generic_int_bound
+      (@cl (not (< x 1)) (<= x 0))
+      :rule la_generic :args ((@varlist 1.0 1.0)))
+
+(step $test_la_generic_int_bound_sum
+      (@cl (not (< (+ x y) 1)) (<= (+ x y) 0))
+      :rule la_generic :args ((@varlist 1.0 1.0)))
+
+(step $test_la_generic_int_bound_difference
+      (@cl (not (< (+ x (* -1 y)) 3)) (<= (+ x (* -1 y)) 2))
+      :rule la_generic :args ((@varlist 1.0 1.0)))
+
+; Constant expressions, on either side.
+(step $test_la_generic_constant_expression
+      (@cl (not (<= (* -1 x) (* -1 0))) (not (<= x -1)))
+      :rule la_generic :args ((@varlist 1.0 1.0)))
+
+(step $test_la_generic_distribution
+      (@cl (not (<= (* -1 (+ x y)) (* -1 80))) (not (<= (+ x y) 79)))
+      :rule la_generic :args ((@varlist 1.0 1.0)))
+
+(step $test_la_generic_nested_sum
+      (@cl (not (<= (+ x y) 0))
+           (< (+ (+ x y) (* -1 z)) (+ 0 1))
+           (not (<= (* -1 z) 0)))
+      :rule la_generic :args ((@varlist 1.0 1.0 1.0)))
+
+; Combinations that need no strengthening.
+(step $test_la_generic_int
+      (@cl (not (<= x 0)) (not (>= x 1)))
+      :rule la_generic :args ((@varlist 1.0 1.0)))
+
+(step $test_la_generic_real
+      (@cl (not (< r 0.0)) (< r 1.0))
+      :rule la_generic :args ((@varlist 1.0 1.0)))
+
+(step $test_la_generic_three
+      (@cl (not (<= (+ x y) 0)) (not (<= (* -1 x) 0)) (not (<= (* -1 y) -1)))
+      :rule la_generic :args ((@varlist 1.0 1.0 1.0)))
+
+(step $test_la_generic_rational_coefficient
+      (@cl (not (<= (* 2 r) 1.0)) (< r 1.0))
+      :rule la_generic :args ((@varlist 1/2 1.0)))
+
+; Equalities are multiplied by their coefficient, with its sign. All the terms
+; cancel out here, so the sum is compared against an Int 0.
+(step $test_la_generic_equality
+      (@cl (not (= x y)) (not (< x y)))
+      :rule la_generic :args ((@varlist 1.0 1.0)))
+
+(step $test_la_generic_equality_negative_coefficient
+      (@cl (not (= y x)) (not (< x y)))
+      :rule la_generic :args ((@varlist -1.0 1.0)))
+
+; Invalid clauses must be rejected. Either the sum is not a contradiction, or
+; its terms do not cancel out, and the check does not reduce to true.
+(define $test_la_generic_reject_int_bound () ; x = 1
+  (eo::is_eq ($check_la_generic (@varlist 1.0 1.0)
+                                (@cl (not (< x 2)) (<= x 0)))
+             true)
+  :is_eq false)
+
+(define $test_la_generic_reject_real_bound () ; r = 1/2
+  (eo::is_eq ($check_la_generic (@varlist 1.0 1.0)
+                                (@cl (not (< r 1.0)) (<= r 0.0)))
+             true)
+  :is_eq false)
+
+(define $test_la_generic_reject_non_strict () ; x = y
+  (eo::is_eq ($check_la_generic (@varlist 1.0 1.0)
+                                (@cl (not (>= (* 1 x) (* 1 y)))
+                                     (not (>= (* 1 y) (* 1 x)))))
+             true)
+  :is_eq false)
+
+(define $test_la_generic_reject_coefficients ()
+  (eo::is_eq ($check_la_generic (@varlist 1.0 2.0)
+                                (@cl (not (<= x 0)) (not (>= x 1))))
+             true)
+  :is_eq false)
+
+(define $test_la_generic_reject_equality_sign ()
+  (eo::is_eq ($check_la_generic (@varlist -1.0 1.0)
+                                (@cl (not (= x y)) (not (< x y))))
+             true)
+  :is_eq false)
+
+;-----------------
+; la_mult_neg
+;-----------------
+; Some constants to build terms, for testing purposes.
+(declare-const a Int)
+(declare-const b Int)
+(declare-const c Int)
+(declare-const d Real)
+(declare-const e Real)
+
+; The zero of the premise may be spelled 0, 0/1 or 0.0.
+(step $test_la_mult_neg_1
+      (@cl (=> (and (< a 0) (< b c))
+              (> (* a b) (* a c))))
+      :rule la_mult_neg)
+
+(step $test_la_mult_neg_2
+      (@cl (=> (and (< d 0/1) (<= e d))
+              (>= (* d e) (* d d))))
+      :rule la_mult_neg)
+
+(step $test_la_mult_neg_3
+      (@cl (=> (and (< d 0.0) (= e d))
+              (= (* d e) (* d d))))
+      :rule la_mult_neg)
+
+; As cvc5 emits it: a literal factor and a sum.
+(step $test_la_mult_neg_4
+      (@cl (=> (and (< -1 0) (>= (+ a (* -1 b) c) 1))
+              (<= (* -1 (+ a (* -1 b) c)) (* -1 1))))
+      :rule la_mult_neg)
+
+(step $test_la_mult_neg_5
+      (@cl (=> (and (< a 0) (not (= b c)))
+              (not (= (* a b) (* a c)))))
+      :rule la_mult_neg)
+
+; Invalid conclusions must be rejected: the relation is not inverted, the
+; bound is not zero, the factors differ.
+(define $test_la_mult_neg_reject_relation ()
+  ($check_la_mult_neg (@cl (=> (and (< a 0) (< b c)) (< (* a b) (* a c)))))
+  :is_eq false)
+
+(define $test_la_mult_neg_reject_bound ()
+  ($check_la_mult_neg (@cl (=> (and (< a 1) (< b c)) (> (* a b) (* a c)))))
+  :is_eq false)
+
+(define $test_la_mult_neg_reject_factor ()
+  ($check_la_mult_neg (@cl (=> (and (< a 0) (< b c)) (> (* a b) (* b c)))))
+  :is_eq false)
+
+(define $test_la_mult_pos_reject_bound ()
+  ($check_la_mult_pos (@cl (=> (and (> a 1) (< b c)) (< (* a b) (* a c)))))
+  :is_eq false)
+
+;---------------------------------
+; poly_simp
+;---------------------------------
+; Some constants to build terms, for testing purposes.
+(declare-const x Int)
+(declare-const y Int)
+(declare-const z Int)
+(declare-const r Real)
+(declare-const s Real)
+(declare-const f (-> Int Int))
+
+; Shapes cvc5 emits: subtraction as addition of a negated term, reordering,
+; nested sums, a scaled difference equal to another scaled difference.
+(step $test_poly_simp_subtraction
+      (@cl (= (- x y) (+ x (* -1 y))))
+      :rule poly_simp)
+
+(step $test_poly_simp_reorder
+      (@cl (= (+ x y z 0 0 x) (+ x x y z)))
+      :rule poly_simp)
+
+(step $test_poly_simp_nested
+      (@cl (= (- (+ (- x y) 750) z) (+ 750 x (* -1 y) (* -1 z))))
+      :rule poly_simp)
+
+(step $test_poly_simp_scaled
+      (@cl (= (* 750 (- x (+ 750 y (* -1 z)))) (* -750 (- y (+ -750 x z)))))
+      :rule poly_simp)
+
+(step $test_poly_simp_constants
+      (@cl (= (+ (* 2 3) (- 1)) (+ 0 5)))
+      :rule poly_simp)
+
+; Beyond linear arithmetic: products, division by a constant, to_real.
+(step $test_poly_simp_product
+      (@cl (= (* (+ r 1.0) (- s r)) (+ (* r s) (* -1.0 (* r r)) s (* -1 r))))
+      :rule poly_simp)
+
+(step $test_poly_simp_division
+      (@cl (= (/ (+ r r) 2.0) (to_real r)))
+      :rule poly_simp)
+
+(step $test_poly_simp_atom
+      (@cl (= (+ (f x) (f x)) (* 2 (f x))))
+      :rule poly_simp)
+
+; Invalid equalities must be rejected.
+(define $test_poly_simp_reject_coefficient ()
+  (eo::is_eq ($get_arith_poly_norm (+ x y)) ($get_arith_poly_norm (+ x x)))
+  :is_eq false)
+
+(define $test_poly_simp_reject_constant ()
+  (eo::is_eq ($get_arith_poly_norm (+ x 1)) ($get_arith_poly_norm (+ x 2)))
+  :is_eq false)
+
+(define $test_poly_simp_reject_atom ()
+  (eo::is_eq ($get_arith_poly_norm (f (+ x 1))) ($get_arith_poly_norm (f (+ 1 x))))
+  :is_eq false)
+
+(define $test_poly_simp_reject_division_by_zero ()
+  (eo::is_eq ($get_arith_poly_norm (/ r 0.0)) ($get_arith_poly_norm (/ s 0.0)))
+  :is_eq false)
+
+;---------------------------------
+; poly_simp_rel
+;---------------------------------
+
+(step $test_poly_simp_rel_premise
+      (@cl (= (* 1 (- x (+ y z))) (* -1 (- y (+ (* -1 z) x)))))
+      :rule poly_simp)
+
+(step $test_poly_simp_rel_equality
+      (@cl (= (= x (+ y z)) (= y (+ (* -1 z) x))))
+      :rule poly_simp_rel :premises ($test_poly_simp_rel_premise))
+
+(step $test_poly_simp_rel_inequality_premise
+      (@cl (= (* -1 (- 1 (+ (+ x y (* -1 z)) 1))) (* -1 (- (+ (* -1 x) (* -1 y) z) 0))))
+      :rule poly_simp)
+
+(step $test_poly_simp_rel_inequality
+      (@cl (= (>= 1 (+ (+ x y (* -1 z)) 1)) (>= (+ (* -1 x) (* -1 y) z) 0)))
+      :rule poly_simp_rel :premises ($test_poly_simp_rel_inequality_premise))
+
+; Scaling factors: for an inequality they need the same sign; never zero.
+(define $test_poly_simp_rel_reject_signs ()
+  ($is_poly_norm_rel_consts (>= 1 -1)) :is_eq false)
+
+(define $test_poly_simp_rel_reject_zero ()
+  ($is_poly_norm_rel_consts (= 0 1)) :is_eq false)
+
+(define $test_poly_simp_rel_equality_signs ()
+  ($is_poly_norm_rel_consts (= 1 -1)) :is_eq true)
 
 ;-----------------
 ; la_mult_pos

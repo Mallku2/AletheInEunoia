@@ -25,7 +25,17 @@ python3 benchmark.py ../Benchmarks/QF_UF \
   --rare-profile qf-uf \
   --elaborate --sample 100 --seed 20260929 --workers 10 \
   --output /tmp/eunoia-qfuf
+
+python3 benchmark.py ../Benchmarks/QF_LIA \
+  --problem-root ../cvc5/sample/QF_LIA \
+  --rare-profile qf-lia \
+  --elaborate --keep-going --output /tmp/eunoia-qflia
 ```
+
+`--rare-profile qf-lia` keeps the Boolean/UF rules of `qf-uf` plus the `arith-*`
+ones. Carcara is run with `--expand-let-bindings` (disable with
+`--no-expand-lets`): the arithmetic RARE rules use `let`, which the
+translator does not support.
 
 ### Outputs
 
