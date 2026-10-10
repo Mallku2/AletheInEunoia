@@ -1,8 +1,9 @@
 (include "../../signature/rules/alethe.eo")
 
 ; Unit tests for the evaluate rule: (= t v), where v is the value of the
-; constant term t. The right-hand side is computed by $eval and must match the
-; certificate's syntactically.
+; constant term t. The right-hand side is given by the certificate, and must be
+; the value computed by $eval: the same term, or the same rational for numeric
+; literals.
 
 (declare-const p Bool)
 (declare-const x Int)
@@ -43,6 +44,20 @@
 (step $test_evaluate_not_leq (@cl (= (not (<= 3 (* 2 1))) true)) :rule evaluate :args ((not (<= 3 (* 2 1)))))
 (step $test_evaluate_mixed (@cl (= (< 1/2 1) true)) :rule evaluate :args ((< 1/2 1)))
 
+; Division and to_real, as cvc5 prints them: their values are rationals.
+(step $test_evaluate_div (@cl (= (/ 1.0 2.0) 1/2)) :rule evaluate :args ((/ 1.0 2.0)))
+(step $test_evaluate_div_scaled (@cl (= (* (- (/ 3.0 2.0)) (* (- 2.0) 1)) 3.0)) :rule evaluate :args ((* (- (/ 3.0 2.0)) (* (- 2.0) 1))))
+(step $test_evaluate_to_real (@cl (= (to_real 0) 0.0)) :rule evaluate :args ((to_real 0)))
+(step $test_evaluate_to_real_sum (@cl (= (+ (to_real 1) 1/2) 3/2)) :rule evaluate :args ((+ (to_real 1) 1/2)))
+
+; cvc5 prints rationals in decimal notation.
+(step $test_evaluate_decimal (@cl (= (+ 0.5 0.5) 1.0)) :rule evaluate :args ((+ 0.5 0.5)))
+(step $test_evaluate_decimal_half (@cl (= (/ 1.0 2.0) 0.5)) :rule evaluate :args ((/ 1.0 2.0)))
+; ... and rational values as quotients or negations.
+(step $test_evaluate_quotient_value (@cl (= (* (/ 1.0 7.0) 1.0) (/ 1.0 7.0))) :rule evaluate :args ((* (/ 1.0 7.0) 1.0)))
+(step $test_evaluate_negative_value (@cl (= (to_real -1) (- 1.0))) :rule evaluate :args ((to_real -1)))
+(step $test_evaluate_negative_quotient (@cl (= (* (- (/ 240.0 89.0)) 3.0) (- (/ 720.0 89.0)))) :rule evaluate :args ((* (- (/ 240.0 89.0)) 3.0)))
+
 ;-----------
 ; Rejection
 ;-----------
@@ -52,7 +67,16 @@
 (define $test_evaluate_reject_relation () (eo::is_ok ($eval (< x 1))) :is_eq false)
 (define $test_evaluate_reject_real () (eo::is_ok ($eval (* 2.0 r))) :is_eq false)
 (define $test_evaluate_reject_bool () (eo::is_ok ($eval (and p true))) :is_eq false)
+(define $test_evaluate_reject_to_real () (eo::is_ok ($eval (to_real x))) :is_eq false)
+
+; A division by zero has no value either.
+(define $test_evaluate_reject_div_zero () (eo::is_ok ($eval (/ 1.0 0.0))) :is_eq false)
+; It is not folded, but kept as a term, like an uninterpreted constant.
+(define $test_fold_div_zero () ($fold_constants (+ 1 (/ 1.0 0.0))) :is_eq (+ 1 (/ 1.0 0.0)))
 
 ; A wrong value is simply a different term.
 (define $test_evaluate_wrong_value () (eo::is_eq ($eval (+ 0 1)) 2) :is_eq false)
 (define $test_evaluate_wrong_relation () (eo::is_eq ($eval (< 1 0)) true) :is_eq false)
+(define $test_evaluate_wrong_decimal () ($eval_matches ($eval (/ 1.0 2.0)) 0.4) :is_eq false)
+(define $test_evaluate_wrong_quotient () ($eval_matches ($eval (* (/ 1.0 7.0) 1.0)) (/ 1.0 8.0)) :is_eq false)
+(define $test_evaluate_wrong_bool () ($eval_matches ($eval (< 1 0)) true) :is_eq false)

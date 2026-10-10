@@ -10,13 +10,14 @@
 
 ; Some constants to build arith terms for testing purposes
 (declare-const a Int)
+(declare-const a2 Int)
 (declare-const b Real)
 
-; Case <, over Int: flipped into >, and strengthened into >= 1
+; Case <: flipped into > (the strengthening is left to $tighten)
 (step test true
       :rule $assert_eq
       :args (($manipulate_inequality (< a 2))
-             (>= (- 2 a) 1)))
+             (> (- 2 a) 0)))
 
 ; Case <=: flipped into >=
 (step test true
@@ -24,17 +25,11 @@
       :args (($manipulate_inequality (<= b 2.0))
              (>= (- 2.0 b) 0)))
 
-; Case >, over Real: not strengthened
+; Case >
 (step test true
       :rule $assert_eq
       :args (($manipulate_inequality (> b 2.0))
              (> (- b 2.0) 0)))
-
-; Case >, over mixed Int and Real: the difference is Real, so not strengthened
-(step test true
-      :rule $assert_eq
-      :args (($manipulate_inequality (> (+ a 1) (+ b 2)))
-             (> (- (+ a 1) (+ b 2)) 0)))
 
 ; Case >=
 (step test true
@@ -46,6 +41,88 @@
 (step test true
       :rule $assert_eq
       :args (($manipulate_inequality (= a 2))
+             (= (- a 2) 0)))
+
+;---------------------------------
+; $tighten
+;---------------------------------
+
+; Over Int, t > 0 is t >= 1: 2 - a > 0 is 2 - a >= 1
+(step test true
+      :rule $assert_eq
+      :args (($tighten (> (- 2 a) 0))
+             (>= (- 2 a) 1/1)))
+
+; Over Real: unchanged
+(step test true
+      :rule $assert_eq
+      :args (($tighten (> (- b 2.0) 0))
+             (> (- b 2.0) 0)))
+
+; Over mixed Int and Real: b is not an integer, so unchanged
+(step test true
+      :rule $assert_eq
+      :args (($tighten (> (- (+ a 1) (+ b 2)) 0))
+             (> (- (+ a 1) (+ b 2)) 0)))
+
+; >=, with gcd 1: unchanged bound
+(step test true
+      :rule $assert_eq
+      :args (($tighten (>= (- a 2) 0))
+             (>= (- a 2) 0/1)))
+
+; >=, with gcd 2: 2a + 1 >= 0 is 2a + 1 >= 1
+(step test true
+      :rule $assert_eq
+      :args (($tighten (>= (- (+ a 1) (* -1 a)) 0))
+             (>= (- (+ a 1) (* -1 a)) 1/1)))
+
+; >, with gcd 2: -2a - 2 > 0 is -2a - 2 >= 2, i.e., -2a >= 4
+(step test true
+      :rule $assert_eq
+      :args (($tighten (> (- (* -2 a) 2) 0))
+             (>= (- (* -2 a) 2) 2/1)))
+
+; >, with gcd 4: 4a - 5 > 0 is 4a - 5 >= 3, i.e., 4a >= 8
+(step test true
+      :rule $assert_eq
+      :args (($tighten (> (- (* 4 a) 5) 0))
+             (>= (- (* 4 a) 5) 3/1)))
+
+; An Int under to_real is still an integer: a - 1/2 > 0 is a - 1/2 >= 1/2
+(step test true
+      :rule $assert_eq
+      :args (($tighten (> (- (to_real a) 0.5) 0))
+             (>= (- (to_real a) 0.5) 1/2)))
+
+; Like terms are combined: 2a + 2a - 1 > 0 is 4a - 1 > 0, with gcd 4 and
+; constant -1, so it becomes 4a - 1 >= 3, i.e., 4a >= 4
+(step test true
+      :rule $assert_eq
+      :args (($tighten (> (+ (* 2 a) (* 2 a) -1) 0))
+             (>= (+ (* 2 a) (* 2 a) -1) 3/1)))
+
+; A difference of sums: (2a + 3) - (4a2 + 6) > 0 has gcd 2 and constant -3,
+; so it becomes ... >= 1
+(step test true
+      :rule $assert_eq
+      :args (($tighten (> (- (+ (* 2 a) 3) (+ (* 4 a2) 6)) 0))
+             (>= (- (+ (* 2 a) 3) (+ (* 4 a2) 6)) 1/1)))
+
+; Unchanged: a rational coefficient, a division (typed Int here), and =
+(step test true
+      :rule $assert_eq
+      :args (($tighten (> (- (* 1/2 (to_real a)) 0.0) 0))
+             (> (- (* 1/2 (to_real a)) 0.0) 0)))
+
+(step test true
+      :rule $assert_eq
+      :args (($tighten (> (- (/ a a2) 0) 0))
+             (> (- (/ a a2) 0) 0)))
+
+(step test true
+      :rule $assert_eq
+      :args (($tighten (= (- a 2) 0))
              (= (- a 2) 0)))
 
 ;---------------------------------
@@ -127,6 +204,39 @@
       (@cl (not (= y x)) (not (< x y)))
       :rule la_generic :args ((@varlist -1.0 1.0)))
 
+; Strengthening by the gcd of the coefficients. The first step is the example
+; of Carcara's `strengthen`: -2n > 2 is tightened into -2n >= 4.
+(step $test_la_generic_gcd_strict
+      (@cl (not (<= (- 1) x)) (not (<= (- 1) (+ x y))) (<= (- 2) (* 2 x)) (not (<= y 1)))
+      :rule la_generic :args ((@varlist 1 1 1 1)))
+
+(step $test_la_generic_gcd_bound
+      (@cl (not (> (* 4 x) 5)) (>= (* 4 x) 8))
+      :rule la_generic :args ((@varlist 1.0 1.0)))
+
+; Also for >=, which neither the specification nor Carcara tighten:
+; 2x + 2y >= 1 and 2x + 2y <= 1 have no integer solution.
+(step $test_la_generic_gcd_non_strict
+      (@cl (< (+ (* 2 x) (* 2 y)) 1) (> (+ (* 2 x) (* 2 y)) 1))
+      :rule la_generic :args ((@varlist 1.0 1.0)))
+
+; cvc5's MACRO_ARITH_SCALE_SUM_UB, as la_generic: the last literal is the sum
+; of the premises scaled by their coefficients, written with (/ 1.0 2.0).
+(declare-const w Int)
+(step $test_la_generic_scaled_sum
+      (@cl (not (<= (+ y (* -1 z) (* -1 w)) 0))
+           (not (>= (+ x (* 2 y) (* -1 z) (* -1 w)) 1))
+           (not (< (+ x z w) 1))
+           (< (+ (+ y (* -1 z) (* -1 w))
+                 (* (- (/ 1.0 2.0)) (+ x (* 2 y) (* -1 z) (* -1 w)))
+                 (* (/ 1.0 2.0) (+ x z w)))
+              (+ 0 (* (- (/ 1.0 2.0)) 1) (* (/ 1.0 2.0) 1))))
+      :rule la_generic :args ((@varlist 1 (/ 1.0 2.0) (/ 1.0 2.0) 1.0)))
+
+; Not supported: `$evaluate_arith_term` does not identify (to_real x) with x,
+; so (@cl (not (> (to_real x) 0.5)) (>= x 1)) fails to check, as it did
+; before. `$tighten` itself handles to_real (see its tests).
+
 ; Invalid clauses must be rejected. Either the sum is not a contradiction, or
 ; its terms do not cancel out, and the check does not reduce to true.
 (define $test_la_generic_reject_int_bound () ; x = 1
@@ -157,6 +267,47 @@
 (define $test_la_generic_reject_equality_sign ()
   (eo::is_eq ($check_la_generic (@varlist -1.0 1.0)
                                 (@cl (not (= x y)) (not (< x y))))
+             true)
+  :is_eq false)
+
+(define $test_la_generic_reject_zero_coefficient () ; 0 * (r > 0) is not 0 > 0
+  (eo::is_eq ($check_la_generic (@varlist 0.0) (@cl (<= r 0.0)))
+             true)
+  :is_eq false)
+
+(define $test_la_generic_reject_real_strengthening () ; r = 5/2
+  (eo::is_eq ($check_la_generic (@varlist 1.0 1.0)
+                                (@cl (not (> r 2.0)) (>= r 3.0)))
+             true)
+  :is_eq false)
+
+(define $test_la_generic_reject_gcd_bound () ; x = 2
+  (eo::is_eq ($check_la_generic (@varlist 1.0 1.0)
+                                (@cl (not (> (* 4 x) 5)) (>= (* 4 x) 9)))
+             true)
+  :is_eq false)
+
+(define $test_la_generic_reject_rational_coefficient () ; x = 1
+  (eo::is_eq ($check_la_generic (@varlist 1.0 1.0)
+                                (@cl (not (> (* 1/2 (to_real x)) 0.0)) (>= x 2)))
+             true)
+  :is_eq false)
+
+(define $test_la_generic_reject_scaled_sum () ; a wrong coefficient
+  (eo::is_eq ($check_la_generic (@varlist 1 (/ 1.0 3.0) (/ 1.0 2.0) 1.0)
+                                (@cl (not (<= (+ y (* -1 z) (* -1 w)) 0))
+                                     (not (>= (+ x (* 2 y) (* -1 z) (* -1 w)) 1))
+                                     (not (< (+ x z w) 1))
+                                     (< (+ (+ y (* -1 z) (* -1 w))
+                                           (* (- (/ 1.0 2.0)) (+ x (* 2 y) (* -1 z) (* -1 w)))
+                                           (* (/ 1.0 2.0) (+ x z w)))
+                                        (+ 0 (* (- (/ 1.0 2.0)) 1) (* (/ 1.0 2.0) 1)))))
+             true)
+  :is_eq false)
+
+(define $test_la_generic_reject_division () ; x = 1, y = 2
+  (eo::is_eq ($check_la_generic (@varlist 1.0 1.0)
+                                (@cl (not (> (/ x y) 0)) (>= (/ x y) 1)))
              true)
   :is_eq false)
 

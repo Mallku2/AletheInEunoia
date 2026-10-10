@@ -1608,7 +1608,7 @@
 
 ; program: $fold_binary
 ; args:
-; - op (-> A A A): +, * or binary -.
+; - op (-> A A A): +, *, binary - or /.
 ; - lhs A, rhs A: Operands, already folded.
 ; return: (op lhs rhs), evaluated when both operands are numeric literals.
 (program $fold_binary ((A Type) (op (-> A A A)) (lhs A) (rhs A :list))
@@ -1638,6 +1638,14 @@
                              (eo::add (eo::to_q lhs) (eo::neg (eo::to_q rhs))))
                     (- lhs rhs))
            )
+          (; A division by zero is left as is: its value is unspecified.
+           ($fold_binary / lhs rhs)
+           (eo::ite (eo::and ($is_numeric_literal lhs) ($is_numeric_literal rhs))
+                    (eo::ite (eo::eq (eo::to_q rhs) 0/1)
+                             (/ lhs rhs)
+                             (eo::qdiv (eo::to_q lhs) (eo::to_q rhs)))
+                    (/ lhs rhs))
+           )
           )
          )
 
@@ -1647,8 +1655,10 @@
 ; return: >
 ;   `term`, with every constant subterm folded into a numeric literal. The
 ;   ordering of `$reorder_arith_term` takes any non-literal for a variable, so
-;   constant expressions, like cvc5's (* -1 80) or (+ 0 1), are folded first.
-;   Integer literals stay integers.
+;   constant expressions, like cvc5's (* -1 80), (+ 0 1), (/ 1.0 2.0) or
+;   (to_real 0), are folded first. Integer literals stay integers, except
+;   under / and to_real, whose values are rationals. A division by zero is
+;   not folded.
 (program $fold_constants ((A Type) (lhs A) (rhs A :list) (term A))
          :signature (A) A
          (
@@ -1663,6 +1673,15 @@
           (
            ($fold_constants (- lhs rhs))
            ($fold_binary - ($fold_constants lhs) ($fold_constants rhs))
+           )
+          (
+           ($fold_constants (/ lhs rhs))
+           ($fold_binary / ($fold_constants lhs) ($fold_constants rhs))
+           )
+          (
+           ($fold_constants (to_real term))
+           (eo::define ((t ($fold_constants term)))
+             (eo::ite ($is_numeric_literal t) (eo::to_q t) (to_real t)))
            )
           (
            ($fold_constants (- term))
@@ -1697,5 +1716,26 @@
               ($normalize_arith_term 
                ($build_proper_monomials ($fold_constants term))))))
           )
+          )
+         )
+
+; program: $gcd
+; args:
+; - a Int: An integer.
+; - b Int: An integer.
+; return: >
+;   The greatest common divisor of `a` and `b`, which is non-negative, and 0
+;   only when both are 0.
+(program $gcd ((a Int) (b Int))
+         :signature (Int Int) Int
+         (
+          (
+           ($gcd a 0)
+           (eo::ite (eo::is_neg a) (eo::neg a) a)
+           )
+          (
+           ($gcd a b)
+           ($gcd b (eo::zmod a b))
+           )
           )
          )

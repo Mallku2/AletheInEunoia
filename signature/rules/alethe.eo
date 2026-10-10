@@ -903,7 +903,7 @@
 ;   - every term is moved to the left-hand side, so adding the resulting
 ;     inequalities cancels their variables, and leaves constants on the
 ;     right-hand side
-;   - over Int, (> (- lhs rhs) 0) is strengthened into (>= (- lhs rhs) 1)
+;   The strengthening over the integers is left to `$tighten`.
 (program $manipulate_inequality ((T Type) (U Type) (lhs T) (rhs U))
          :signature (Bool) Bool
          (
@@ -917,9 +917,7 @@
            )
           (
            ($manipulate_inequality (> lhs rhs))
-           (eo::ite (eo::is_eq (eo::typeof (- lhs rhs)) Int)
-                    (>= (- lhs rhs) 1)
-                    (> (- lhs rhs) 0))
+           (> (- lhs rhs) 0)
            )
           (
            ($manipulate_inequality (>= lhs rhs))
@@ -929,6 +927,112 @@
            ($manipulate_inequality (= lhs rhs))
            (= (- lhs rhs) 0)
            )
+          )
+         )
+
+; Step 4: tightening
+;--------------------
+; Over the integers, the left-hand side `t` of an inequality (⋈ t 0) only
+; takes values in a lattice c + gℤ: `c` is the constant of the polynomial of
+; `t`, and `g` is the gcd of its other coefficients, when they are integers
+; and their atoms denote integers. Then t > 0 and t >= 0 are equivalent to t >= k, where `k` is the
+; least value of the lattice that is > 0 or >= 0.
+
+; program: $poly_constant
+; args:
+; - p @Polynomial: A polynomial.
+; return: >
+;   The coefficient of the constant monomial of `p`, or 0/1 if it has none.
+(program $poly_constant ((c Real) (a eo::List) (p @Polynomial :list))
+         :signature (@Polynomial) Real
+         (
+          (($poly_constant @poly.zero)                       0/1)
+          (($poly_constant (@poly (@mon eo::List::nil c) p)) c)
+          (($poly_constant (@poly (@mon a c) p))             ($poly_constant p))
+          )
+         )
+
+; program: $integer_atoms
+; args:
+; - a eo::List: The atoms of a monomial.
+; return: >
+;   True if every atom of `a` denotes an integer: its type is Int, and it is
+;   not a division (in this signature, / of two Int terms is typed Int).
+(program $integer_atoms ((T Type) (U Type) (x T) (y U) (xs eo::List :list))
+         :signature (eo::List) Bool
+         (
+          (($integer_atoms eo::List::nil)                 true)
+          (($integer_atoms (eo::List::cons (/ x y) xs))  false)
+          (($integer_atoms (eo::List::cons x xs))
+           (eo::ite (eo::is_eq (eo::typeof x) Int) ($integer_atoms xs) false))
+          )
+         )
+
+; program: $poly_int_gcd
+; args:
+; - p @Polynomial: A polynomial.
+; - g Int: The gcd of the coefficients already visited (0 at first).
+; return: >
+;   The gcd of the coefficients of the non-constant monomials of `p`, when they
+;   are all integers and all of their atoms denote integers (then the
+;   non-constant part of `p` only takes values that are multiples of the gcd).
+;   0 otherwise, and when `p` is a constant.
+(program $poly_int_gcd ((c Real) (a eo::List) (p @Polynomial :list) (g Int))
+         :signature (@Polynomial Int) Int
+         (
+          (($poly_int_gcd @poly.zero g)                       g)
+          (($poly_int_gcd (@poly (@mon eo::List::nil c) p) g) ($poly_int_gcd p g))
+          (($poly_int_gcd (@poly (@mon a c) p) g)
+           (eo::define ((z (eo::to_z c)))
+            (eo::ite (eo::and (eo::is_eq (eo::to_q z) c) ($integer_atoms a))
+                     ($poly_int_gcd p ($gcd g z))
+                     0)))
+          )
+         )
+
+; program: $tightened_bound
+; args:
+; - rel (-> A A Bool): > or >=.
+; - c Real: A rational.
+; - g Real: A positive integer, as a rational.
+; return: >
+;   The least value of the lattice c + gℤ that is `rel 0`. For >=, it is
+;   c - g * floor(c / g), i.e., c mod g. For >, it is the same, unless that is
+;   0: then it is g.
+(program $tightened_bound ((A Type) (c Real) (g Real))
+         :signature ((-> A A Bool) Real Real) Real
+         (
+          (($tightened_bound >= c g)
+           (eo::add c (eo::neg (eo::mul g (eo::to_q (eo::to_z (eo::qdiv c g)))))))
+          (($tightened_bound > c g)
+           (eo::define ((r ($tightened_bound >= c g)))
+            (eo::ite (eo::is_eq r 0/1) g r)))
+          )
+         )
+
+; program: $tighten
+; args:
+; - inequality Bool: >
+;   An inequality (⋈ t 0), as returned by `$manipulate_inequality`.
+; return: >
+;   The inequality strengthened over the integers (step 4 of the
+;   specification): t > 0 and t >= 0 become t >= k, with `k` from
+;   `$tightened_bound`, when `t` takes values in a lattice c + gℤ. Otherwise,
+;   and for =, the inequality is unchanged.
+; note: >
+;   With g = 1, this is the table of the specification. The gcd also
+;   tightens >=, which neither the specification nor Carcara do. Unlike
+;   Carcara, Real atoms are never strengthened.
+(program $tighten ((T Type) (rel (-> T T Bool)) (t T) (z T))
+         :signature (Bool) Bool
+         (
+          (($tighten (= t z)) (= t z))
+          (($tighten (rel t z))
+           (eo::define ((p ($get_arith_poly_norm t)))
+            (eo::define ((g ($poly_int_gcd p 0)))
+             (eo::ite (eo::is_eq g 0)
+                      (rel t z)
+                      (>= t ($tightened_bound rel ($poly_constant p) (eo::to_q g)))))))
           )
          )
 
@@ -979,11 +1083,14 @@
              ; to convert it into a numeric literal, so $abs can be applied.
              (evaluated_coeff ($evaluate_arith_term coeff))
              )
-            
-            (order 
-             ($f_list_cons * ($abs evaluated_coeff) lhs)
 
-             ($f_list_cons * ($abs evaluated_coeff) rhs)))
+            ; A zero coefficient drops the inequality: 0 * (t > 0) is not 0 > 0.
+            (eo::ite (eo::eq (eo::to_q evaluated_coeff) 0/1)
+                     (= 0.0 0.0)
+                     (order
+                      ($f_list_cons * ($abs evaluated_coeff) lhs)
+
+                      ($f_list_cons * ($abs evaluated_coeff) rhs))))
            )
           )
          )
@@ -1075,8 +1182,8 @@
 ; return: >
 ;   The negation of the given clause, in the form of the conjunction of its 
 ;   negated disjuntcs (inequalities). Each inequality i is also manipulated
-;   according to `$manipulate_inequality`, and multiplied with coefficient i
-;   from the given `coefficients` `@VarList`.
+;   according to `$manipulate_inequality`, strengthened by `$tighten`, and
+;   multiplied with coefficient i from the given `coefficients` `@VarList`.
 (program $process_inequalities ((A Type) (coeff A) (coeffs @VarList :list)
                                 (ineq Bool) (ineqs Bool :list))
          :signature (@VarList Bool) Bool
@@ -1090,8 +1197,9 @@
             and
 
             ($apply_coefficients
-             ($manipulate_inequality
-               ($negate_inequality ineq))
+             ($tighten
+              ($manipulate_inequality
+               ($negate_inequality ineq)))
              coeff)
 
             ($process_inequalities coeffs ineqs))
@@ -5582,15 +5690,37 @@
           )
          )
 
+; program: $eval_matches
+; args:
+; - a T: A value computed by $eval.
+; - v T: The value given by the certificate.
+; return: >
+;   True if `v` denotes the value `a`. cvc5 prints a rational value as a
+;   decimal (0.0), a quotient (/ 1.0 7.0) or a negation (- 1.0), so `v` is
+;   folded by `$fold_constants`, and numeric values are compared as
+;   rationals. Other values must be the same term.
+(program $eval_matches ((T Type) (a T) (v T))
+         :signature (T T) Bool
+         (
+          (($eval_matches a v)
+           (eo::define ((w ($fold_constants v)))
+            (eo::ite (eo::and ($is_numeric_literal a) ($is_numeric_literal w))
+                     (eo::eq (eo::to_q a) (eo::to_q w))
+                     (eo::is_eq a v))))
+          )
+         )
+
 ; rule: evaluate
 ; args:
 ; - t T: The term to evaluate (the left-hand side of the equality).
+; requires: >
+;   The right-hand side `v` of the conclusion is the value computed by $eval,
+;   according to `$eval_matches`.
 ; conclusion: >
-;   A singleton clause holding (= t v), where v is the value computed by
-;   $eval.  The certificate only supplies t; the right-hand side is
-;   normalized in the conclusion.  Unevaluable terms stay stuck and the
+;   A singleton clause holding (= t v). Unevaluable terms stay stuck and the
 ;   application is rejected.
-(declare-rule evaluate ((T Type) (t T))
+(declare-rule evaluate ((T Type) (t T) (v T))
   :args (t)
-  :conclusion (@cl (= t ($eval t)))
+  :requires ((($eval_matches ($eval t) v) true))
+  :conclusion-explicit (@cl (= t v))
   )
